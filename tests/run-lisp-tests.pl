@@ -36,16 +36,14 @@ chomp $abs_srcdir;
 my $srcdir = $ENV{srcdir} || ".";
 my $builddir = $ENV{builddir} || ".";
 
-my $zile_pass = 0;
-my $zile_fail = 0;
-my $emacs_pass = 0;
-my $emacs_fail = 0;
+my $passes = 0;
+my $failures = 0;
 
-my @zile_cmd = ("$builddir/src/zile");
-unshift @zile_cmd, (split ' ', $ENV{VALGRIND}) if $ENV{VALGRIND};
+my $editor_name = $ENV{EDITOR_NAME};
+my @editor_cmd = split ' ', $ENV{EDITOR_CMD};
 
 sub run_test {
-  my ($test, $name, $editor_name, $edit_file, @args) = @_;
+  my ($test, $name, $edit_file, @args) = @_;
   copy("$srcdir/tests/test.input", $edit_file);
   chmod 0644, $edit_file;
   if (system(@args) == 0) {
@@ -74,24 +72,13 @@ for my $test (@ARGV) {				# ../tests/zile-only/backward_delete_char.el
 
   mkpath(dirname($edit_file));
 
-  if ($ENV{EMACSPROG}) {
-    if (run_test($test, $name, "Emacs", $edit_file, $ENV{EMACSPROG}, @args, "--batch", "--quick")) {
-      $emacs_pass++;
-    } else {
-      $emacs_fail++;
-      rename $edit_file, "$edit_file-emacs";
-      rename "$edit_file~", "$edit_file-emacs~";
-    }
-  }
-
-  if (run_test($test, $name, "Zile", $edit_file, @zile_cmd, @args)) {
-    $zile_pass++;
+  if (run_test($test, $name, $edit_file, @editor_cmd, @args)) {
+    $passes++;
   } else {
-    $zile_fail++;
+    $failures++;
   }
 }
 
-print STDERR "Zile: $zile_pass pass(es) and $zile_fail failure(s)\n";
-print STDERR "Emacs: $emacs_pass pass(es) and $emacs_fail failure(s)\n";
+print STDERR "$editor_name: $passes pass(es) and $failures failure(s)\n";
 
-exit $zile_fail + $emacs_fail;
+exit $failures;
