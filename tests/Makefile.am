@@ -222,8 +222,10 @@ LISP_ALL_TESTS =					\
 	$(LISP_TESTS_ZILE_ONLY)				\
 	$(LISP_TESTS_ZILE_ONLY_FIXED_SCREEN)
 
+#export LSAN_OPTIONS=suppressions=$(srcdir)/build-aux/asan-suppressions.txt;
 LISP_TESTS_ENVIRONMENT =				\
-	export LSAN_OPTIONS=suppressions=$(srcdir)/build-aux/asan-suppressions.txt; \
+	export ASAN_OPTIONS=fast_unwind_on_malloc=0	\
+	export LSAN_OPTIONS=detect_leaks=0		\
 	export abs_srcdir=$(abs_srcdir);		\
 	export srcdir=$(srcdir);			\
 	export TERM=$(TERM);

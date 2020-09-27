@@ -67,10 +67,19 @@ if test "$gl_gcc_warnings" = yes; then
     gl_WARN_ADD([$w])
   done
 
-  dnl Add an extra warning
-  gl_WARN_ADD([-Wconversion])
   dnl Remove a warning being promoted to error: we trigger this and can't turn it off with pragmas.
   gl_WARN_ADD([-Wno-error=format-security])
+  dnl Disable warnings triggered by valac-generated code
+  gl_WARN_ADD([-Wno-unused-parameter])
+  gl_WARN_ADD([-Wno-format-extra-args])
+  gl_WARN_ADD([-Wno-unused-macros])
+  gl_WARN_ADD([-Wno-unused-but-set-variable])
+  gl_WARN_ADD([-Wno-suggest-attribute=const])
+  gl_WARN_ADD([-Wno-suggest-attribute=pure])
+  gl_WARN_ADD([-Wno-suggest-attribute=format])
+  gl_WARN_ADD([-Wno-suggest-attribute=malloc])
+  gl_WARN_ADD([-Wno-suggest-attribute=noreturn])
+  gl_WARN_ADD([-Wno-unused-variable])
 
   # When compiling with GCC, prefer -isystem to -I when including system
   # include files, to avoid generating useless diagnostics for the files.
@@ -93,12 +102,13 @@ if test "$enable_debug" = "yes"; then
   AC_DEFINE([DEBUG], 1, [Define this to include extra debugging code.])
 fi
 
+dnl Vala
+AM_PROG_VALAC(,,[AC_MSG_ERROR([cannot find valac])])
+PKG_CHECK_MODULES(GLIB, [glib-2.0 gobject-2.0 gio-2.0])
+
 dnl help2man
 dnl Set a value even if not found, so that an invocation via build-aux/missing works
 AC_PATH_PROG([HELP2MAN], [help2man], [help2man])
-
-dnl Code complexity reports
-AC_PATH_PROG([PMCCABE], [pmccabe], [false])
 
 dnl Checks for functions and headers
 AC_HEADER_STDC
@@ -117,6 +127,8 @@ AC_COMPILE_IFELSE(
  [AC_MSG_RESULT([no])
  with_included_regex=yes])
 gl_INIT
+AS_IF([test "$with_included_regex" = "yes"], [VALA_REGEX_LARGE_OFFSETS="-D _REGEX_LARGE_OFFSETS"])
+AC_SUBST([VALA_REGEX_LARGE_OFFSETS])
 
 dnl Curses
 AX_WITH_CURSES
@@ -124,17 +136,6 @@ if test "$ax_cv_curses" != "yes"; then
   AC_MSG_ERROR([cannot find curses])
 fi
 AC_ARG_VAR(CURSES_LIB, [linker flags for curses library])
-
-dnl libgc (BDW garbage collector)
-PKG_CHECK_MODULES([LIBGC],[bdw-gc >= 7.2])
-AH_BOTTOM([
-#define malloc GC_malloc
-#define realloc GC_realloc
-#define free GC_free
-#define strdup GC_strdup
-#define strndup GC_strndup
-#define calloc zile_calloc
-])
 
 dnl Emacs
 AC_PATH_PROG([EMACSPROG], [emacs])
@@ -156,5 +157,5 @@ fi
 
 dnl Generate output
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile lib/Makefile src/tbl_opts.h])
+AC_CONFIG_FILES([Makefile lib/Makefile])
 AC_OUTPUT

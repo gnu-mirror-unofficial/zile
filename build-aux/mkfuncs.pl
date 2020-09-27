@@ -1,6 +1,6 @@
-# Generate tbl_funcs.h
+# Generate tbl_funcs.vala
 #
-# Copyright (c) 2010-2011 Free Software Foundation, Inc.
+# Copyright (c) 2010-2020 Free Software Foundation, Inc.
 #
 # This file is part of GNU Zile.
 #
@@ -26,17 +26,7 @@ use Zile;
 my %bindings = get_bindings(shift);
 my $dir = shift;
 
-open OUT, ">src/tbl_funcs.h" or die;
-
-print OUT <<END;
-/*
- * Automatically generated file: DO NOT EDIT!
- * $ENV{PACKAGE_NAME} command to C function bindings and docstrings.
- * Generated from C sources.
- */
-
-END
-
+my (@names, @cnames, @funcs, @interactives, @docs);
 foreach my $file (@ARGV) {
   open IN, "<$dir/$file" or die;
   while (<IN>) {
@@ -55,7 +45,7 @@ foreach my $file (@ARGV) {
             last;
           }
           $doc .= $_;
-        } elsif (m|^/\*\+|) {
+        } elsif (m|^/?\*\+|) {
           $state = 1;
         }
       }
@@ -63,11 +53,22 @@ foreach my $file (@ARGV) {
       die "no docstring for $name\n" if $doc eq "";
       die "unterminated docstring for $name\n" if $state == 1;
 
+      push @names, $name;
       my $cname = $name;
       $cname =~ s/-/_/g;
-      $doc =~ s/\n/\\n\\\n/g;
+      push @cnames, $cname;
+      push @interactives, $interactive;
       $doc = expand_keystrokes($doc, \%bindings);
-      print OUT "X(\"$name\", $cname, " . ($interactive ? "true" : "false") . ", \"\\\n$doc\")\n";
+      push @docs, $doc;
+      $doc =~ s/\n/\\n\\\n/g;
     }
   }
 }
+
+open OUT, ">src/tbl_funcs.vala" or die;
+print OUT "Fentry fentry_table[" . scalar(@cnames) . "];\n";
+print OUT "public void init_fentry () {\n";
+for (my $i = 0; $i < scalar(@names); $i++) {
+  print OUT "\tfentry_table[$i] = Fentry () {\n\t\tname = \"$names[$i]\",\n\t\tfunc = (void *) F_$cnames[$i],\n\t\tinteractive = " . ($interactives[$i] ? "true" : "false") . ",\n\t\tdoc = \"$docs[$i]\"\n\t};\n";
+}
+print OUT "}\n";

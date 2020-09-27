@@ -1,4 +1,4 @@
-# Generate tbl_bindings.h
+# Generate tbl_bindings.vala
 #
 # Copyright (c) 2020 Free Software Foundation, Inc.
 #
@@ -21,8 +21,7 @@
 
 use Zile;
 
-open OUT, ">src/tbl_bindings.h" or die;
-
+open OUT, ">src/tbl_bindings.vala" or die;
 print OUT <<END;
 /*
  * Automatically generated file: DO NOT EDIT!
@@ -33,10 +32,10 @@ print OUT <<END;
 END
 
 my %bindings = get_bindings($ARGV[0]);
-print OUT "\"\\\n";
+print OUT "unowned string default_bindings = \"\"\"";
 for my $key (keys %bindings) {
   foreach my $binding (@{$bindings{$key}}) {
-    print OUT "(global-set-key \\\"" . escape_for_C($binding) . "\\\" '$key)\\\n";
+    print OUT "(global-set-key \"$binding\" '$key)\n";
   }
 }
-print OUT "\"\n";
+print OUT "\"\"\";\n";

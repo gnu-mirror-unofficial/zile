@@ -32,11 +32,14 @@ VC_LIST_ALWAYS_EXCLUDE_REGEX = \.(output|diff)$$
 translation_project_ =
 
 local-checks-to-skip = \
+	sc_prohibit_strcmp \
 	sc_bindtextdomain \
 	sc_error_message_period \
-	sc_error_message_uppercase
+	sc_error_message_uppercase \
+	sc_unmarked_diagnostics
 
 # Rationale:
 #
-# sc_bindtextdomain: Emacs isn't internationalised
+# sc_prohibit_strcmp: Vala needs this for now; FIXME
+# sc_{bindtextdomain,unmarked_diagnostics}: Emacs isn't internationalised
 # sc_error_message_{period,uppercase}: Emacs does these

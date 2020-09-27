@@ -1,6 +1,6 @@
 /* Dynamically allocated strings
 
-   Copyright (c) 2001-2014 Free Software Foundation, Inc.
+   Copyright (c) 2001-2020 Free Software Foundation, Inc.
 
    This file is part of GNU Zile.
 
@@ -68,10 +68,19 @@ const_astr_new_nstr (const char *s, size_t n)
   return as;
 }
 
-const char *
+void
+astr_delete (astr as)
+{
+  assert (as != NULL);
+  free (as->text);
+  as->text = NULL;
+  free (as);
+}
+
+char *
 astr_cstr (const_astr as)
 {
-  return (const char *) (as->text);
+  return (char *) (as->text);
 }
 
 size_t
@@ -249,7 +258,10 @@ astr_readf (const char *filename)
 astr
 astr_vfmt (const char *fmt, va_list ap)
 {
-  return astr_new_cstr (xvasprintf (fmt, ap));
+  char *s = xvasprintf (fmt, ap);
+  astr as = astr_new_cstr (s);
+  free (s);
+  return as;
 }
 
 astr
@@ -275,21 +287,21 @@ astr_recase (astr as, casing newcase)
   for (size_t i = 1, len = astr_len (as); i < len; i++)
     astr_cat_char (bs, ((newcase == case_upper) ? toupper : tolower) (astr_get (as, i)));
 
-  return astr_cpy (as, bs);
+  astr_cpy (as, bs);
+  astr_delete (bs);
+
+  return as;
 }
 
 
 #ifdef TEST
 
 #include <stdio.h>
-#include "progname.h"
-
-#include "main.h"
 
 static void
 assert_eq (astr as, const char *s)
 {
-  if (!STREQ (astr_cstr (as), s))
+  if (strcmp (astr_cstr (as), s))
     {
       printf ("test failed: \"%s\" != \"%s\"\n", astr_cstr (as), s);
       exit (EXIT_FAILURE);
@@ -297,13 +309,9 @@ assert_eq (astr as, const char *s)
 }
 
 int
-main (int argc _GL_UNUSED_PARAMETER, char **argv)
+main (int argc, char **argv)
 {
   astr as1, as2, as3;
-
-  GC_init ();
-
-  set_program_name (argv[0]);
 
   as1 = astr_new ();
   astr_cpy_cstr (as1, "hello world");
@@ -319,6 +327,7 @@ main (int argc _GL_UNUSED_PARAMETER, char **argv)
   astr_cat_char (as2, '.');
   assert_eq (as2, "The world.");
 
+  astr_delete (as3);
   as3 = astr_substr (as1, astr_len (as1) - 6, 5);
   assert_eq (as3, "world");
 
@@ -327,15 +336,20 @@ main (int argc _GL_UNUSED_PARAMETER, char **argv)
   assert_eq (as1, "1foo567");
 
   astr_cpy_cstr (as1, "12345");
+  astr_delete (as2);
   as2 = astr_substr (as1, astr_len (as1) - 2, 2);
   assert_eq (as2, "45");
 
   astr_cpy_cstr (as1, "12345");
+  astr_delete (as2);
   as2 = astr_substr (as1, astr_len (as1) - 5, 5);
   assert_eq (as2, "12345");
 
+  astr_delete (as1);
   as1 = astr_fmt ("%s * %d = ", "5", 3);
-  astr_cat (as1, astr_fmt ("%d", 15));
+  astr_delete (as2);
+  as2 = astr_fmt ("%d", 15);
+  astr_cat (as1, as2);
   assert_eq (as1, "5 * 3 = 15");
 
   astr_cpy_cstr (as1, "some text");
@@ -346,6 +360,9 @@ main (int argc _GL_UNUSED_PARAMETER, char **argv)
   astr_recase (as1, case_lower);
   assert_eq (as1, "some text");
 
+  astr_delete (as1);
+  astr_delete (as2);
+  astr_delete (as3);
   printf ("astr test successful.\n");
 
   return EXIT_SUCCESS;

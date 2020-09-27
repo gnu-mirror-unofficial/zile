@@ -1,4 +1,4 @@
-# Produce dotzile.sample
+# Produce dotzile.sample, tbl_vars.h and tbl_vars.vala
 #
 # Copyright (c) 2010-2020 Free Software Foundation, Inc.
 #
@@ -41,14 +41,14 @@ sub comment_for_lisp {
 # Parse re-usable C headers
 sub false { 0; }
 sub true { 1; }
-my @xarg;
-sub X { @xarg = @_; }
+my @varg;
+sub init_builtin_var { @varg = @_; }
 
 open IN, "<$ARGV[0]";
 while (<IN>) {
-  if (/^X \(/) {
+  if (/init_builtin_var \(/) {
     eval $_ or die "Error evaluating:\n$_\n";
-    my ($name, $defval, $local_when_set, $doc) = @xarg;
+    my ($name, $defval, $local_when_set, $doc) = @varg;
 
     print OUT "; " . comment_for_lisp($doc) . "\n" .
       "; Default value is $defval.\n" .

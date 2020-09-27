@@ -19,6 +19,8 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
+#include "astr.h"
+
 /* String with encoding */
 typedef struct estr *estr;
 typedef struct estr const *const_estr;
@@ -33,10 +35,10 @@ void estr_init (void);
 _GL_ATTRIBUTE_PURE astr estr_get_as (const_estr es);
 _GL_ATTRIBUTE_PURE const char *estr_get_eol (const_estr es);
 
-estr estr_new (const_astr as, const char *eol);
+estr estr_new (astr as, const char *eol);
 
 /* Make estr from astr, determining EOL type from astr's contents. */
-estr estr_new_astr (const_astr as);
+estr estr_new_astr (astr as);
 
 _GL_ATTRIBUTE_PURE size_t estr_prev_line (const_estr es, size_t o);
 _GL_ATTRIBUTE_PURE size_t estr_next_line (const_estr es, size_t o);
@@ -46,8 +48,7 @@ _GL_ATTRIBUTE_PURE size_t estr_line_len (const_estr es, size_t o);
 _GL_ATTRIBUTE_PURE size_t estr_lines (const_estr es);
 estr estr_replace_estr (estr es, size_t pos, const_estr src);
 estr estr_cat (estr es, const_estr src);
-
-#define estr_len(es, eol_type) (astr_len (estr_get_as (es)) +  estr_lines (es) * (strlen (eol_type) - strlen (estr_get_eol (es))))
+size_t estr_len (const_estr es, const char *eol_type);
 
 /* Read file contents into an estr.
  * The `as' member is NULL if the file doesn't exist, or other error. */

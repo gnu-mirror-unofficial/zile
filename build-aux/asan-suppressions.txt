@@ -1,2 +1,4 @@
 # glibc
-leak:getcwd
+leak:g_get_current_dir
+leak:set_buffer_names
+leak:find_file

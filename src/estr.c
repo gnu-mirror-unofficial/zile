@@ -52,7 +52,7 @@ estr_init (void)
 }
 
 estr
-estr_new (const_astr as, const char *eol)
+estr_new (astr as, const char *eol)
 {
   estr es = XZALLOC (struct estr);
   es->as = astr_cpy (astr_new (), as);
@@ -75,7 +75,7 @@ estr_get_eol (const_estr es)
 /* Maximum number of EOLs to check before deciding type. */
 #define MAX_EOL_CHECK_COUNT 3
 estr
-estr_new_astr (const_astr as)
+estr_new_astr (astr as)
 {
   bool first_eol = true;
   size_t total_eols = 0;
@@ -198,4 +198,10 @@ estr_readf (const char *filename)
 {
   astr as = astr_readf (filename);
   return as ? estr_new_astr (as) : NULL;
+}
+
+size_t
+estr_len (const_estr es, const char *eol_type)
+{
+  return astr_len (estr_get_as (es)) +  estr_lines (es) * (strlen (eol_type) - strlen (estr_get_eol (es)));
 }

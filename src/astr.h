@@ -1,6 +1,6 @@
 /* Dynamically allocated strings
 
-   Copyright (c) 2001-2012 Free Software Foundation, Inc.
+   Copyright (c) 2001-2020 Free Software Foundation, Inc.
 
    This file is part of GNU Zile.
 
@@ -55,6 +55,11 @@ astr astr_new (void);
 astr astr_new_cstr (const char *s);
 
 /*
+ * Deallocate the previously allocated string as.
+ */
+void astr_delete (astr as);
+
+/*
  * Make a new constant string from a counted C string.
  */
 const_astr const_astr_new_nstr (const char *s, size_t n);
@@ -63,7 +68,7 @@ const_astr const_astr_new_nstr (const char *s, size_t n);
  * Convert as into a C null-terminated string.
  * as[0] to as[astr_len (as) - 1] inclusive may be read.
  */
-_GL_ATTRIBUTE_PURE const char *astr_cstr (const_astr as);
+_GL_ATTRIBUTE_PURE char *astr_cstr (const_astr as);
 
 /*
  * Return the length of the argument string `as'.
