@@ -105,9 +105,6 @@ AC_PATH_PROG([HELP2MAN], [help2man], [help2man])
 dnl Code complexity reports
 AC_PATH_PROG([PMCCABE], [pmccabe], [false])
 
-dnl Valgrind: don't check leaks, we're using a garbage collector
-gl_cv_opt_valgrind_tests="-q --error-exitcode=1 --leak-check=no"
-
 dnl Checks for functions and headers
 AC_HEADER_STDC
 dnl If system lacks RE_PLAIN, force --with-included-regex

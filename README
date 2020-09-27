@@ -37,9 +37,7 @@ Emacs user should feel at home with Zile. Zile is aimed at small
 footprint systems (a typical binary is about 100Kb) and quick editing
 sessions (it starts up and shuts down instantly).
 
-Zile is written in **ISO C99** using **POSIX.1-2008** APIs, and
-[libgc][] (version 7.2 or later seems to be required for testing
-with Valgrind, but older versions seem to work fine for normal use).
+Zile is written in **ISO C99** using **POSIX.1-2008** APIs, and [libgc][].
 It can be built on many other platforms thanks to its use of [gnulib][].
 
   [Emacs]:   http://www.gnu.org/s/emacs

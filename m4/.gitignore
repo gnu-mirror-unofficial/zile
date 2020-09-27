@@ -194,7 +194,6 @@
 /timespec.m4
 /extern-inline.m4
 /absolute-header.m4
-/valgrind-tests.m4
 /asm-underscore.m4
 /builtin-expect.m4
 /getprogname.m4

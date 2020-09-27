@@ -19,7 +19,7 @@
 # Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
 # MA 02111-1301, USA.
 
-ZILE_CMD = $(VALGRIND) $(builddir)/src/zile$(EXEEXT)
+ZILE_CMD = $(builddir)/src/zile$(EXEEXT)
 
 RUNLISPTESTS = $(PERL) $(srcdir)/tests/run-lisp-tests.pl
 
@@ -51,12 +51,19 @@ LISP_ALL_TESTS =					\
 	$(LISP_TESTS_ZILE_ONLY_FIXED_SCREEN)
 
 LISP_TESTS_ENVIRONMENT =				\
-	abs_srcdir=$(abs_srcdir)			\
-	srcdir=$(srcdir)				\
-	TERM=$(TERM)
+	export LSAN_OPTIONS=suppressions=$(srcdir)/build-aux/asan-suppressions.txt; \
+	export abs_srcdir=$(abs_srcdir);		\
+	export srcdir=$(srcdir);			\
+	export TERM=$(TERM);
 
-ZILE_TESTS_ENVIRONMENT = EDITOR_NAME="Zile" EDITOR_CMD="$(ZILE_CMD)" $(LISP_TESTS_ENVIRONMENT)
-EMACS_TESTS_ENVIRONMENT = EDITOR_NAME="Emacs" EDITOR_CMD="$(EMACSPROG) --batch --quick" $(LISP_TESTS_ENVIRONMENT)
+ZILE_TESTS_ENVIRONMENT =				\
+	$(LISP_TESTS_ENVIRONMENT)			\
+	export EDITOR_NAME="Zile";			\
+	export EDITOR_CMD="$(ZILE_CMD)";
+EMACS_TESTS_ENVIRONMENT =				\
+	$(LISP_TESTS_ENVIRONMENT)			\
+	export EDITOR_NAME="Emacs";			\
+	export EDITOR_CMD="$(EMACSPROG) --batch --quick"
 
 EXTRA_DIST +=						\
 	$(LISP_ALL_TESTS)				\
@@ -69,7 +76,7 @@ check-emacs:
 	echo $(LISP_TESTS) | $(EMACS_TESTS_ENVIRONMENT) xargs $(RUNLISPTESTS)
 
 check-local: $(builddir)/src/zile$(EXEEXT)
-	echo $(LISP_TESTS) | $(ZILE_TESTS_ENVIRONMENT) xargs $(RUNLISPTESTS)
-	echo $(LISP_TESTS_ZILE_ONLY) | $(ZILE_TESTS_ENVIRONMENT) xargs $(RUNLISPTESTS)
-	echo $(LISP_TESTS_ZILE_ONLY_FIXED_SCREEN) | COLUMNS=80 LINES=24 $(ZILE_TESTS_ENVIRONMENT) xargs $(RUNLISPTESTS)
+	$(ZILE_TESTS_ENVIRONMENT) echo $(LISP_TESTS) | xargs $(RUNLISPTESTS)
+	$(ZILE_TESTS_ENVIRONMENT) echo $(LISP_TESTS_ZILE_ONLY) | xargs $(RUNLISPTESTS)
+	$(ZILE_TESTS_ENVIRONMENT) echo $(LISP_TESTS_ZILE_ONLY_FIXED_SCREEN) | COLUMNS=80 LINES=24 xargs $(RUNLISPTESTS)
 	$(ZILE_TESTS_ENVIRONMENT) $(builddir)/src/zile$(EXEEXT) --unknown-flag --load $(srcdir)/tests/quit.el

@@ -69,7 +69,7 @@ prerelease:
 	git diff --exit-code && \
 	git push && \
 	./bootstrap && ./configure && \
-	$(MAKE) "DISTCHECK_CONFIGURE_FLAGS=--enable-valgrind" check distcheck
+	$(MAKE) check distcheck
 
 ## ------------- ##
 ## Distribution. ##

@@ -1,6 +1,6 @@
 --- gnulib/top/README-release	2019-01-08 12:34:27.004822339 +0000
-+++ HACKING	2017-10-05 22:00:38.243139860 +0100
-@@ -1,36 +1,37 @@
++++ HACKING	2020-09-28 00:11:37.867667062 +0100
+@@ -1,36 +1,40 @@
 -Here are most of the steps we (maintainers) follow when making a release.
 +                      GNU Zile developers' notes
 +                      --------------------------
@@ -32,23 +32,25 @@
 +Here are the steps we (maintainers) follow when making a release.
  
 -    git push origin master
--
--* Check that the NixOS/Hydra autobuilder is reporting all is well:
 +* Ensure that acceptable versions of autoconf, automake, etc.
 +  are in your PATH.  See the buildreq list in bootstrap.conf for
 +  the complete list of tools.
  
--    https://hydra.nixos.org/project/gnu/@PACKAGE@-master
+-* Check that the NixOS/Hydra autobuilder is reporting all is well:
 +* Start from a clean, up-to-date git directory on the branch you want
 +  to release from, ensure that you have no uncommitted diffs, have
 +  pushed all changes that belong in the release, and that all tests
 +  pass:
  
--* Run the following command to download any new translations:
+-    https://hydra.nixos.org/project/gnu/@PACKAGE@-master
 +    make prerelease
  
+-* Run the following command to download any new translations:
++  Ideally, build with ASAN. Configure with and set DISTCHECK_CONFIGURE_FLAGS
++  to:
+ 
 -    ./bootstrap && ./configure
-+  (Make sure you have any needed Valgrind suppressions files.)
++  CFLAGS="-g3 -fsanitize=address -fsanitize=undefined" LDFLAGS="-fsanitize=address -fsanitize=undefined"
  
 -* Pre-release testing: ensure that the following commands succeed:
 +* Check that the NixOS/Hydra autobuilder is reporting all is well:
@@ -59,7 +61,7 @@
  
  * To (i) set the date, version number, and release TYPE on line 3 of
    NEWS, (ii) commit that, and (iii) tag the release, run
-@@ -45,57 +46,11 @@
+@@ -45,57 +49,11 @@
  
      make release RELEASE='X.Y TYPE'
  
