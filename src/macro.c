@@ -31,36 +31,28 @@
 #include "extern.h"
 
 
-struct Macro
-{
-  gl_list_t keys;	/* List of keystrokes. */
-  char *name;		/* Name of the macro. */
-  Macro next;		/* Next macro in the list. */
-};
+typedef gl_list_t Macro;	/* List of keystrokes. */
 
 static Macro cur_mp = NULL, cmd_mp = NULL;
 
 static Macro
 macro_new (void)
 {
-  Macro mp = XZALLOC (struct Macro);
-  mp->keys = gl_list_create_empty (GL_ARRAY_LIST,
-                                   NULL, NULL, NULL, true);
-  return mp;
+  return gl_list_create_empty (GL_ARRAY_LIST, NULL, NULL, NULL, true);
 }
 
 static void
 add_macro_key (Macro mp, size_t key)
 {
-  gl_list_add_last (mp->keys, (void *) key);
+  gl_list_add_last (mp, (void *) key);
 }
 
 void
 add_cmd_to_macro (void)
 {
   assert (cmd_mp);
-  for (size_t i = 0; i < gl_list_size (cmd_mp->keys); i++)
-    add_macro_key (cur_mp, (size_t) gl_list_get_at (cmd_mp->keys, i));
+  for (size_t i = 0; i < gl_list_size (cmd_mp); i++)
+    add_macro_key (cur_mp, (size_t) gl_list_get_at (cmd_mp, i));
   cmd_mp = NULL;
 }
 
@@ -77,7 +69,7 @@ void
 remove_key_from_cmd (void)
 {
   assert (cmd_mp);
-  gl_list_remove_at (cmd_mp->keys, gl_list_size (cmd_mp->keys) - 1);
+  gl_list_remove_at (cmd_mp, gl_list_size (cmd_mp) - 1);
 }
 
 void
@@ -161,8 +153,8 @@ A prefix argument serves as a repeat count.
     }
 
   /* FIXME: Call execute-kbd-macro (needs a way to reverse keystrtovec) */
-  /* F_execute_kbd_macro (uniarg, true, leAddDataElement (leNew (NULL), astr_cstr (keyvectostr (cur_mp->keys)), false)); */
-  macro_keys = cur_mp->keys;
+  /* F_execute_kbd_macro (uniarg, true, leAddDataElement (leNew (NULL), astr_cstr (keyvectostr (cur_mp)), false)); */
+  macro_keys = cur_mp;
   execute_with_uniarg (uniarg, call_macro, NULL);
 }
 END_DEFUN
