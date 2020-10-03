@@ -184,14 +184,6 @@ git to transparently rewrite all savannah references to use http:
     git config --global url.http://git.sv.gnu.org/r/.insteadof \
 	git://git.sv.gnu.org/
 
-When you are building GNU Zile from a git checkout, you first need to
-checkout git submodules:
-
-    git submodule update --init --recursive
-
-then run the `bootstrap` script to generate various files that are shipped
-in release tarballs, but not checked in to git.
-
 Normally, you just need to run `./bootstrap`, and it will either get
 everything ready so that you can then run `./configure` as would for a
 release tarball, or else tell you if your machine is missing some
