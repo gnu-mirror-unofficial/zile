@@ -89,7 +89,7 @@ src_zile_SOURCES =					\
 	$(src_zile_base_SOURCE_FILES)			\
 	$(BUILT_SOURCES)
 
-src/tbl_funcs.h: $(src_zile_function_SOURCES) build-aux/mkfuncs.pl
+src/tbl_funcs.h: $(src_zile_function_SOURCE_FILES) build-aux/mkfuncs.pl
 	PACKAGE_NAME="$(PACKAGE_NAME)" $(PERL) -I$(srcdir)/build-aux $(srcdir)/build-aux/mkfuncs.pl $(srcdir) $(src_zile_function_SOURCE_FILES)
 
 src/tbl_vars.h src/dotzile.sample: src/tbl_vars.h.in build-aux/mkvars.pl
