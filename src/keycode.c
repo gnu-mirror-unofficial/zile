@@ -220,28 +220,23 @@ static int keycode[] = {
 static size_t
 strtokey (const char *buf, size_t * len)
 {
-  if (*buf == '\\')
-    {
-      const char **p = NULL;
-      for (size_t i = 0; i < sizeof (keyname) / sizeof (keyname[0]); i++)
-        if (strncmp (keyname[i], buf, strlen (keyname[i])) == 0)
-          p = (const char **) &keyname[i];
-      if (p == NULL)
-        {
-          *len = 0;
-          return KBD_NOKEY;
-        }
-      else
-        {
-          *len = strlen (*p);
-          return keycode[p - (const char **) keyname];
-        }
-    }
-  else
+  if (*buf != '\\')
     {
       *len = 1;
       return (size_t) *(const unsigned char *) buf;
     }
+
+  const char **p = NULL;
+  for (size_t i = 0; i < sizeof (keyname) / sizeof (keyname[0]); i++)
+    if (strncmp (keyname[i], buf, strlen (keyname[i])) == 0)
+      {
+        p = (const char **) &keyname[i];
+        *len = strlen (*p);
+        return keycode[p - (const char **) keyname];
+      }
+
+  *len = 0;
+  return KBD_NOKEY;
 }
 
 /*
