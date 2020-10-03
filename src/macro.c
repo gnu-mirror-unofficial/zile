@@ -22,9 +22,6 @@
 #include <config.h>
 
 #include <assert.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "gl_array_list.h"
 
 #include "main.h"
