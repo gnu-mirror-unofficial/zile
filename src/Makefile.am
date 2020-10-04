@@ -26,6 +26,7 @@ AM_CPPFLAGS = -I$(builddir)/src -I$(srcdir)/src $(ISYSTEM)$(builddir)/lib $(ISYS
 LDADD = $(builddir)/lib/libgnu.a $(LIB_ACL) $(LIB_EACCESS) $(LIBINTL) $(CURSES_LIB) $(LIBGC_LIBS)
 
 BUILT_SOURCES =						\
+	src/tbl_bindings.h				\
 	src/tbl_funcs.h					\
 	src/tbl_opts.h					\
 	src/tbl_vars.h
@@ -118,5 +119,6 @@ src_astr_LDADD = $(LDADD) src/memrmem.o src/gc_veneer.o
 
 EXTRA_DIST +=						\
 	src/dotzile.sample				\
+	src/tbl_bindings.pl				\
 	src/tbl_opts.h.in				\
 	src/tbl_vars.h.in
