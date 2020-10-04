@@ -89,34 +89,32 @@ init_variables (void)
 void
 set_variable (const char *var, const char *val)
 {
-  Hash_table *var_list;
-  var_entry ent, key = XZALLOC (struct var_entry);
-  var_entry p = XZALLOC (struct var_entry), q;
-
   /* Find whether variable is buffer-local when set, and if needed
      create a buffer-local variable list. */
+  Hash_table *var_list = main_vars;
+  var_entry key = XZALLOC (struct var_entry);
   key->var = xstrdup (var);
-  ent = hash_lookup (main_vars, key);
-  if (ent && ent->local && get_buffer_vars (cur_bp) == NULL)
-    set_buffer_vars (cur_bp, new_varlist ());
-  var_list = (ent && ent->local) ? get_buffer_vars (cur_bp) : main_vars;
+  var_entry ent = hash_lookup (main_vars, key);
+  if (ent && ent->local) {
+    if (get_buffer_vars (cur_bp) == NULL)
+      set_buffer_vars (cur_bp, new_varlist ());
+    var_list = get_buffer_vars (cur_bp);
+  }
 
   /* Insert variable if it doesn't already exist. */
+  var_entry p = XZALLOC (struct var_entry);
   p->var = xstrdup (var);
-  q = hash_insert (var_list, p);
+  var_entry q = hash_insert (var_list, p);
 
-  /* Update value */
+  /* Update value. */
   q->val = xstrdup (val);
 
   /* If variable is new, initialise other fields. */
-  if (q == p)
+  if (q == p && var_list == main_vars)
     {
-      if (var_list == main_vars)
-        {
-          p->defval = xstrdup (val);
-          p->local = false;
-          p->doc = "";
-        }
+      p->defval = xstrdup (val);
+      p->local = false;
+      p->doc = "";
     }
 }
 
