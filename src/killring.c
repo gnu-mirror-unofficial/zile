@@ -121,7 +121,7 @@ DEFUN_ARGS ("kill-line", kill_line,
             INT_OR_UNIARG (arg))
 /*+
 Kill the rest of the current line; if no nonblanks there, kill thru newline.
-With prefix argument @i{arg}, kill that many lines from point.
+With prefix argument ARG, kill that many lines from point.
 Negative arguments kill lines backward.
 With zero argument, kills the text before point on the current line.
 

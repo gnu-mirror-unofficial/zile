@@ -80,7 +80,7 @@ DEFUN ("start-kbd-macro", start_kbd_macro)
 /*+
 Record subsequent keyboard input, defining a keyboard macro.
 The commands are recorded even as they are executed.
-Use @kbd{C-x )} to finish recording and make the macro available.
+Use \\[end-kbd-macro] to finish recording and make the macro available.
 +*/
 {
   if (thisflag & FLAG_DEFINING_MACRO)
@@ -102,8 +102,8 @@ END_DEFUN
 DEFUN ("end-kbd-macro", end_kbd_macro)
 /*+
 Finish defining a keyboard macro.
-The definition was started by @kbd{C-x (}.
-The macro is now available for use via @kbd{C-x e}.
+The definition was started by \\[start-kbd-macro].
+The macro is now available for use via \\[call-last-kbd-macro].
 +*/
 {
   if (!(thisflag & FLAG_DEFINING_MACRO))
@@ -139,7 +139,7 @@ call_macro (void)
 
 DEFUN ("call-last-kbd-macro", call_last_kbd_macro)
 /*+
-Call the last keyboard macro that you defined with @kbd{C-x (}.
+Call the last keyboard macro that you defined with \\[start-kbd-macro].
 A prefix argument serves as a repeat count.
 +*/
 {
