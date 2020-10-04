@@ -244,8 +244,8 @@ find_file (const char *filename)
 DEFUN_ARGS ("find-file", find_file,
             STR_ARG (filename))
 /*+
-Edit file @i{filename}.
-Switch to a buffer visiting file @i{filename},
+Edit file FILENAME.
+Switch to a buffer visiting file FILENAME,
 creating one if none already exists.
 +*/
 {
@@ -269,9 +269,9 @@ END_DEFUN
 
 DEFUN ("find-file-read-only", find_file_read_only)
 /*+
-Edit file @i{filename} but don't allow changes.
-Like `find-file' but marks buffer as read-only.
-Use @kbd{M-x toggle-read-only} to permit editing.
+Edit file FILENAME but don't allow changes.
+Like `find-file', but marks buffer as read-only.
+Use M-x toggle-read-only to permit editing.
 +*/
 {
   ok = F_find_file (uniarg, is_uniarg, arglist);
@@ -310,7 +310,7 @@ END_DEFUN
 DEFUN_ARGS ("switch-to-buffer", switch_to_buffer,
             STR_ARG (buf))
 /*+
-Select buffer @i{buffer} in the current window.
+Select buffer BUFFER in the current window.
 +*/
 {
   Buffer bp = ((get_buffer_next (cur_bp) != NULL) ? get_buffer_next (cur_bp) : head_bp);
@@ -628,7 +628,7 @@ END_DEFUN
 
 DEFUN ("write-file", write_file)
 /*+
-Write current buffer into file @i{filename}.
+Write current buffer into file FILENAME.
 This makes the buffer visit that file, and marks it as not modified.
 
 Interactively, confirmation is required unless you supply a prefix argument.

@@ -216,7 +216,7 @@ backward_delete_char (void)
 DEFUN_ARGS ("delete-char", delete_char,
             INT_OR_UNIARG (n))
 /*+
-Delete the following @i{n} characters (previous if @i{n} is negative).
+Delete the following N characters (previous if N is negative).
 +*/
 {
   INT_OR_UNIARG_INIT (n);
@@ -227,7 +227,7 @@ END_DEFUN
 DEFUN_ARGS ("backward-delete-char", backward_delete_char,
             INT_OR_UNIARG (n))
 /*+
-Delete the previous @i{n} characters (following if @i{n} is negative).
+Delete the previous N characters (following if N is negative).
 +*/
 {
   INT_OR_UNIARG_INIT (n);

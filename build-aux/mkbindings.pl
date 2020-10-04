@@ -1,6 +1,6 @@
-# Zile-specific library functions
+# Generate tbl_bindings.h
 #
-# Copyright (c) 2010-2020 Free Software Foundation, Inc.
+# Copyright (c) 2020 Free Software Foundation, Inc.
 #
 # This file is part of GNU Zile.
 #
@@ -19,26 +19,24 @@
 # Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
 # MA 02111-1301, USA.
 
-sub get_bindings {
-  my ($file) = @_;
-  open IN, "<$file";
-  my $bindings = do { local $/ = undef; <IN> };
-  return eval $bindings;
+use Zile;
+
+open OUT, ">src/tbl_bindings.h" or die;
+
+print OUT <<END;
+/*
+ * Automatically generated file: DO NOT EDIT!
+ * $ENV{PACKAGE_NAME} keybindings.
+ * Generated from tbl_bindings.pl.
+ */
+
+END
+
+my %bindings = get_bindings($ARGV[0]);
+say OUT "\"\\";
+for my $key (keys %bindings) {
+  foreach my $binding (@{$bindings{$key}}) {
+    say OUT "(global-set-key \\\"" . escape_for_C($binding) . "\\\" '$key)\\";
+  }
 }
-
-sub expand_keystrokes {
-  my ($doc, $bindings) = @_;
-  $doc =~ s/\\\\\[([a-z-]+)\]/@{$bindings->{$1}}[0]/ge;
-  return escape_for_C($doc);
-}
-
-sub escape_for_C {
-  my ($s) = @_;
-  $s =~ s/\\/\\\\/g;
-  $s =~ s/\n/\\n/g;
-  $s =~ s/\"/\\\"/g;
-  return $s;
-}
-
-
-1;
+say OUT "\"";

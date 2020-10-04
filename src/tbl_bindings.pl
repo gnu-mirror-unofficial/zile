@@ -1,0 +1,116 @@
+# Produce dotzile.sample
+#
+# Copyright (c) 1997-2020 Free Software Foundation, Inc.
+#
+# This file is part of GNU Zile.
+#
+# GNU Zile is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3, or (at your option)
+# any later version.
+#
+# GNU Zile is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Zile; see the file COPYING.  If not, write to the
+# Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
+# MA 02111-1301, USA.
+
+(
+  "back-to-indentation" => ["\\M-m"],
+  "backward-char" => ["\\LEFT", "\\C-b"],
+  "backward-delete-char" => ["\\BACKSPACE"],
+  "backward-kill-word" => ["\\M-\\BACKSPACE"],
+  "backward-paragraph" => ["\\M-["],
+  "backward-sexp" => ["\\C-\\M-b"],
+  "backward-word" => ["\\M-b"],
+  "beginning-of-buffer" => ["\\M-<"],
+  "beginning-of-line" => ["\\HOME", "\\C-a"],
+  "call-last-kbd-macro" => ["\\C-xe"],
+  "capitalize-word" => ["\\M-c"],
+  "copy-region-as-kill" => ["\\M-w"],
+  "copy-to-register" => ["\\C-xrs", "\\C-xrx"],
+  "delete-blank-lines" => ["\\C-x\\C-o"],
+  "delete-char" => ["\\DELETE", "\\C-d"],
+  "delete-horizontal-space" => ["\\M-\\\\"],
+  "delete-other-windows" => ["\\C-x1"],
+  "delete-window" => ["\\C-x0"],
+  "describe-bindings" => ["\\C-hb", "\\F1b"],
+  "describe-function" => ["\\C-hf", "\\F1f"],
+  "describe-key" => ["\\C-hk", "\\F1k"],
+  "describe-variable" => ["\\C-hv", "\\F1v"],
+  "downcase-region" => ["\\C-x\\C-l"],
+  "downcase-word" => ["\\M-l"],
+  "end-kbd-macro" => ["\\C-x]"],
+  "end-of-buffer" => ["\\M->"],
+  "end-of-line" => ["\\END", "\\C-e"],
+  "enlarge-window" => ["\\C-x^"],
+  "exchange-point-and-mark" => ["\\C-x\\C-x"],
+  "execute-extended-command" => ["\\M-x"],
+  "fill-paragraph" => ["\\M-q"],
+  "find-alternate-file" => ["\\C-x\\C-v"],
+  "find-file" => ["\\C-x\\C-f"],
+  "find-file-read-only" => ["\\C-x\\C-r"],
+  "forward-char" => ["\\RIGHT", "\\C-f"],
+  "forward-paragraph" => ["\\M-]"],
+  "forward-sexp" => ["\\C-\\M-f"],
+  "forward-word" => ["\\M-f"],
+  "goto-line" => ["\\M-gg", "\\M-g\\M-g"],
+  "indent-for-tab-command" => ["\\TAB"],
+  "insert-file" => ["\\C-xi"],
+  "insert-register" => ["\\C-xri", "\\C-xrg"],
+  "isearch-backward" => ["\\C-r"],
+  "isearch-backward-regexp" => ["\\C-\\M-r"],
+  "isearch-forward" => ["\\C-s"],
+  "isearch-forward-regexp" => ["\\C-\\M-s"],
+  "just-one-space" => ["\\M-\\SPC"],
+  "keyboard-quit" => ["\\C-g"],
+  "kill-buffer" => ["\\C-xk"],
+  "kill-line" => ["\\C-k"],
+  "kill-region" => ["\\C-w"],
+  "kill-sexp" => ["\\C-\\M-k"],
+  "kill-word" => ["\\M-d"],
+  "list-buffers" => ["\\C-x\\C-b"],
+  "mark-paragraph" => ["\\M-h"],
+  "mark-sexp" => ["\\C-\\M-@"],
+  "mark-whole-buffer" => ["\\C-xh"],
+  "mark-word" => ["\\M-@"],
+  "newline" => ["\\RET"],
+  "newline-and-indent" => ["\\C-j"],
+  "next-line" => ["\\DOWN", "\\C-n"],
+  "open-line" => ["\\C-o"],
+  "other-window" => ["\\C-xo"],
+  "previous-line" => ["\\UP", "\\C-p"],
+  "query-replace" => ["\\M-%"],
+  "quoted-insert" => ["\\C-q"],
+  "recenter" => ["\\C-l"],
+  "save-buffer" => ["\\C-x\\C-s"],
+  "save-buffers-kill-emacs" => ["\\C-x\\C-c"],
+  "save-some-buffers" => ["\\C-xs"],
+  "scroll-down" => ["\\PRIOR", "\\M-v"],
+  "scroll-up" => ["\\NEXT", "\\C-v"],
+  "set-fill-column" => ["\\C-xf"],
+  "set-mark-command" => ["\\C-@"],
+  "shell-command" => ["\\M-!"],
+  "shell-command-on-region" => ["\\M-|"],
+  "split-window" => ["\\C-x2"],
+  "start-kbd-macro" => ["\\C-x["],
+  "suspend-emacs" => ["\\C-x\\C-z", "\\C-z"],
+  "switch-to-buffer" => ["\\C-xb"],
+  "tab-to-tab-stop" => ["\\M-i"],
+  "toggle-read-only" => ["\\C-x\\C-q"],
+  "transpose-chars" => ["\\C-t"],
+  "transpose-lines" => ["\\C-x\\C-t"],
+  "transpose-sexps" => ["\\C-\\M-t"],
+  "transpose-words" => ["\\M-t"],
+  "undo" => ["\\C-xu", "\\C-_"],
+  "universal-argument" => ["\\C-u"],
+  "upcase-region" => ["\\C-x\\C-u"],
+  "upcase-word" => ["\\M-u"],
+  "where-is" => ["\\C-hw", "\\F1w"],
+  "write-file" => ["\\C-x\\C-w"],
+  "yank" => ["\\C-y"],
+ );

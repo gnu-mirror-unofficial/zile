@@ -166,15 +166,18 @@ copy_or_kill_the_region (bool kill)
 
 DEFUN ("kill-region", kill_region)
 /*+
-Kill between point and mark.
-The text is deleted but saved in the kill ring.
-The command @kbd{C-y} (yank) can retrieve it from there.
-If the buffer is read-only, Zile will beep and refrain from deleting
-the text, but put the text in the kill ring anyway.  This means that
-you can use the killing commands to copy text from a read-only buffer.
+Kill (\"cut\") text between point and mark.
+This deletes the text from the buffer and saves it in the kill ring.
+The command \\[yank] can retrieve it from there.
+
+Any command that calls this function is a \"kill command\".
 If the previous command was also a kill command,
 the text killed this time appends to the text killed last time
 to make one entry in the kill ring.
+
+If the buffer is read-only, Zile will beep and refrain from deleting
+the text, but put the text in the kill ring anyway.  This means that
+you can use the killing commands to copy text from a read-only buffer.
 +*/
 {
   ok = bool_to_lisp (copy_or_kill_the_region (true));
@@ -212,7 +215,7 @@ DEFUN_ARGS ("kill-word", kill_word,
             INT_OR_UNIARG (arg))
 /*+
 Kill characters forward until encountering the end of a word.
-With argument @i{arg}, do this that many times.
+With argument ARG, do this that many times.
 +*/
 {
   INT_OR_UNIARG_INIT (arg);
@@ -224,7 +227,7 @@ DEFUN_ARGS ("backward-kill-word", backward_kill_word,
             INT_OR_UNIARG (arg))
 /*+
 Kill characters backward until encountering the end of a word.
-With argument @i{arg}, do this that many times.
+With argument ARG, do this that many times.
 +*/
 {
   INT_OR_UNIARG_INIT (arg);
@@ -235,7 +238,7 @@ END_DEFUN
 DEFUN ("kill-sexp", kill_sexp)
 /*+
 Kill the sexp (balanced expression) following the cursor.
-With @i{arg}, kill that many sexps after the cursor.
+With ARG, kill that many sexps after the cursor.
 Negative arg -N means kill N sexps before the cursor.
 +*/
 {
@@ -245,9 +248,9 @@ END_DEFUN
 
 DEFUN ("yank", yank)
 /*+
-Reinsert the last stretch of killed text.
+Reinsert (\"paste\") the last stretch of killed text.
 More precisely, reinsert the stretch of killed text most recently
-killed @i{or} yanked.  Put point at end, and set mark at beginning.
+killed OR yanked.  Put point at end, and set mark at beginning.
 +*/
 {
   if (kill_ring_text == NULL)

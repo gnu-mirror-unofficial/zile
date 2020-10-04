@@ -23,10 +23,10 @@ use File::Copy;
 
 use Zile;
 
+my %bindings = get_bindings(shift);
 my $dir = shift;
 
-my $output = "src/tbl_funcs.h";
-open OUT, ">$output.new" or die;
+open OUT, ">src/tbl_funcs.h" or die;
 
 print OUT <<END;
 /*
@@ -65,17 +65,9 @@ foreach my $file (@ARGV) {
 
       my $cname = $name;
       $cname =~ s/-/_/g;
-      $doc = texi($doc);
       $doc =~ s/\n/\\n\\\n/g;
+      $doc = expand_keystrokes($doc, \%bindings);
       print OUT "X(\"$name\", $cname, " . ($interactive ? "true" : "false") . ", \"\\\n$doc\")\n";
     }
   }
-}
-
-# Only replace the output file if it changed, to avoid pointless rebuilds
-open STDERR, ">", "/dev/null";
-if ((system "diff", $output, "$output.new") != 0) {
-  move("$output.new", $output);
-} else {
-  unlink "$output.new";
 }

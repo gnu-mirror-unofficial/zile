@@ -3,6 +3,7 @@ astr
 astr.log
 astr.trs
 zile
+tbl_bindings.h
 tbl_funcs.h
 tbl_opts.h
 tbl_vars.h

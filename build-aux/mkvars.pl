@@ -22,8 +22,18 @@
 use Zile;
 
 open VARS, ">src/tbl_vars.h" or die;
-open SAMPLE, ">src/dotzile.sample" or die;
+print VARS <<END;
+/*
+ * Automatically generated file: DO NOT EDIT!
+ * $ENV{PACKAGE_NAME} variables.
+ * Generated from tbl_vars.h.in.
+ */
 
+END
+
+# Don't note where the contents of this file comes from or that it's
+# auto-generated, because it's ugly in a user configuration file.
+open SAMPLE, ">src/dotzile.sample" or die;
 print SAMPLE <<EOF;
 ;;;; .$ENV{PACKAGE} configuration
 
@@ -32,32 +42,29 @@ print SAMPLE <<EOF;
 
 EOF
 
-# Don't note where the contents of this file comes from or that it's
-# auto-generated, because it's ugly in a user configuration file.
-
-sub escape_for_C {
-  my ($s) = @_;
-  $s =~ s/\n/\\n/g;
-  $s =~ s/\"/\\\"/g;
-  return $s;
-}
-
 sub comment_for_lisp {
   my ($s) = @_;
   $s =~ s/\n/\n; /g;
   return $s;
 }
 
+# Parse re-usable C headers
+sub false { 0; }
+sub true { 1; }
+my @xarg;
+sub X { @xarg = @_; }
+my ($D, $O, $A);
+$D = $O = $A = \&X;
+
 open IN, "<$ARGV[0]";
 while (<IN>) {
   if (/^X \(/) {
     eval $_ or die "Error evaluating:\n$_\n";
     my ($name, $defval, $local_when_set, $doc) = @xarg;
-    $doc = texi($doc);
 
     print VARS "X (\"$name\", \"$defval\", " .
-                     ($local_when_set ? "true" : "false") . ", \"" .
-                       escape_for_C($doc) . "\")\n";
+      ($local_when_set ? "true" : "false") . ", \"" .
+      escape_for_C($doc) . "\")\n";
 
     print SAMPLE "; " . comment_for_lisp($doc) . "\n" .
       "; Default value is $defval.\n" .

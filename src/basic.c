@@ -110,7 +110,7 @@ END_DEFUN
 DEFUN_ARGS ("goto-char", goto_char,
             INT_OR_UNIARG (n))
 /*+
-Set point to @i{position}, a number.
+Set point to POSITION, a number.
 Beginning of buffer is position 1.
 +*/
 {
@@ -128,7 +128,7 @@ END_DEFUN
 DEFUN_ARGS ("goto-line", goto_line,
             INT_OR_UNIARG (n))
 /*+
-Goto @i{line}, counting from line 1 at beginning of buffer.
+Go to LINE, counting from line 1 at beginning of buffer.
 +*/
 {
   INT_OR_UNIARG_INIT (n);

@@ -316,10 +316,12 @@ DEFUN ("isearch-forward", isearch_forward)
 /*+
 Do incremental search forward.
 With a prefix argument, do an incremental regular expression search instead.
+
 As you type characters, they add to the search string and are found.
-Type return to exit, leaving point at location found.
-Type @kbd{C-s} to search again forward, @kbd{C-r} to search again backward.
-@kbd{C-g} when search is successful aborts and moves point to starting point.
+
+Type \\[isearch-exit] to exit, leaving point at location found.
+Type \\[isearch-repeat-forward] to search again forward, \\[isearch-repeat-backward] to search again backward.
+\\[isearch-abort] when search is successful aborts and moves point to starting point.
 +*/
 {
   ok = isearch (true, lastflag & FLAG_SET_UNIARG);
@@ -330,10 +332,7 @@ DEFUN ("isearch-backward", isearch_backward)
 /*+
 Do incremental search backward.
 With a prefix argument, do a regular expression search instead.
-As you type characters, they add to the search string and are found.
-Type return to exit, leaving point at location found.
-Type @kbd{C-r} to search again backward, @kbd{C-s} to search again forward.
-@kbd{C-g} when search is successful aborts and moves point to starting point.
+See the command `isearch-forward' for more information.
 +*/
 {
   ok = isearch (false, lastflag & FLAG_SET_UNIARG);
@@ -344,8 +343,8 @@ DEFUN ("isearch-forward-regexp", isearch_forward_regexp)
 /*+
 Do incremental search forward for regular expression.
 With a prefix argument, do a regular string search instead.
-Like ordinary incremental search except that your input
-is treated as a regexp.  See @kbd{M-x isearch-forward} for more info.
+Like ordinary incremental search except that your input is treated
+as a regexp.  See the command `isearch-forward' for more information.
 +*/
 {
   ok = isearch (true, !(lastflag & FLAG_SET_UNIARG));
@@ -356,8 +355,8 @@ DEFUN ("isearch-backward-regexp", isearch_backward_regexp)
 /*+
 Do incremental search backward for regular expression.
 With a prefix argument, do a regular string search instead.
-Like ordinary incremental search except that your input
-is treated as a regexp.  See @kbd{M-x isearch-backward} for more info.
+Like ordinary incremental search except that your input is treated
+as a regexp.  See the command `isearch-forward-regexp` for more information.
 +*/
 {
   ok = isearch (false, !(lastflag & FLAG_SET_UNIARG));

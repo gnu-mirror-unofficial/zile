@@ -36,7 +36,7 @@ static estr regs[NUM_REGISTERS];
 DEFUN_ARGS ("copy-to-register", copy_to_register,
             INT_ARG (reg))
 /*+
-Copy region into register @i{register}.
+Copy region into register REGISTER.
 +*/
 {
   INT_INIT (reg)

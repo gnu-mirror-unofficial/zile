@@ -89,10 +89,13 @@ src_zile_SOURCES =					\
 	$(src_zile_base_SOURCE_FILES)			\
 	$(BUILT_SOURCES)
 
-src/tbl_funcs.h: $(src_zile_function_SOURCE_FILES) build-aux/mkfuncs.pl
-	PACKAGE_NAME="$(PACKAGE_NAME)" $(PERL) -I$(srcdir)/build-aux $(srcdir)/build-aux/mkfuncs.pl $(srcdir) $(src_zile_function_SOURCE_FILES)
+src/tbl_bindings.h: src/tbl_bindings.pl build-aux/mkbindings.pl build-aux/Zile.pm
+	PACKAGE_NAME="$(PACKAGE_NAME)" $(PERL) -I$(srcdir)/build-aux $(srcdir)/build-aux/mkbindings.pl $(srcdir)/src/tbl_bindings.pl
 
-src/tbl_vars.h src/dotzile.sample: src/tbl_vars.h.in build-aux/mkvars.pl
+src/tbl_funcs.h: $(src_zile_function_SOURCE_FILES) build-aux/mkfuncs.pl build-aux/Zile.pm
+	PACKAGE_NAME="$(PACKAGE_NAME)" $(PERL) -I$(srcdir)/build-aux $(srcdir)/build-aux/mkfuncs.pl src/tbl_bindings.pl $(srcdir) $(src_zile_function_SOURCE_FILES)
+
+src/tbl_vars.h src/dotzile.sample: src/tbl_vars.h.in build-aux/mkvars.pl build-aux/Zile.pm
 	PACKAGE="$(PACKAGE)" $(PERL) -I$(srcdir)/build-aux $(srcdir)/build-aux/mkvars.pl $(srcdir)/src/tbl_vars.h.in
 
 DISTCLEANFILES +=					\

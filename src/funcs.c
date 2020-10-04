@@ -147,10 +147,8 @@ Display a list of names of existing buffers.
 The list is displayed in a buffer named `*Buffer List*'.
 Note that buffers with names starting with spaces are omitted.
 
-@itemize -
-The @samp{M} column contains a @samp{*} for buffers that are modified.
-The @samp{R} column contains a @samp{%} for buffers that are read-only.
-@end itemize
+The \"R\" column has a \"%\" if the buffer is read-only.
+The \"M\" column has a \"*\" if it is modified.
 +*/
 {
   write_temp_buffer ("*Buffer List*", true, write_buffers_list, cur_wp);
@@ -285,11 +283,11 @@ END_DEFUN
 DEFUN ("universal-argument", universal_argument)
 /*+
 Begin a numeric argument for the following command.
-Digits or minus sign following @kbd{C-u} make up the numeric argument.
-@kbd{C-u} following the digits or minus sign ends the argument.
-@kbd{C-u} without digits or minus sign provides 4 as argument.
-Repeating @kbd{C-u} without digits or minus sign multiplies the argument
-by 4 each time.
+Digits or minus sign following \\[universal-argument] make up the numeric argument.
+\\[universal-argument] following the digits or minus sign ends the argument.
+\\[universal-argument] without digits or minus sign provides 4 as argument.
+Repeating \\[universal-argument] without digits or minus sign
+ multiplies the argument by 4 each time.
 +*/
 {
   int i = 0, arg = 1, sgn = 1;
@@ -701,7 +699,7 @@ END_DEFUN
 
 DEFUN ("transpose-sexps", transpose_sexps)
 /*+
-Like @kbd{M-x transpose-words} but applies to sexps.
+Like `transpose-words', but applies to sexps.
 +*/
 {
   ok = transpose (uniarg, move_sexp);
@@ -742,8 +740,8 @@ END_DEFUN
 
 DEFUN ("mark-sexp", mark_sexp)
 /*+
-Set mark @i{arg} sexps from point.
-The place mark goes is the same place @kbd{C-M-f} would
+Set mark ARG sexps from point.
+The place mark goes is the same place \\[forward-sexp] would
 move to with the same argument.
 +*/
 {
@@ -904,7 +902,7 @@ setcase_word_lowercase (void)
 DEFUN_ARGS ("downcase-word", downcase_word,
             INT_OR_UNIARG (arg))
 /*+
-Convert following word (or @i{arg} words) to lower case, moving over.
+Convert following word (or ARG words) to lower case, moving over.
 +*/
 {
   INT_OR_UNIARG_INIT (arg);
@@ -921,7 +919,7 @@ setcase_word_uppercase (void)
 DEFUN_ARGS ("upcase-word", upcase_word,
             INT_OR_UNIARG (arg))
 /*+
-Convert following word (or @i{arg} words) to upper case, moving over.
+Convert following word (or ARG words) to upper case, moving over.
 +*/
 {
   INT_OR_UNIARG_INIT (arg);
@@ -938,7 +936,7 @@ setcase_word_capitalize (void)
 DEFUN_ARGS ("capitalize-word", capitalize_word,
             INT_OR_UNIARG (arg))
 /*+
-Capitalize the following word (or @i{arg} words), moving over.
+Capitalize the following word (or ARG words), moving over.
 This gives the word(s) a first character in upper case
 and the rest lower case.
 +*/
@@ -1090,7 +1088,7 @@ DEFUN_ARGS ("shell-command", shell_command,
             STR_ARG (cmd)
             BOOL_ARG (insert))
 /*+
-Execute string @i{command} in inferior shell; display output, if any.
+Execute string COMMAND in inferior shell; display output, if any.
 With prefix argument, insert the command's output at point.
 
 Command is executed synchronously.  The output appears in the buffer
@@ -1099,7 +1097,7 @@ in the echo area, it is shown there, but it is nonetheless available
 in buffer `*Shell Command Output*' even though that buffer is not
 automatically displayed.
 
-The optional second argument @i{output-buffer}, if non-nil,
+The optional second argument OUTPUT-BUFFER, if non-nil,
 says to insert the output in the current buffer.
 +*/
 {
