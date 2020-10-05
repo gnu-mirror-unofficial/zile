@@ -187,7 +187,7 @@ leEval (le * list)
 }
 
 le *
-execute_with_uniarg (int uniarg, bool (*forward) (void), bool (*backward) (void))
+execute_with_uniarg (long uniarg, bool (*forward) (void), bool (*backward) (void))
 {
   if (backward && uniarg < 0)
     {
@@ -195,14 +195,14 @@ execute_with_uniarg (int uniarg, bool (*forward) (void), bool (*backward) (void)
       uniarg = -uniarg;
     }
   bool ret = true;
-  for (int uni = 0; ret && uni < uniarg; ++uni)
+  for (long uni = 0; ret && uni < uniarg; ++uni)
     ret = forward ();
 
   return bool_to_lisp (ret);
 }
 
 le *
-move_with_uniarg (int uniarg, bool (*move) (ptrdiff_t dir))
+move_with_uniarg (long uniarg, bool (*move) (ptrdiff_t dir))
 {
   bool ret = true;
   for (unsigned long uni = 0; ret && uni < (unsigned) abs (uniarg); ++uni)
@@ -211,7 +211,7 @@ move_with_uniarg (int uniarg, bool (*move) (ptrdiff_t dir))
 }
 
 le *
-execute_function (const char *name, int uniarg, bool is_uniarg)
+execute_function (const char *name, long uniarg, bool is_uniarg)
 {
   Function func = get_function (name);
   return func ? call_command (func, uniarg, is_uniarg, NULL) : NULL;

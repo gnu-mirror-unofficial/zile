@@ -250,7 +250,7 @@ set_this_command (Function cmd)
 }
 
 le *
-call_command (Function f, int uniarg, bool uniflag, le *branch)
+call_command (Function f, long uniarg, bool uniflag, le *branch)
 {
   thisflag = lastflag & FLAG_DEFINING_MACRO;
   undo_start_sequence ();
