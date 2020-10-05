@@ -158,8 +158,7 @@ typedef le * (*Function) (long uniarg, bool is_uniarg, le * list);
   INT_INIT (name)                                            \
   else                                                       \
     {                                                        \
-      if (!(lastflag & FLAG_SET_UNIARG) && !is_uniarg &&     \
-          (arglist == NULL || arglist->next == NULL))        \
+      if (!(lastflag & FLAG_SET_UNIARG) && !is_uniarg)       \
         noarg = true;                                        \
       name = uniarg;                                         \
     }
