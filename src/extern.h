@@ -137,7 +137,7 @@ le *move_with_uniarg (int uniarg, bool (*move) (ptrdiff_t dir));
 le *execute_function (const char *name, int uniarg, bool is_uniarg);
 _GL_ATTRIBUTE_PURE Function get_function (const char *name);
 _GL_ATTRIBUTE_PURE const char *get_function_doc (const char *name);
-_GL_ATTRIBUTE_PURE bool get_function_interactive (const char *name);
+_GL_ATTRIBUTE_PURE int get_function_interactive (const char *name);
 _GL_ATTRIBUTE_PURE const char *get_function_name (Function p);
 _GL_ATTRIBUTE_FORMAT_PRINTF(1, 2) const_astr minibuf_read_function_name (const char *fmt, ...);
 void init_eval (void);

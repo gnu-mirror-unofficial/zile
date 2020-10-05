@@ -69,7 +69,7 @@ get_function (const char *name)
 }
 
 /* Return function's interactive flag, or -1 if not found. */
-bool
+int
 get_function_interactive (const char *name)
 {
   fentry * f = get_fentry (name);
