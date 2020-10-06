@@ -201,7 +201,7 @@ get_function_by_keys (gl_list_t keys)
 static bool
 self_insert_command (void)
 {
-  int ret = true;
+  bool ret = true;
   /* Mask out ~KBD_CTRL to allow control sequences to be themselves. */
   int key = (int) (lastkey () & ~KBD_CTRL);
   deactivate_mark ();
