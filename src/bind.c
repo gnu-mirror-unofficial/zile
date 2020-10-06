@@ -115,16 +115,12 @@ static Binding
 search_key (Binding tree, gl_list_t keys, size_t from)
 {
   Binding p = search_node (tree, (size_t) gl_list_get_at (keys, from));
-
-  if (p != NULL)
-    {
-      if (gl_list_size (keys) - from == 1)
-        return p;
-      else
-        return search_key (p, keys, from + 1);
-    }
-
-  return NULL;
+  if (p == NULL)
+    return NULL;
+  else if (gl_list_size (keys) - from == 1)
+    return p;
+  else
+    return search_key (p, keys, from + 1);
 }
 
 size_t
