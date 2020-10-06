@@ -194,7 +194,7 @@ Save the region as if killed, but don't kill it.
 END_DEFUN
 
 static le *
-kill_text (int uniarg, Function mark_func)
+kill_text (long uniarg, Function mark_func)
 {
   maybe_destroy_kill_ring ();
 
