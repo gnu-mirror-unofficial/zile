@@ -33,10 +33,10 @@ print OUT <<END;
 END
 
 my %bindings = get_bindings($ARGV[0]);
-say OUT "\"\\";
+print OUT "\"\\\n";
 for my $key (keys %bindings) {
   foreach my $binding (@{$bindings{$key}}) {
-    say OUT "(global-set-key \\\"" . escape_for_C($binding) . "\\\" '$key)\\";
+    print OUT "(global-set-key \\\"" . escape_for_C($binding) . "\\\" '$key)\\\n";
   }
 }
-say OUT "\"";
+print OUT "\"\n";
