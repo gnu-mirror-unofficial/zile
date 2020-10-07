@@ -452,7 +452,7 @@ what to do with it.
       else if (!(c == KBD_RET || c == KBD_DEL || c == 'n' || c == 'N'))
         {
           ungetkey (c);
-          ok = false;
+          ok = leNIL;
           break;
         }
     }
@@ -460,7 +460,7 @@ what to do with it.
   if (thisflag & FLAG_NEED_RESYNC)
     window_resync (cur_wp);
 
-  if (ok != leNIL)
+  if (ok == leT)
     minibuf_write ("Replaced %zu occurrences", count);
 }
 END_DEFUN
