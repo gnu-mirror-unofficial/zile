@@ -37,7 +37,7 @@
 #include "main.h"
 #include "extern.h"
 
-bool
+static bool
 exist_file (const char *filename)
 {
   struct stat st;

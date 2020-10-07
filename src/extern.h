@@ -143,7 +143,6 @@ _GL_ATTRIBUTE_FORMAT_PRINTF(1, 2) const_astr minibuf_read_function_name (const c
 void init_eval (void);
 
 /* file.c ----------------------------------------------------------------- */
-bool exist_file (const char *filename);
 astr get_home_dir (void);
 astr agetcwd (void);
 bool expand_path (astr path);
