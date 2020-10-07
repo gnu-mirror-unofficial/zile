@@ -538,8 +538,7 @@ write_buffer (Buffer bp, bool needname, bool confirm,
 
   if (!needname)
     name = astr_new_cstr (name0);
-
-  if (needname)
+  else
     {
       name = minibuf_read_filename ("%s", "", NULL, prompt);
       if (name == NULL)
