@@ -64,7 +64,6 @@ _GL_ATTRIBUTE_PURE size_t buffer_next_line (Buffer bp, size_t o);
 _GL_ATTRIBUTE_PURE size_t buffer_start_of_line (Buffer bp, size_t o);
 _GL_ATTRIBUTE_PURE size_t buffer_end_of_line (Buffer bp, size_t o);
 _GL_ATTRIBUTE_PURE size_t buffer_line_len (Buffer bp, size_t o);
-_GL_ATTRIBUTE_PURE size_t get_region_size (const Region r);
 _GL_ATTRIBUTE_PURE size_t get_buffer_line_o (Buffer bp);
 _GL_ATTRIBUTE_PURE char get_buffer_char (Buffer bp, size_t o);
 void destroy_buffer (Buffer bp);
@@ -84,6 +83,7 @@ bool warn_if_readonly_buffer (void);
 #undef FIELD
 _GL_ATTRIBUTE_PURE Region region_new (size_t o1, size_t o2);
 Region calculate_the_region (void);
+_GL_ATTRIBUTE_PURE size_t get_region_size (const Region r);
 bool delete_region (const Region r);
 _GL_ATTRIBUTE_PURE bool region_contains (Region r, size_t o);
 void set_temporary_buffer (Buffer bp);
