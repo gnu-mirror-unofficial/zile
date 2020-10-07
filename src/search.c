@@ -460,7 +460,7 @@ what to do with it.
   if (thisflag & FLAG_NEED_RESYNC)
     window_resync (cur_wp);
 
-  if (ok)
+  if (ok != leNIL)
     minibuf_write ("Replaced %zu occurrences", count);
 }
 END_DEFUN
