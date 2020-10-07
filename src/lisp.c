@@ -147,8 +147,6 @@ read_token (tokenname *tokenid, astr as, size_t * pos)
 
       c = read_char (as, pos);
     }
-
-  return tok;
 }
 
 static le *
