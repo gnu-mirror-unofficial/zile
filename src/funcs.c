@@ -430,7 +430,7 @@ END_DEFUN
 static inline bool
 isopenbracketchar (int c, bool single_quote, bool double_quote)
 {
-  return ((c == '(') || (c == '[') || ( c== '{') ||
+  return ((c == '(') || (c == '[') || ( c == '{') ||
           ((c == '\"') && !double_quote) ||
           ((c == '\'') && !single_quote));
 }
