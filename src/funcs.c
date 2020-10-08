@@ -724,7 +724,7 @@ mark (int uniarg, Function func)
   le * ret;
   FUNCALL (set_mark_command);
   ret = func (uniarg, true, NULL);
-  if (ret)
+  if (ret == leT)
     FUNCALL (exchange_point_and_mark);
   return ret;
 }
