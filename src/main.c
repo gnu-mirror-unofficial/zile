@@ -65,7 +65,7 @@ Keys not working properly?  See file://" PATH_DOCDIR "/FAQ\n\
 GNU " PACKAGE_NAME " comes with ABSOLUTELY NO WARRANTY.\n\
 " PACKAGE_NAME " is Free Software--Free as in Freedom--so you can redistribute copies\n\
 of " PACKAGE_NAME " and modify it; see the file COPYING.  Otherwise, a copy can be\n\
-downloaded from http://www.gnu.org/licenses/gpl.html.\n\
+downloaded from https://www.gnu.org/licenses/gpl.html.\n\
 ";
 
 static _Noreturn void
