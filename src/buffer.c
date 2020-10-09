@@ -634,7 +634,7 @@ make_buffer_completion (void)
 
 /*
  * Check if the buffer has been modified.  If so, asks the user if
- * he/she wants to save the changes.  If the response is positive, return
+ * they want to save the changes.  If the response is positive, return
  * true, else false.
  */
 bool
