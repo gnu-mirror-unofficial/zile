@@ -466,7 +466,7 @@ write_to_disk (Buffer bp, const char *filename, mode_t mode)
 static astr
 create_backup_filename (const char *filename, const char *backupdir)
 {
-  astr res;
+  astr res = NULL;
 
   /* Prepend the backup directory path to the filename */
   if (backupdir)
@@ -484,7 +484,8 @@ create_backup_filename (const char *filename, const char *backupdir)
         buf = NULL;
       res = buf;
     }
-  else
+
+  if (res == NULL)
     res = astr_new_cstr (filename);
 
   return astr_cat_char (res, '~');
