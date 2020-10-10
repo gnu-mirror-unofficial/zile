@@ -34,7 +34,6 @@ _GL_ATTRIBUTE_PURE astr estr_get_as (const_estr es);
 _GL_ATTRIBUTE_PURE const char *estr_get_eol (const_estr es);
 
 estr estr_new (const_astr as, const char *eol);
-const_estr const_estr_new (const_astr as, const char *eol);
 
 /* Make estr from astr, determining EOL type from astr's contents. */
 estr estr_new_astr (const_astr as);
