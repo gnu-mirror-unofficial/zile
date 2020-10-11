@@ -35,7 +35,7 @@ void set_this_command (Function cmd);
 size_t do_binding_completion (astr as);
 gl_list_t get_key_sequence (void);
 Function get_function_by_keys (gl_list_t keys);
-bool call_command (Function f, long uniarg, bool uniflag, le *branch);
+bool call_command (Function f, long uniarg, le *branch);
 void get_and_run_command (void);
 void init_default_bindings (void);
 
@@ -311,6 +311,6 @@ void window_resync (Window wp);
  * Declare external Zile functions.
  */
 #define X(zile_name, c_name, interactive, doc)   \
-  bool F_ ## c_name (long uniarg, bool is_uniarg, le * l);
+  bool F_ ## c_name (long uniarg, le * l);
 #include "tbl_funcs.h"
 #undef X

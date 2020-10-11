@@ -274,7 +274,7 @@ Like `find-file', but marks buffer as read-only.
 Use M-x toggle-read-only to permit editing.
 +*/
 {
-  ok = F_find_file (uniarg, is_uniarg, arglist);
+  ok = F_find_file (uniarg, arglist);
   if (ok)
     set_buffer_readonly (cur_bp, true);
 }
@@ -774,7 +774,7 @@ DEFUN_ARGS ("cd", cd,
 Make DIR become the current buffer's default directory.
 +*/
 {
-  if (arglist == NULL)
+  if (arglist == leNIL)
     dir = minibuf_read_filename ("Change default directory: ",
                                  astr_cstr (get_buffer_dir (cur_bp)), NULL);
 

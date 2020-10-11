@@ -100,15 +100,15 @@ typedef enum
 /*
  * The type of a Zile exported function.
  * `uniarg' is the universal argument, if any, whose presence is
- * indicated by `is_uniarg'.
+ * indicated by `list' being `NULL'.
  */
-typedef bool (*Function) (long uniarg, bool is_uniarg, le * list);
+typedef bool (*Function) (long uniarg, le * list);
 
 /* Define an interactive function. */
 #define DEFUN(zile_func, c_func) \
   DEFUN_ARGS(zile_func, c_func, )
 #define DEFUN_ARGS(zile_func, c_func, args) \
-  bool F_ ## c_func (long uniarg _GL_UNUSED_PARAMETER, bool is_uniarg _GL_UNUSED_PARAMETER, le *arglist _GL_UNUSED_PARAMETER) \
+  bool F_ ## c_func (long uniarg _GL_UNUSED_PARAMETER, le *arglist _GL_UNUSED_PARAMETER) \
   {                                                                     \
     bool ok = true;                                                     \
     args
@@ -155,7 +155,7 @@ typedef bool (*Function) (long uniarg, bool is_uniarg, le * list);
   INT_INIT (name)                                            \
   else                                                       \
     {                                                        \
-      if (!(lastflag & FLAG_SET_UNIARG) && !is_uniarg)       \
+      if (!(lastflag & FLAG_SET_UNIARG) && !(arglist == NULL)) \
         noarg = true;                                        \
       name = uniarg;                                         \
     }
@@ -174,11 +174,11 @@ typedef bool (*Function) (long uniarg, bool is_uniarg, le * list);
 
 /* Call an interactive function. */
 #define FUNCALL(c_func)                         \
-  F_ ## c_func (1, false, leNIL)
+  F_ ## c_func (1, leNIL)
 
 /* Call an interactive function with a universal argument. */
 #define FUNCALL_ARG(c_func, uniarg)             \
-  F_ ## c_func (uniarg, true, leNIL)
+  F_ ## c_func (uniarg, NULL)
 
 /*--------------------------------------------------------------------------
  * Keyboard handling.

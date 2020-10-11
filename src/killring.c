@@ -202,7 +202,7 @@ kill_text (long uniarg, Function mark_func)
     return false;
 
   push_mark ();
-  mark_func (uniarg, true, NULL);
+  mark_func (uniarg, NULL);
   FUNCALL (kill_region);
   pop_mark ();
 

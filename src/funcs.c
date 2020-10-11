@@ -186,7 +186,7 @@ Just C-u as argument means to use the current column.
   long fill_col = (lastflag & FLAG_UNIARG_EMPTY) ? o : (unsigned long) uniarg;
   char *buf = NULL;
 
-  if (!(lastflag & FLAG_SET_UNIARG) && arglist == NULL)
+  if (!(lastflag & FLAG_SET_UNIARG) && arglist == leNIL)
     {
       fill_col = minibuf_read_number ("Set fill-column to (default %zu): ", o);
       if (fill_col == LONG_MAX)
@@ -722,7 +722,7 @@ static bool
 mark (int uniarg, Function func)
 {
   FUNCALL (set_mark_command);
-  bool ok = func (uniarg, true, NULL);
+  bool ok = func (uniarg, NULL);
   if (ok)
     FUNCALL (exchange_point_and_mark);
   return ok;
@@ -785,7 +785,7 @@ move_paragraph (int uniarg, bool (*forward) (void), bool (*backward) (void),
   if (is_empty_line ())
     FUNCALL (beginning_of_line);
   else
-    line_extremum (1, false, NULL);
+    line_extremum (1, leNIL);
 
   return true;
 }

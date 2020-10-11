@@ -246,7 +246,7 @@ set_this_command (Function cmd)
 }
 
 bool
-call_command (Function f, long uniarg, bool uniflag, le *branch)
+call_command (Function f, long uniarg, le *branch)
 {
   thisflag = lastflag & FLAG_DEFINING_MACRO;
   undo_start_sequence ();
@@ -258,7 +258,7 @@ call_command (Function f, long uniarg, bool uniflag, le *branch)
 
   /* Execute the command. */
   _this_command = f;
-  bool ok = f (uniarg, uniflag, branch);
+  bool ok = f (uniarg, branch);
   _last_command = _this_command;
 
   /* Only add keystrokes if we were already in macro defining mode
@@ -281,7 +281,7 @@ get_and_run_command (void)
   minibuf_clear ();
 
   if (f != NULL)
-    call_command (f, last_uniarg, (lastflag & FLAG_SET_UNIARG) != 0, NULL);
+    call_command (f, last_uniarg, (lastflag & FLAG_SET_UNIARG) ? NULL : leNIL);
   else
     minibuf_error ("%s is undefined", astr_cstr (keyvectodesc (keys)));
 }

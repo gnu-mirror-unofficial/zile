@@ -123,7 +123,7 @@ evaluateBranch (le * trybranch)
 
   func = get_fentry (keyword->data);
   if (func)
-    return call_command (func->func, 1, false, trybranch) ? leT : leNIL;
+    return call_command (func->func, 1, trybranch) ? leT : leNIL;
 
   return NULL;
 }
@@ -214,7 +214,7 @@ bool
 execute_function (const char *name, long uniarg, bool is_uniarg)
 {
   Function func = get_function (name);
-  return func != NULL ? call_command (func, uniarg, is_uniarg, NULL) : false;
+  return func != NULL ? call_command (func, uniarg, is_uniarg ? NULL : leNIL) : false;
 }
 
 DEFUN ("execute-extended-command", execute_extended_command)
