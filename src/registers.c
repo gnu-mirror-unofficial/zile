@@ -57,7 +57,7 @@ Copy region into register REGISTER.
                                being a power of 2. */
 
       if (warn_if_no_mark ())
-        ok = leNIL;
+        ok = false;
       else
         regs[reg] = get_buffer_region (cur_bp, calculate_the_region ());
     }
@@ -81,7 +81,7 @@ Puts point before and mark after the inserted text.
 +*/
 {
   if (warn_if_readonly_buffer ())
-    return leNIL;
+    return false;
 
   INT_INIT (reg)
   else
@@ -100,7 +100,7 @@ Puts point before and mark after the inserted text.
       if (regs[reg] == NULL)
         {
           minibuf_error ("Register does not contain text");
-          ok = leNIL;
+          ok = false;
         }
       else
         {

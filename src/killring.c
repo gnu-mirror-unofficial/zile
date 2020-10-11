@@ -193,13 +193,13 @@ Save the region as if killed, but don't kill it.
 }
 END_DEFUN
 
-static le *
+static bool
 kill_text (long uniarg, Function mark_func)
 {
   maybe_destroy_kill_ring ();
 
   if (warn_if_readonly_buffer ())
-    return leNIL;
+    return false;
 
   push_mark ();
   mark_func (uniarg, true, NULL);
@@ -208,7 +208,7 @@ kill_text (long uniarg, Function mark_func)
 
   set_this_command (F_kill_region);
   minibuf_write ("%s", "");		/* Erase "Set mark" message.  */
-  return leT;
+  return true;
 }
 
 DEFUN_ARGS ("kill-word", kill_word,
@@ -256,11 +256,11 @@ killed OR yanked.  Put point at end, and set mark at beginning.
   if (kill_ring_text == NULL)
     {
       minibuf_error ("Kill ring is empty");
-      return leNIL;
+      return false;
     }
 
   if (warn_if_readonly_buffer ())
-    return leNIL;
+    return false;
 
   FUNCALL (set_mark_command);
   insert_estr (kill_ring_text);

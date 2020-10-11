@@ -83,7 +83,7 @@ Both windows display the same buffer now current.
     {
       minibuf_error ("Window height %zu too small (after splitting)",
                      cur_wp->fheight);
-      return leNIL;
+      return false;
     }
 
   Window newwp = (Window) XZALLOC (struct Window);
@@ -134,7 +134,7 @@ Remove the current window from the screen.
   if (cur_wp == head_wp && cur_wp->next == NULL)
     {
       minibuf_error ("Attempt to delete sole ordinary window");
-      return leNIL;
+      return false;
     }
 
   delete_window (cur_wp);
@@ -148,7 +148,7 @@ Make current window one line bigger.
 {
   if (cur_wp == head_wp && (cur_wp->next == NULL ||
                             cur_wp->next->fheight < 3))
-    return leNIL;
+    return false;
 
   Window wp = cur_wp->next;
   if (wp == NULL || wp->fheight < 3)
@@ -156,7 +156,7 @@ Make current window one line bigger.
       if (wp->next == cur_wp)
         {
           if (wp->fheight < 3)
-            return leNIL;
+            return false;
           break;
         }
 
@@ -176,7 +176,7 @@ Make current window one line smaller.
 {
 
   if ((cur_wp == head_wp && cur_wp->next == NULL) || cur_wp->fheight < 3)
-    return leNIL;
+    return false;
 
   Window wp = cur_wp->next;
   if (wp == NULL)

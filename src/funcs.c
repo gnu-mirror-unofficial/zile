@@ -50,7 +50,7 @@ Cancel current command.
 {
   deactivate_mark ();
   minibuf_error ("Quit");
-  ok = leNIL;
+  ok = false;
 }
 END_DEFUN
 
@@ -190,7 +190,7 @@ Just C-u as argument means to use the current column.
     {
       fill_col = minibuf_read_number ("Set fill-column to (default %zu): ", o);
       if (fill_col == LONG_MAX)
-        return leNIL;
+        return false;
       else if (fill_col == LONG_MAX - 1)
         fill_col = o;
     }
@@ -202,7 +202,7 @@ Just C-u as argument means to use the current column.
       else
         {
           minibuf_error ("set-fill-column requires an explicit argument");
-          ok = leNIL;
+          ok = false;
         }
     }
   else
@@ -246,7 +246,7 @@ Put the mark where point is now, and point where the mark is now.
   if (get_buffer_mark (cur_bp) == NULL)
     {
       minibuf_error ("No mark set in this buffer");
-      return leNIL;
+      return false;
     }
 
   size_t o = get_buffer_pt (cur_bp);
@@ -663,7 +663,7 @@ static bool
 transpose (int uniarg, bool (*move) (ptrdiff_t dir))
 {
   if (warn_if_readonly_buffer ())
-    return leNIL;
+    return false;
 
   bool ret = true;
   for (unsigned long uni = 0; ret && uni < (unsigned) abs (uniarg); ++uni)
@@ -764,7 +764,7 @@ Precisely, if point is on line I, move to the start of line I + N.
 }
 END_DEFUN
 
-static le *
+static bool
 move_paragraph (int uniarg, bool (*forward) (void), bool (*backward) (void),
                      Function line_extremum)
 {
@@ -787,7 +787,7 @@ move_paragraph (int uniarg, bool (*forward) (void), bool (*backward) (void),
   else
     line_extremum (1, false, NULL);
 
-  return leT;
+  return true;
 }
 
 DEFUN ("backward-paragraph", backward_paragraph)
@@ -859,7 +859,7 @@ Fill paragraph at or after point.
   while ((ret = fill_break_line ()) == true)
     ;
   if (ret == -1)
-    ok = leNIL;
+    ok = false;
 
   goto_offset (get_marker_o (m));
   unchain_marker (m);
@@ -948,11 +948,11 @@ END_DEFUN
 /*
  * Set the region case.
  */
-static le *
+static bool
 setcase_region (int (*func) (int))
 {
   if (warn_if_readonly_buffer () || warn_if_no_mark ())
-    return leNIL;
+    return false;
 
   Region r = calculate_the_region ();
   Marker m = point_marker ();
@@ -966,7 +966,7 @@ setcase_region (int (*func) (int))
   goto_offset (get_marker_o (m));
   unchain_marker (m);
 
-  return leT;
+  return true;
 }
 
 DEFUN ("upcase-region", upcase_region)
@@ -1026,7 +1026,7 @@ done_read (void *data, size_t n, void *priv)
   astr_cat_nstr (((pipe_data *) priv)->out, (const char *)data, n);
 }
 
-static le *
+static bool
 pipe_command (const_astr cmd, astr input, bool do_insert, bool do_replace)
 {
   const char *prog_argv[] = { "/bin/sh", "-c", astr_cstr (cmd), NULL };
@@ -1034,7 +1034,7 @@ pipe_command (const_astr cmd, astr input, bool do_insert, bool do_replace)
   if (pipe_filter_ii_execute (PACKAGE_NAME, "/bin/sh", prog_argv, true, false,
                               prepare_write, done_write, prepare_read, done_read,
                               &inout) != 0)
-    return leNIL;
+    return false;
 
   char *eol = strchr (astr_cstr (inout.out), '\n');
 
@@ -1064,7 +1064,7 @@ pipe_command (const_astr cmd, astr input, bool do_insert, bool do_replace)
         }
     }
 
-  return leT;
+  return true;
 }
 
 static const_astr
@@ -1148,7 +1148,7 @@ The output is available in that buffer in both cases.
   if (cmd != NULL)
     {
       if (warn_if_no_mark ())
-        ok = leNIL;
+        ok = false;
       else
         ok = pipe_command (cmd, estr_get_as (get_buffer_region (cur_bp, calculate_the_region ())), insert, true);
     }
@@ -1161,7 +1161,7 @@ Delete the text between point and mark.
 +*/
 {
   if (warn_if_no_mark () || !delete_region (calculate_the_region ()))
-    ok = leNIL;
+    ok = false;
   else
     deactivate_mark ();
 }

@@ -296,7 +296,7 @@ If the current buffer now contains an empty file that you just visited
     base = base_name (buf);
   const_astr ms = minibuf_read_filename ("Find alternate: ", buf, base);
 
-  ok = leNIL;
+  ok = false;
   if (ms == NULL)
     ok = FUNCALL (keyboard_quit);
   else if (astr_len (ms) > 0 && check_modified_buffer (cur_bp))
@@ -355,7 +355,7 @@ Puts mark after the inserted text.
   Buffer def_bp = ((get_buffer_next (cur_bp) != NULL) ? get_buffer_next (cur_bp) : head_bp);
 
   if (warn_if_readonly_buffer ())
-    return leNIL;
+    return false;
 
   STR_INIT (buf)
   else
@@ -377,7 +377,7 @@ Puts mark after the inserted text.
           if (bp == NULL)
             {
               minibuf_error ("Buffer `%s' not found", astr_cstr (buf));
-              ok = leNIL;
+              ok = false;
             }
         }
       else
@@ -400,7 +400,7 @@ Set mark after the inserted text.
 +*/
 {
   if (warn_if_readonly_buffer ())
-    return leNIL;
+    return false;
 
   STR_INIT (file)
   else
@@ -424,7 +424,7 @@ Set mark after the inserted text.
         }
       else
         {
-          ok = leNIL;
+          ok = false;
           minibuf_error ("%s: %s", astr_cstr (file), strerror (errno));
         }
     }
@@ -720,7 +720,7 @@ Offer to save each buffer, then kill this Zile process.
 +*/
 {
   if (!save_some_buffers ())
-    return leNIL;
+    return false;
 
   for (Buffer bp = head_bp; bp != NULL; bp = get_buffer_next (bp))
     if (get_buffer_modified (bp) && !get_buffer_needname (bp))
@@ -732,7 +732,7 @@ Offer to save each buffer, then kill this Zile process.
             if (ans == -1)
               return FUNCALL (keyboard_quit);
             else if (!ans)
-              return leNIL;
+              return false;
             break;
           }
         break; /* We have found a modified buffer, so stop. */
@@ -787,12 +787,12 @@ Make DIR become the current buffer's default directory.
       if (stat (astr_cstr (dir), &st) != 0 || !S_ISDIR (st.st_mode))
         {
           minibuf_error ("`%s' is not a directory", astr_cstr (dir));
-          ok = leNIL;
+          ok = false;
         }
       else if (chdir (astr_cstr (dir)) == -1)
         {
           minibuf_write ("%s: %s", astr_cstr (dir), strerror (errno));
-          ok = leNIL;
+          ok = false;
         }
     }
 }

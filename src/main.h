@@ -144,7 +144,7 @@ typedef bool (*Function) (long uniarg, bool is_uniarg, le * list);
       if (s != NULL)                            \
         name = strtol (s, NULL, 10);            \
       if (name == LONG_MAX)                     \
-        ok = leNIL;                             \
+        ok = false;                             \
     }
 
 /* Integer argument which can either be argument or uniarg. */

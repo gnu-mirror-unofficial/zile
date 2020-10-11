@@ -107,7 +107,7 @@ static const_astr last_search = NULL;
 static bool
 do_search (bool forward, bool regexp, const_astr pattern)
 {
-  le * ok = leNIL;
+  bool ok = false;
 
   if (pattern == NULL)
     pattern = minibuf_read ("%s%s: ", last_search ? astr_cstr (last_search) : NULL,
@@ -122,7 +122,7 @@ do_search (bool forward, bool regexp, const_astr pattern)
       if (!search (astr_cstr (pattern), forward, regexp))
         minibuf_error ("Search failed: \"%s\"", astr_cstr (pattern));
       else
-        ok = leT;
+        ok = true;
     }
 
   return ok;
@@ -175,7 +175,7 @@ END_DEFUN
 /*
  * Incremental search engine.
  */
-static le *
+static void
 isearch (int forward, int regexp)
 {
   Marker old_mark = copy_marker (get_buffer_mark (get_window_bp (cur_wp)));
@@ -308,8 +308,6 @@ isearch (int forward, int regexp)
 
   if (old_mark)
     unchain_marker (old_mark);
-
-  return leT;
 }
 
 DEFUN ("isearch-forward", isearch_forward)
@@ -324,7 +322,7 @@ Type \\[isearch-repeat-forward] to search again forward, \\[isearch-repeat-backw
 \\[isearch-abort] when search is successful aborts and moves point to starting point.
 +*/
 {
-  ok = isearch (true, lastflag & FLAG_SET_UNIARG);
+  isearch (true, lastflag & FLAG_SET_UNIARG);
 }
 END_DEFUN
 
@@ -335,7 +333,7 @@ With a prefix argument, do a regular expression search instead.
 See the command `isearch-forward' for more information.
 +*/
 {
-  ok = isearch (false, lastflag & FLAG_SET_UNIARG);
+  isearch (false, lastflag & FLAG_SET_UNIARG);
 }
 END_DEFUN
 
@@ -347,7 +345,7 @@ Like ordinary incremental search except that your input is treated
 as a regexp.  See the command `isearch-forward' for more information.
 +*/
 {
-  ok = isearch (true, !(lastflag & FLAG_SET_UNIARG));
+  isearch (true, !(lastflag & FLAG_SET_UNIARG));
 }
 END_DEFUN
 
@@ -359,7 +357,7 @@ Like ordinary incremental search except that your input is treated
 as a regexp.  See the command `isearch-forward-regexp` for more information.
 +*/
 {
-  ok = isearch (false, !(lastflag & FLAG_SET_UNIARG));
+  isearch (false, !(lastflag & FLAG_SET_UNIARG));
 }
 END_DEFUN
 
@@ -393,7 +391,7 @@ what to do with it.
   if (find == NULL)
     return FUNCALL (keyboard_quit);
   if (astr_len (find) == 0)
-    return leNIL;
+    return false;
   bool find_no_upper = no_upper (astr_cstr (find), astr_len (find), false);
 
   const_astr repl = minibuf_read ("Query replace `%s' with: ", "", astr_cstr (find));
@@ -452,7 +450,7 @@ what to do with it.
       else if (!(c == KBD_RET || c == KBD_DEL || c == 'n' || c == 'N'))
         {
           ungetkey (c);
-          ok = leNIL;
+          ok = false;
           break;
         }
     }

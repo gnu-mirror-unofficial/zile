@@ -292,10 +292,10 @@ does nothing.
   size_t target_goalc = 0, cur_goalc = get_goalc ();
   size_t t = tab_width (cur_bp);
 
-  ok = leNIL;
+  ok = false;
 
   if (warn_if_readonly_buffer ())
-    return leNIL;
+    return false;
 
   deactivate_mark ();
 
@@ -394,10 +394,10 @@ Insert a newline, then indent.
 Indentation is done using the `indent-for-tab-command' function.
 +*/
 {
-  ok = leNIL;
+  ok = false;
 
   if (warn_if_readonly_buffer ())
-    return leNIL;
+    return false;
 
   deactivate_mark ();
 
@@ -415,7 +415,7 @@ Indentation is done using the `indent-for-tab-command' function.
          there is a space character there in the last non-blank line. */
       if (indent)
         FUNCALL (indent_for_tab_command);
-      ok = leT;
+      ok = true;
     }
 }
 END_DEFUN

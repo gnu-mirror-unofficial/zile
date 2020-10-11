@@ -127,17 +127,17 @@ Repeat this command to undo more changes.
   if (get_buffer_noundo (cur_bp))
     {
       minibuf_error ("Undo disabled in this buffer");
-      return leNIL;
+      return false;
     }
 
   if (warn_if_readonly_buffer ())
-    return leNIL;
+    return false;
 
   if (get_buffer_next_undop (cur_bp) == NULL)
     {
       minibuf_error ("No further undo information");
       set_buffer_next_undop (cur_bp, get_buffer_last_undop (cur_bp));
-      return leNIL;
+      return false;
     }
 
   set_buffer_next_undop (cur_bp, revert_action (get_buffer_next_undop (cur_bp)));

@@ -235,7 +235,7 @@ Read function name, then read its arguments and call it.
 
   const_astr name = minibuf_read_function_name ("%s", astr_cstr (msg));
   if (name == NULL)
-    return leNIL;
+    return false;
 
   ok = execute_function (astr_cstr (name), uniarg, lastflag & FLAG_SET_UNIARG);
 }

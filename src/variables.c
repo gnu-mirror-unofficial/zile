@@ -200,7 +200,7 @@ Set a variable value to the user-specified value.
   else
     var = minibuf_read_variable_name ("Set variable: ");
   if (var == NULL)
-    return leNIL;
+    return false;
   STR_INIT (val)
   else
     val = minibuf_read ("Set %s to value: ", "", astr_cstr (var));

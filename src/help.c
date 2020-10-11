@@ -55,7 +55,7 @@ Display the full documentation of a function.
     {
       func = minibuf_read_function_name ("Describe function: ");
       if (func == NULL)
-        ok = leNIL;
+        ok = false;
     }
 
   if (ok)
@@ -92,13 +92,13 @@ Display the full documentation of a variable.
     name = minibuf_read_variable_name ("Describe variable: ");
 
   if (name == NULL)
-    ok = leNIL;
+    ok = false;
   else
     {
       const char *defval;
       const char *doc = get_variable_doc (astr_cstr (name), &defval);
       if (doc == NULL)
-        ok = leNIL;
+        ok = false;
       else
         write_temp_buffer ("*Help*", true,
                            write_variable_description,
@@ -144,7 +144,7 @@ Display documentation of the command invoked by a key sequence.
           binding = keyvectodesc (keys);
         }
       else
-        ok = leNIL;
+        ok = false;
     }
   else
     {
@@ -158,7 +158,7 @@ Display documentation of the command invoked by a key sequence.
       if (name == NULL)
         {
           minibuf_error ("%s is undefined", astr_cstr (binding));
-          ok = leNIL;
+          ok = false;
         }
     }
 

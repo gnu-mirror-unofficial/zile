@@ -335,7 +335,7 @@ sequence.
       if (keys == NULL)
         {
           minibuf_error ("Key sequence %s is invalid", astr_cstr (keystr));
-          return leNIL;
+          return false;
         }
     }
   else
@@ -350,13 +350,13 @@ sequence.
     name = minibuf_read_function_name ("Set key %s to command: ",
                                        astr_cstr (keystr));
   if (name == NULL)
-    return leNIL;
+    return false;
 
   func = get_function (astr_cstr (name));
   if (func == NULL) /* Possible if called non-interactively */
     {
       minibuf_error ("No such function `%s'", astr_cstr (name));
-      return leNIL;
+      return false;
     }
   bind_key_vec (root_bindings, keys, 0, func);
 }
@@ -425,7 +425,7 @@ Argument is a command name.
   const_astr name = minibuf_read_function_name ("Where is command: ");
   gather_bindings_state g;
 
-  ok = leNIL;
+  ok = false;
 
   if (name)
     {
@@ -439,7 +439,7 @@ Argument is a command name.
             minibuf_write ("%s is not on any key", astr_cstr (name));
           else
             minibuf_write ("%s is on %s", astr_cstr (name), astr_cstr (g.bindings));
-          ok = leT;
+          ok = true;
         }
     }
 }

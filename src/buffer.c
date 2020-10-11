@@ -605,7 +605,7 @@ With a nil argument, kill the current buffer.
       if (bp == NULL)
         {
           minibuf_error ("Buffer `%s' not found", astr_cstr (buf));
-          ok = leNIL;
+          ok = false;
         }
     }
   else
@@ -614,7 +614,7 @@ With a nil argument, kill the current buffer.
   if (ok)
     {
       if (!check_modified_buffer (bp))
-        ok = leNIL;
+        ok = false;
       else
         kill_buffer (bp);
     }

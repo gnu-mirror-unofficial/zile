@@ -86,7 +86,7 @@ Use \\[end-kbd-macro] to finish recording and make the macro available.
   if (thisflag & FLAG_DEFINING_MACRO)
     {
       minibuf_error ("Already defining a keyboard macro");
-      return leNIL;
+      return false;
     }
 
   if (cur_mp)
@@ -109,7 +109,7 @@ The macro is now available for use via \\[call-last-kbd-macro].
   if (!(thisflag & FLAG_DEFINING_MACRO))
     {
       minibuf_error ("Not defining a keyboard macro");
-      return leNIL;
+      return false;
     }
 
   thisflag &= ~FLAG_DEFINING_MACRO;
@@ -146,7 +146,7 @@ A prefix argument serves as a repeat count.
   if (cur_mp == NULL)
     {
       minibuf_error ("No kbd macro has been defined");
-      return leNIL;
+      return false;
     }
 
   /* FIXME: Call execute-kbd-macro (needs a way to reverse keystrtovec) */
@@ -170,6 +170,6 @@ Execute macro as string of editor command characters.
       execute_with_uniarg (uniarg, call_macro, NULL);
     }
   else
-    ok = leNIL;
+    ok = false;
 }
 END_DEFUN
