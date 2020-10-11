@@ -207,7 +207,7 @@ Set a variable value to the user-specified value.
   if (val == NULL)
     ok = FUNCALL (keyboard_quit);
 
-  if (ok == leT)
+  if (ok)
     set_variable (astr_cstr (var), astr_cstr (val));
 }
 END_DEFUN

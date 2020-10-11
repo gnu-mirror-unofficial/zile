@@ -35,7 +35,7 @@ void set_this_command (Function cmd);
 size_t do_binding_completion (astr as);
 gl_list_t get_key_sequence (void);
 Function get_function_by_keys (gl_list_t keys);
-le *call_command (Function f, long uniarg, bool uniflag, le *branch);
+bool call_command (Function f, long uniarg, bool uniflag, le *branch);
 void get_and_run_command (void);
 void init_default_bindings (void);
 
@@ -132,9 +132,9 @@ void ding (void);
 extern le *leNIL, *leT;
 _GL_ATTRIBUTE_PURE size_t countNodes (le * branch);
 void leEval (le * list);
-le *execute_with_uniarg (long uniarg, bool (*forward) (void), bool (*backward) (void));
-le *move_with_uniarg (long uniarg, bool (*move) (ptrdiff_t dir));
-le *execute_function (const char *name, long uniarg, bool is_uniarg);
+bool execute_with_uniarg (long uniarg, bool (*forward) (void), bool (*backward) (void));
+bool move_with_uniarg (long uniarg, bool (*move) (ptrdiff_t dir));
+bool execute_function (const char *name, long uniarg, bool is_uniarg);
 _GL_ATTRIBUTE_PURE Function get_function (const char *name);
 _GL_ATTRIBUTE_PURE const char *get_function_doc (const char *name);
 _GL_ATTRIBUTE_PURE int get_function_interactive (const char *name);
@@ -311,6 +311,6 @@ void window_resync (Window wp);
  * Declare external Zile functions.
  */
 #define X(zile_name, c_name, interactive, doc)   \
-  le *F_ ## c_name (long uniarg, bool is_uniarg, le * l);
+  bool F_ ## c_name (long uniarg, bool is_uniarg, le * l);
 #include "tbl_funcs.h"
 #undef X

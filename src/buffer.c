@@ -611,7 +611,7 @@ With a nil argument, kill the current buffer.
   else
     bp = cur_bp;
 
-  if (ok == leT)
+  if (ok)
     {
       if (!check_modified_buffer (bp))
         ok = leNIL;

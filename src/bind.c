@@ -245,7 +245,7 @@ set_this_command (Function cmd)
   _this_command = cmd;
 }
 
-le *
+bool
 call_command (Function f, long uniarg, bool uniflag, le *branch)
 {
   thisflag = lastflag & FLAG_DEFINING_MACRO;
@@ -258,7 +258,7 @@ call_command (Function f, long uniarg, bool uniflag, le *branch)
 
   /* Execute the command. */
   _this_command = f;
-  le *ok = f (uniarg, uniflag, branch);
+  bool ok = f (uniarg, uniflag, branch);
   _last_command = _this_command;
 
   /* Only add keystrokes if we were already in macro defining mode

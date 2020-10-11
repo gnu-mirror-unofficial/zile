@@ -91,7 +91,7 @@ the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
 +*/
 {
-  return bool_to_lisp (move_line (-uniarg));
+  return move_line (-uniarg);
 }
 END_DEFUN
 
@@ -103,7 +103,7 @@ the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
 +*/
 {
-  return bool_to_lisp (move_line (uniarg));
+  return move_line (uniarg);
 }
 END_DEFUN
 
@@ -118,8 +118,8 @@ Beginning of buffer is position 1.
   if (noarg)
     n = minibuf_read_number ("Goto char: ");
 
-  if (ok == leNIL || n >= LONG_MAX - 1)
-    return leNIL;
+  if (!ok || n >= LONG_MAX - 1)
+    return false;
 
   goto_offset (MIN (get_buffer_size (cur_bp), (size_t)MAX (n, 1) - 1));
 }
@@ -135,8 +135,8 @@ Go to LINE, counting from line 1 at beginning of buffer.
   if (noarg)
     n = minibuf_read_number ("Goto line: ");
 
-  if (ok == leNIL || n >= LONG_MAX - 1)
-    return leNIL;
+  if (!ok || n >= LONG_MAX - 1)
+    return false;
 
   move_line ((MAX (n, 1) - 1) - offset_to_line (cur_bp, get_buffer_pt (cur_bp)));
   FUNCALL (beginning_of_line);
@@ -167,8 +167,8 @@ Move point left N characters (right if N is negative).
 On attempt to pass beginning or end of buffer, stop and signal error.
 +*/
 {
-  ok = bool_to_lisp (move_char (-uniarg));
-  if (ok == leNIL)
+  ok = move_char (-uniarg);
+  if (!ok)
     minibuf_error ("Beginning of buffer");
 }
 END_DEFUN
@@ -179,8 +179,8 @@ Move point right N characters (left if N is negative).
 On reaching end of buffer, stop and signal error.
 +*/
 {
-  ok = bool_to_lisp (move_char (uniarg));
-  if (ok == leNIL)
+  ok = move_char (uniarg);
+  if (!ok)
     minibuf_error ("End of buffer");
 }
 END_DEFUN

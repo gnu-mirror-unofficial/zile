@@ -95,7 +95,7 @@ kill_line (bool whole_line)
 
   if (ok && (whole_line || only_blanks_to_end_of_line) && !eobp ())
     {
-      if (FUNCALL (delete_char) == leNIL)
+      if (!FUNCALL (delete_char))
         return false;
 
       kill_ring_push (estr_new_astr (astr_new_cstr ("\n")));
@@ -135,13 +135,13 @@ with no argument.
   INT_OR_UNIARG_INIT (arg);
 
   if (noarg)
-    ok = bool_to_lisp (kill_line (bolp () && get_variable_bool ("kill-whole-line")));
+    ok = kill_line (bolp () && get_variable_bool ("kill-whole-line"));
   else
     {
       if (arg <= 0)
-        ok = bool_to_lisp (bolp () ||
-                           copy_or_kill_region (true, region_new (get_buffer_line_o (cur_bp), get_buffer_pt (cur_bp))));
-      if (arg != 0 && ok == leT)
+        ok = bolp () ||
+          copy_or_kill_region (true, region_new (get_buffer_line_o (cur_bp), get_buffer_pt (cur_bp)));
+      if (arg != 0 && ok)
         ok = execute_with_uniarg (arg, kill_whole_line, kill_line_backward);
     }
 
@@ -180,7 +180,7 @@ the text, but put the text in the kill ring anyway.  This means that
 you can use the killing commands to copy text from a read-only buffer.
 +*/
 {
-  ok = bool_to_lisp (copy_or_kill_the_region (true));
+  ok = copy_or_kill_the_region (true);
 }
 END_DEFUN
 
@@ -189,7 +189,7 @@ DEFUN ("copy-region-as-kill", copy_region_as_kill)
 Save the region as if killed, but don't kill it.
 +*/
 {
-  ok = bool_to_lisp (copy_or_kill_the_region (false));
+  ok = copy_or_kill_the_region (false);
 }
 END_DEFUN
 

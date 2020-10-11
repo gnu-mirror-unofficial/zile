@@ -212,9 +212,9 @@ Execute a file of Lisp code named FILE.
 +*/
 {
   if (arglist && countNodes (arglist) >= 2)
-    ok = bool_to_lisp (lisp_loadfile (arglist->next->data));
+    ok = lisp_loadfile (arglist->next->data);
   else
-    ok = leNIL;
+    ok = false;
 }
 END_DEFUN
 

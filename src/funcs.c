@@ -213,7 +213,7 @@ Just C-u as argument means to use the current column.
                      get_variable ("fill-column"));
     }
 
-  if (ok == leT)
+  if (ok)
     set_variable ("fill-column", buf);
 }
 END_DEFUN
@@ -356,7 +356,7 @@ Repeating \\[universal-argument] without digits or minus sign
         }
     }
 
-  if (ok == leT)
+  if (ok)
     {
       last_uniarg = arg * sgn;
       thisflag |= FLAG_SET_UNIARG;
@@ -659,7 +659,7 @@ transpose_subr (bool (*move_func) (ptrdiff_t dir))
   return true;
 }
 
-static le *
+static bool
 transpose (int uniarg, bool (*move) (ptrdiff_t dir))
 {
   if (warn_if_readonly_buffer ())
@@ -669,7 +669,7 @@ transpose (int uniarg, bool (*move) (ptrdiff_t dir))
   for (unsigned long uni = 0; ret && uni < (unsigned) abs (uniarg); ++uni)
     ret = transpose_subr (move);
 
-  return bool_to_lisp (ret);
+  return ret;
 }
 
 DEFUN ("transpose-chars", transpose_chars)
@@ -718,15 +718,14 @@ With argument 0, interchanges line point is in with line mark is in.
 END_DEFUN
 
 
-static le *
+static bool
 mark (int uniarg, Function func)
 {
-  le * ret;
   FUNCALL (set_mark_command);
-  ret = func (uniarg, true, NULL);
-  if (ret == leT)
+  bool ok = func (uniarg, true, NULL);
+  if (ok)
     FUNCALL (exchange_point_and_mark);
-  return ret;
+  return ok;
 }
 
 DEFUN ("mark-word", mark_word)
@@ -757,10 +756,10 @@ Precisely, if point is on line I, move to the start of line I + N.
 +*/
 {
   INT_OR_UNIARG_INIT (n);
-  if (ok == leT)
+  if (ok)
     {
       FUNCALL (beginning_of_line);
-      ok = bool_to_lisp (move_line (n));
+      ok = move_line (n);
     }
 }
 END_DEFUN
@@ -1179,12 +1178,12 @@ On nonblank line, delete any immediately following blank lines.
   Region r = region_new (get_buffer_line_o (cur_bp), get_buffer_line_o (cur_bp));
 
   /* Find following blank lines.  */
-  if (FUNCALL (forward_line) == leT && is_blank_line ())
+  if (FUNCALL (forward_line) && is_blank_line ())
     {
       set_region_start (r, get_buffer_pt (cur_bp));
       do
         set_region_end (r, buffer_next_line (cur_bp, get_buffer_pt (cur_bp)));
-      while (FUNCALL (forward_line) == leT && is_blank_line ());
+      while (FUNCALL (forward_line) && is_blank_line ());
       set_region_end (r, MIN (get_region_end (r), get_buffer_size (cur_bp)));
     }
   goto_offset (get_marker_o (m));
@@ -1196,7 +1195,7 @@ On nonblank line, delete any immediately following blank lines.
       set_region_end (r, MAX (get_region_end (r), buffer_next_line (cur_bp, get_buffer_pt (cur_bp))));
       do
         set_region_start (r, get_buffer_line_o (cur_bp));
-      while (FUNCALL_ARG (forward_line, -1) == leT && is_blank_line ());
+      while (FUNCALL_ARG (forward_line, -1) && is_blank_line ());
       goto_offset (get_marker_o (m));
       if (get_region_start (r) != get_buffer_line_o (cur_bp) ||
           get_region_end (r) > buffer_next_line (cur_bp, get_buffer_pt (cur_bp)))

@@ -123,7 +123,7 @@ evaluateBranch (le * trybranch)
 
   func = get_fentry (keyword->data);
   if (func)
-    return call_command (func->func, 1, false, trybranch);
+    return call_command (func->func, 1, false, trybranch) ? leT : leNIL;
 
   return NULL;
 }
@@ -186,7 +186,7 @@ leEval (le * list)
     evaluateBranch (list->branch);
 }
 
-le *
+bool
 execute_with_uniarg (long uniarg, bool (*forward) (void), bool (*backward) (void))
 {
   if (backward && uniarg < 0)
@@ -198,23 +198,23 @@ execute_with_uniarg (long uniarg, bool (*forward) (void), bool (*backward) (void
   for (long uni = 0; ret && uni < uniarg; ++uni)
     ret = forward ();
 
-  return bool_to_lisp (ret);
+  return ret;
 }
 
-le *
+bool
 move_with_uniarg (long uniarg, bool (*move) (ptrdiff_t dir))
 {
   bool ret = true;
   for (unsigned long uni = 0; ret && uni < (unsigned) abs (uniarg); ++uni)
     ret = move (uniarg < 0 ? - 1 : 1);
-  return bool_to_lisp (ret);
+  return ret;
 }
 
-le *
+bool
 execute_function (const char *name, long uniarg, bool is_uniarg)
 {
   Function func = get_function (name);
-  return func ? call_command (func, uniarg, is_uniarg, NULL) : NULL;
+  return func != NULL ? call_command (func, uniarg, is_uniarg, NULL) : false;
 }
 
 DEFUN ("execute-extended-command", execute_extended_command)
@@ -237,7 +237,7 @@ Read function name, then read its arguments and call it.
   if (name == NULL)
     return leNIL;
 
-  ok = bool_to_lisp (execute_function (astr_cstr (name), uniarg, lastflag & FLAG_SET_UNIARG) == leT);
+  ok = execute_function (astr_cstr (name), uniarg, lastflag & FLAG_SET_UNIARG);
 }
 END_DEFUN
 

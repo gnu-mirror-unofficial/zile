@@ -260,10 +260,10 @@ creating one if none already exists.
     }
 
   if (filename == NULL || astr_len (filename) == 0)
-    ok = leNIL;
+    ok = false;
 
-  if (ok != leNIL)
-    ok = bool_to_lisp (find_file (astr_cstr (filename)));
+  if (ok)
+    ok = find_file (astr_cstr (filename));
 }
 END_DEFUN
 
@@ -275,7 +275,7 @@ Use M-x toggle-read-only to permit editing.
 +*/
 {
   ok = F_find_file (uniarg, is_uniarg, arglist);
-  if (ok == leT)
+  if (ok)
     set_buffer_readonly (cur_bp, true);
 }
 END_DEFUN
@@ -302,7 +302,7 @@ If the current buffer now contains an empty file that you just visited
   else if (astr_len (ms) > 0 && check_modified_buffer (cur_bp))
     {
       kill_buffer (cur_bp);
-      ok = bool_to_lisp (find_file (astr_cstr (ms)));
+      ok = find_file (astr_cstr (ms));
     }
 }
 END_DEFUN
@@ -326,7 +326,7 @@ Select buffer BUFFER in the current window.
         ok = FUNCALL (keyboard_quit);
     }
 
-  if (ok == leT)
+  if (ok)
     {
       if (buf && astr_len (buf) > 0)
         {
@@ -367,7 +367,7 @@ Puts mark after the inserted text.
         ok = FUNCALL (keyboard_quit);
     }
 
-  if (ok == leT)
+  if (ok)
     {
       Buffer bp;
 
@@ -383,7 +383,7 @@ Puts mark after the inserted text.
       else
         bp = def_bp;
 
-      if (ok != leNIL)
+      if (ok)
         {
           insert_buffer (bp);
           FUNCALL (set_mark_command);
@@ -412,9 +412,9 @@ Set mark after the inserted text.
     }
 
   if (file == NULL || astr_len (file) == 0)
-    ok = leNIL;
+    ok = false;
 
-  if (ok != leNIL)
+  if (ok)
     {
       estr es = estr_readf (astr_cstr (file));
       if (es)
@@ -529,12 +529,12 @@ backup_and_write (Buffer bp, const char *filename)
   return false;
 }
 
-static le *
+static bool
 write_buffer (Buffer bp, bool needname, bool confirm,
               const char *name0, const char *prompt)
 {
   bool ans = true;
-  le * ok = leT;
+  bool ok = true;
   const_astr name;
 
   if (!needname)
@@ -545,7 +545,7 @@ write_buffer (Buffer bp, bool needname, bool confirm,
       if (name == NULL)
         return FUNCALL (keyboard_quit);
       if (astr_len (name) == 0)
-        return leNIL;
+        return false;
       confirm = true;
     }
 
@@ -581,7 +581,7 @@ write_buffer (Buffer bp, bool needname, bool confirm,
       else if (ans == false)
         minibuf_error ("Canceled");
       if (ans != true)
-        ok = leNIL;
+        ok = false;
     }
 
   if (ans == true)
@@ -599,13 +599,13 @@ write_buffer (Buffer bp, bool needname, bool confirm,
           undo_set_unchanged (get_buffer_last_undop (bp));
         }
       else
-        ok = leNIL;
+        ok = false;
     }
 
   return ok;
 }
 
-static le *
+static bool
 save_buffer (Buffer bp)
 {
   if (get_buffer_modified (bp))
@@ -613,7 +613,7 @@ save_buffer (Buffer bp)
                          "File to save in: ");
 
   minibuf_write ("(No changes need to be saved)");
-  return leT;
+  return true;
 }
 
 DEFUN ("save-buffer", save_buffer)
@@ -710,7 +710,7 @@ DEFUN ("save-some-buffers", save_some_buffers)
 Save some modified file-visiting buffers.  Asks user about each one.
 +*/
 {
-  ok = bool_to_lisp (save_some_buffers ());
+  ok = save_some_buffers ();
 }
 END_DEFUN
 

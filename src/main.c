@@ -282,10 +282,9 @@ main (int argc, char **argv)
         {
         case arg_function:
           {
-            le *res = execute_function (arg, 1, false);
-            if (res == NULL)
+            ok = execute_function (arg, 1, false);
+            if (!ok)
               minibuf_error ("Function `%s' not defined", arg);
-            ok = res == leT;
             break;
           }
         case arg_loadfile:

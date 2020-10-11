@@ -108,7 +108,7 @@ completion_scroll_up (void)
   Window wp = find_window ("*Completions*");
   assert (wp != NULL);
   set_current_window (wp);
-  if (FUNCALL (scroll_up) == leNIL)
+  if (!FUNCALL (scroll_up))
     {
       FUNCALL (beginning_of_buffer);
       window_resync (cur_wp);
@@ -128,7 +128,7 @@ completion_scroll_down (void)
   Window wp = find_window ("*Completions*");
   assert (wp != NULL);
   set_current_window (wp);
-  if (FUNCALL (scroll_down) == leNIL)
+  if (!FUNCALL (scroll_down))
     {
       FUNCALL (end_of_buffer);
       window_resync (cur_wp);

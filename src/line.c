@@ -270,7 +270,7 @@ previous_nonblank_goalc (void)
   size_t cur_goalc = get_goalc ();
 
   /* Find previous non-blank line. */
-  while (FUNCALL_ARG (forward_line, -1) == leT && is_blank_line ());
+  while (FUNCALL_ARG (forward_line, -1) && is_blank_line ());
 
   /* Go to `cur_goalc' in that non-blank line. */
   while (!eolp () && get_goalc () < cur_goalc)
@@ -337,17 +337,17 @@ does nothing.
           do
             {
               if (cur_goalc % t == 0 && cur_goalc + t <= target_goalc)
-                ok = bool_to_lisp (insert_tab ());
+                ok = insert_tab ();
               else
-                ok = bool_to_lisp (insert_char (' '));
+                ok = insert_char (' ');
             }
-          while (ok == leT && (cur_goalc = get_goalc ()) < target_goalc);
+          while (ok && (cur_goalc = get_goalc ()) < target_goalc);
         }
       else
-        ok = bool_to_lisp (insert_tab ());
+        ok = insert_tab ();
     }
   else
-    ok = bool_to_lisp (insert_tab ());
+    ok = insert_tab ();
 }
 END_DEFUN
 
@@ -382,7 +382,7 @@ the indentation.  Else stay at same point in text.
 +*/
 {
   if (get_variable_bool ("tab-always-indent"))
-    return bool_to_lisp (insert_tab ());
+    return insert_tab ();
   else if (get_goalc () < previous_line_indent ())
     return FUNCALL (indent_relative);
 }

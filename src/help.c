@@ -58,11 +58,11 @@ Display the full documentation of a function.
         ok = leNIL;
     }
 
-  if (ok == leT)
+  if (ok)
     {
       const char *doc = get_function_doc (astr_cstr (func));
       if (doc == NULL)
-        ok = leNIL;
+        ok = false;
       else
         write_temp_buffer ("*Help*", true,
                            write_function_description, astr_cstr (func), doc);
@@ -162,13 +162,13 @@ Display documentation of the command invoked by a key sequence.
         }
     }
 
-  if (ok == leT)
+  if (ok)
     {
       minibuf_write ("%s runs the command `%s'", astr_cstr (binding), name);
 
       doc = get_function_doc (name);
       if (doc == NULL)
-        ok = leNIL;
+        ok = false;
       else
         write_temp_buffer ("*Help*", true,
                            write_key_description, name, doc, astr_cstr (binding));

@@ -102,18 +102,15 @@ typedef enum
  * `uniarg' is the universal argument, if any, whose presence is
  * indicated by `is_uniarg'.
  */
-typedef le * (*Function) (long uniarg, bool is_uniarg, le * list);
-
-/* Turn a bool into a Lisp boolean */
-#define bool_to_lisp(b) ((b) ? leT : leNIL)
+typedef bool (*Function) (long uniarg, bool is_uniarg, le * list);
 
 /* Define an interactive function. */
 #define DEFUN(zile_func, c_func) \
   DEFUN_ARGS(zile_func, c_func, )
 #define DEFUN_ARGS(zile_func, c_func, args) \
-  le * F_ ## c_func (long uniarg _GL_UNUSED_PARAMETER, bool is_uniarg _GL_UNUSED_PARAMETER, le *arglist _GL_UNUSED_PARAMETER) \
+  bool F_ ## c_func (long uniarg _GL_UNUSED_PARAMETER, bool is_uniarg _GL_UNUSED_PARAMETER, le *arglist _GL_UNUSED_PARAMETER) \
   {                                                                     \
-    le * ok = leT;                                                      \
+    bool ok = true;                                                     \
     args
 #define END_DEFUN    \
     return ok;       \
