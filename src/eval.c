@@ -161,21 +161,16 @@ The symbols sym are variables; they are literal (not evaluated).
 The values val are expressions; they are evaluated.
 +*/
 {
-  le *newvalue = leNIL;
-
   if (arglist != NULL && countNodes (arglist) >= 2)
     {
       for (le *current = arglist->next; current;
            current = current->next->next)
         {
-          newvalue = evaluateNode (current->next);
-          set_variable (current->data, newvalue->data);
+          set_variable (current->data, evaluateNode (current->next)->data);
           if (current->next == NULL)
             break; /* Cope with odd-length argument lists. */
         }
     }
-
-  ok = newvalue;
 }
 END_DEFUN
 

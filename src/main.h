@@ -155,7 +155,7 @@ typedef bool (*Function) (long uniarg, le * list);
   INT_INIT (name)                                            \
   else                                                       \
     {                                                        \
-      if (!(lastflag & FLAG_SET_UNIARG) && !(arglist == NULL)) \
+      if (!(lastflag & FLAG_SET_UNIARG) && arglist != NULL)  \
         noarg = true;                                        \
       name = uniarg;                                         \
     }
