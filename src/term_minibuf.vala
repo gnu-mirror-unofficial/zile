@@ -62,7 +62,7 @@ namespace TermMinibuf {
 			(wp = Window.find ("*Completions*")) != null) {
 			wp.set_current ();
 			if ((cp.flags & Completion.Flags.CLOSE) != 0)
-				funcall (F_delete_window);
+				funcall ("delete-window");
 			else if (cp.old_bp != null)
 				switch_to_buffer (cp.old_bp);
 			old_wp.set_current ();
@@ -162,7 +162,7 @@ namespace TermMinibuf {
 			case KBD_RET:
 				break;
 			case KBD_CTRL | 'z':
-				funcall (F_suspend_emacs);
+				funcall ("suspend-emacs");
 				break;
 			case KBD_CANCEL:
 				a = null;

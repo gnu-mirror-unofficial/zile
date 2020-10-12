@@ -61,8 +61,8 @@ public class Completion {
 		Window wp = Window.find ("*Completions*");
 		assert (wp != null);
 		wp.set_current ();
-		if (funcall (F_scroll_up) == false) {
-			funcall (F_beginning_of_buffer);
+		if (funcall ("scroll-up") == false) {
+			funcall ("beginning-of-buffer");
 			cur_wp.resync ();
 		}
 		old_wp.set_current ();
@@ -75,8 +75,8 @@ public class Completion {
 		Window? wp = Window.find ("*Completions*");
 		assert (wp != null);
 		wp.set_current ();
-		if (funcall (F_scroll_down) == false) {
-			funcall (F_end_of_buffer);
+		if (funcall ("scroll-down") == false) {
+			funcall ("end-of-buffer");
 			cur_wp.resync ();
 		}
 		old_wp.set_current ();

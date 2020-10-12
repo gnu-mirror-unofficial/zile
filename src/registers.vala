@@ -25,87 +25,11 @@ int NUM_REGISTERS = 256;
 
 Estr *regs[256 /* FIXME: NUM_REGISTERS */];
 
-/*
-DEFUN_ARGS ("copy-to-register", copy_to_register, INT_ARG (reg))
-*+
-Copy region into register REGISTER.
-+*/
-public bool F_copy_to_register (long uniarg, Lexp *arglist) {
-	bool ok = true;
-	long reg = 1;
-	if (noarg (arglist)) {
-		Minibuf.write ("Copy to register: ");
-		reg = (long) getkey (GETKEY_DEFAULT);
-    } else if (!int_init (ref arglist, ref reg))
-		ok = false;
-
-	if (ok) {
-		if (reg == KBD_CANCEL)
-			ok = funcall (F_keyboard_quit);
-		else {
-			Minibuf.clear ();
-			if (reg < 0)
-				reg = 0;
-			reg %= NUM_REGISTERS; /* Nice numbering relies on NUM_REGISTERS
-									 being a power of 2. */
-
-			if (warn_if_no_mark ())
-				ok = false;
-			else {
-				long index = reg;
-				regs[index] = get_buffer_region (cur_bp, Region.calculate ());
-			}
-		}
-	}
-	return ok;
-}
-
 long regnum;
 
 bool insert_register () {
 	insert_estr (regs[regnum]);
 	return true;
-}
-
-/*
-DEFUN_ARGS ("insert-register", insert_register, INT_ARG (reg))
-*+
-Insert contents of the user specified register.
-Puts point before and mark after the inserted text.
-+*/
-public bool F_insert_register (long uniarg, Lexp *arglist) {
-	bool ok = true;
-	if (warn_if_readonly_buffer ())
-		return false;
-
-	long reg = 1;
-	if (noarg (arglist)) {
-		Minibuf.write ("Insert register: ");
-		reg = (long) getkey (GETKEY_DEFAULT);
-    } else if (!int_init (ref arglist, ref reg))
-		ok = false;
-
-	if (ok) {
-		if (reg == KBD_CANCEL)
-			ok = funcall (F_keyboard_quit);
-		else {
-			Minibuf.clear ();
-			reg %= NUM_REGISTERS;
-
-			long index = reg;
-			if (regs[index] == null) {
-				Minibuf.error ("Register does not contain text");
-				ok = false;
-			} else {
-				funcall (F_set_mark_command);
-				regnum = reg;
-				execute_with_uniarg (uniarg, insert_register, null);
-				funcall (F_exchange_point_and_mark);
-				deactivate_mark ();
-			}
-		}
-	}
-	return ok;
 }
 
 static void write_registers_list (va_list ap) {
@@ -124,12 +48,91 @@ static void write_registers_list (va_list ap) {
 		}
 }
 
-/*
-DEFUN ("list-registers", list_registers)
-*+
-List defined registers.
-+*/
-public bool F_list_registers (long uniarg, Lexp *arglist) {
-	write_temp_buffer ("*Registers List*", true, write_registers_list);
-	return true;
+
+public void registers_init () {
+	new LispFunc (
+		"copy-to-register",
+		(uniarg, arglist) => {
+			bool ok = true;
+			long reg = 1;
+			if (noarg (arglist)) {
+				Minibuf.write ("Copy to register: ");
+				reg = (long) getkey (GETKEY_DEFAULT);
+			} else if (!int_init (ref arglist, ref reg))
+				ok = false;
+
+			if (ok) {
+				if (reg == KBD_CANCEL)
+					ok = funcall ("keyboard-quit");
+				else {
+					Minibuf.clear ();
+					if (reg < 0)
+						reg = 0;
+					reg %= NUM_REGISTERS; /* Nice numbering relies on NUM_REGISTERS
+											 being a power of 2. */
+
+					if (warn_if_no_mark ())
+						ok = false;
+					else {
+						long index = reg;
+						regs[index] = get_buffer_region (cur_bp, Region.calculate ());
+					}
+				}
+			}
+			return ok;
+		},
+		true,
+		"""Copy region into register REGISTER."""
+		);
+
+	new LispFunc (
+		"insert-register",
+		(uniarg, arglist) => {
+			bool ok = true;
+			if (warn_if_readonly_buffer ())
+				return false;
+
+			long reg = 1;
+			if (noarg (arglist)) {
+				Minibuf.write ("Insert register: ");
+				reg = (long) getkey (GETKEY_DEFAULT);
+			} else if (!int_init (ref arglist, ref reg))
+				ok = false;
+
+			if (ok) {
+				if (reg == KBD_CANCEL)
+					ok = funcall ("keyboard-quit");
+				else {
+					Minibuf.clear ();
+					reg %= NUM_REGISTERS;
+
+					long index = reg;
+					if (regs[index] == null) {
+						Minibuf.error ("Register does not contain text");
+						ok = false;
+					} else {
+						funcall ("set-mark-command");
+						regnum = reg;
+						execute_with_uniarg (uniarg, insert_register, null);
+						funcall ("exchange-point-and-mark");
+						deactivate_mark ();
+					}
+				}
+			}
+			return ok;
+		},
+		true,
+		"""Insert contents of the user specified register.
+Puts point before and mark after the inserted text."""
+		);
+
+	new LispFunc (
+		"list-registers",
+		(uniarg, arglist) => {
+			write_temp_buffer ("*Registers List*", true, write_registers_list);
+			return true;
+		},
+		true,
+		"""List defined registers."""
+		);
 }

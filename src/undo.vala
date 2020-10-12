@@ -73,7 +73,7 @@ public void undo_end_sequence () {
 		}
 
 		/* Update list pointer */
-		if (last_command () != F_undo)
+		if (last_command () != LispFunc.find ("undo"))
 			cur_bp.next_undop = cur_bp.last_undop;
 	}
 }
@@ -101,36 +101,39 @@ List<Undo> *revert_action (List<Undo> *l) {
 }
 
 /*
-DEFUN ("undo", undo)
-*+
-Undo some previous changes.
-Repeat this command to undo more changes.
-+*/
-public bool F_undo (long uniarg, Lexp *arglist) {
-	if (cur_bp.noundo) {
-		Minibuf.error ("Undo disabled in this buffer");
-		return false;
-	}
-
-	if (warn_if_readonly_buffer ())
-		return false;
-
-	if (cur_bp.next_undop == null) {
-		Minibuf.error ("No further undo information");
-		cur_bp.next_undop = cur_bp.last_undop;
-		return false;
-	}
-
-	cur_bp.next_undop = revert_action (cur_bp.next_undop);
-	Minibuf.write ("Undo!");
-	return true;
-}
-
-/*
  * Set unchanged flags to false.
  */
 public void undo_set_unchanged (List<Undo> l) {
 	foreach (Undo u in l) {
 		u.unchanged = false;
 	}
+}
+
+
+public void undo_init () {
+	new LispFunc (
+		"undo",
+		(uniarg, arglist) => {
+			if (cur_bp.noundo) {
+				Minibuf.error ("Undo disabled in this buffer");
+				return false;
+			}
+
+			if (warn_if_readonly_buffer ())
+				return false;
+
+			if (cur_bp.next_undop == null) {
+				Minibuf.error ("No further undo information");
+				cur_bp.next_undop = cur_bp.last_undop;
+				return false;
+			}
+
+			cur_bp.next_undop = revert_action (cur_bp.next_undop);
+			Minibuf.write ("Undo!");
+			return true;
+		},
+		true,
+		"""Undo some previous changes.
+		Repeat this command to undo more changes."""
+		);
 }

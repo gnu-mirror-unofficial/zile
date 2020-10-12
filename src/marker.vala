@@ -95,7 +95,7 @@ public void push_mark () {
 		mark_ring.append (m);
 	}
 
-	funcall (F_set_mark);
+	funcall ("set-mark");
 }
 
 /* Pop a mark from the mark-ring and make it the current mark. */

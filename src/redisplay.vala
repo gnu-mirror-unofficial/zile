@@ -65,7 +65,7 @@ public void resize_windows () {
         }
     }
 
-	funcall (F_recenter);
+	funcall ("recenter");
 }
 
 public void recenter (Window wp) {
@@ -77,15 +77,18 @@ public void recenter (Window wp) {
 		wp.topdelta = n;
 }
 
-/*
-DEFUN ("recenter", recenter)
-*+
-Center point in selected window and redisplay frame.
-+*/
-public bool F_recenter (long uniarg, Lexp *arglist) {
-	recenter (cur_wp);
-	term_clear ();
-	term_redisplay ();
-	term_refresh ();
-	return true;
+
+public void redisplay_init () {
+	new LispFunc (
+		"recenter",
+		(uniarg, arglist) => {
+			recenter (cur_wp);
+			term_clear ();
+			term_redisplay ();
+			term_refresh ();
+			return true;
+		},
+		true,
+		"""Center point in selected window and redisplay frame."""
+		);
 }

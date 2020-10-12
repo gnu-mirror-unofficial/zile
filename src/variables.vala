@@ -119,25 +119,28 @@ string? minibuf_read_variable_name (string fmt, ...) {
 									 "Undefined variable name `%s'", va_list ());
 }
 
-/*
-DEFUN_ARGS ("set-variable", set_variable, STR_ARG (name) STR_ARG (val))
-*+
-Set a variable value to the user-specified value.
-+*/
-public bool F_set_variable (long uniarg, Lexp *arglist) {
-	bool ok = true;
-	string? name = str_init (ref arglist);
-	if (name == null)
-		name = minibuf_read_variable_name ("Set variable: ");
-	if (name == null)
-		return false;
-	string? val = str_init (ref arglist);
-	if (val == null)
-		val = Minibuf.read ("Set %s to value: ", "", name);
-	if (val == null)
-		ok = funcall (F_keyboard_quit);
 
-	if (ok)
-		set_variable (name, val);
-	return ok;
+public void variables_init () {
+	new LispFunc (
+		"set-variable",
+		(uniarg, arglist) => {
+			bool ok = true;
+			string? name = str_init (ref arglist);
+			if (name == null)
+				name = minibuf_read_variable_name ("Set variable: ");
+			if (name == null)
+				return false;
+			string? val = str_init (ref arglist);
+			if (val == null)
+				val = Minibuf.read ("Set %s to value: ", "", name);
+			if (val == null)
+				ok = funcall ("keyboard-quit");
+
+			if (ok)
+				set_variable (name, val);
+			return ok;
+		},
+		true,
+		"""Set a variable value to the user-specified value."""
+		);
 }

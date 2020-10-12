@@ -22,37 +22,11 @@
 using Lisp;
 
 void write_function_description (va_list ap) {
-	string name = ap.arg<string> ();
-	string doc = ap.arg<string> ();
-	int interactive = get_function_interactive (name);
-
+	LispFunc func = ap.arg<LispFunc> ();
 	bprintf ("%s is %s built-in function in `C source code'.\n\n%s",
-			 name,
-			 interactive != 0 ? "an interactive" : "a",
-			 doc);
-}
-
-/*
-DEFUN_ARGS ("describe-function", describe_function, STR_ARG (func))
-*+
-Display the full documentation of a function.
-+*/
-public bool F_describe_function (long uniarg, Lexp *arglist) {
-	bool ok = true;
-	string? func = str_init (ref arglist);
-	if (func == null)
-		func = minibuf_read_function_name ("Describe function: ");
-	if (func == null)
-		ok = false;
-	else {
-		string doc = get_function_doc (func);
-		if (doc == null)
-			ok = false;
-		else
-			write_temp_buffer ("*Help*", true,
-							   write_function_description, func, doc);
-    }
-	return ok;
+			 func.name,
+			 func.interactive ? "an interactive" : "a",
+			 func.doc);
 }
 
 void write_variable_description (va_list ap) {
@@ -63,83 +37,105 @@ void write_variable_description (va_list ap) {
 			 name, curval, doc);
 }
 
-/*
-DEFUN_ARGS ("describe-variable", describe_variable, STR_ARG (name))
-*+
-Display the full documentation of a variable.
-+*/
-public bool F_describe_variable (long uniarg, Lexp *arglist) {
-	bool ok = true;
-	string? name = str_init (ref arglist);
-	if (name == null)
-		name = minibuf_read_variable_name ("Describe variable: ");
-	if (name == null)
-		ok = false;
-	else {
-		string defval;
-		string doc = get_variable_doc (name, out defval);
-		if (doc == null)
-			ok = false;
-		else
-			write_temp_buffer ("*Help*", true,
-							   write_variable_description,
-							   name, get_variable (name), doc);
-	}
-	return ok;
-}
-
 void write_key_description (va_list ap) {
-	string name = ap.arg<string> ();
-	string doc = ap.arg<string> ();
+	LispFunc func = ap.arg<LispFunc> ();
 	string binding = ap.arg<string> ();
-	int interactive = get_function_interactive (name);
-
-	assert (interactive != -1);
 
 	bprintf ("%s runs the command %s, which is %s built-in\nfunction in `C source code'.\n\n%s",
-			 binding, name,
-			 interactive != 0 ? "an interactive" : "a",
-			 doc);
+			 binding, func.name,
+			 func.interactive ? "an interactive" : "a",
+			 func.doc);
 }
 
-/*
-DEFUN_ARGS ("describe-key", describe_key, STR_ARG (keystr))
-*+
-Display documentation of the command invoked by a key sequence.
-+*/
-public bool F_describe_key (long uniarg, Lexp *arglist) {
-	bool ok = true;
-	string name = null, doc, binding = "";
 
-	string? keystr = str_init (ref arglist);
-	if (keystr != null) {
-		Array<uint?>? keys = keystrtovec (keystr);
-		if (keys != null) {
-			name = get_function_name (get_function_by_keys (keys));
-			binding = keyvectodesc (keys);
-        } else
-			ok = false;
-    } else {
-		Minibuf.write ("Describe key:");
-		Array<uint?> keys = get_key_sequence ();
-		name = get_function_name (get_function_by_keys (keys));
-		binding = keyvectodesc (keys);
+public void help_init () {
+	new LispFunc (
+		"describe-function",
+		(uniarg, arglist) => {
+			bool ok = true;
+			string? name = str_init (ref arglist);
+			if (name == null)
+				name = minibuf_read_function_name ("Describe function: ");
+			if (name == null)
+				ok = false;
+			else {
+				LispFunc? func = LispFunc.find (name);
+				if (func == null)
+					ok = false;
+				else
+					write_temp_buffer ("*Help*", true,
+									   write_function_description, func);
+			}
+			return ok;
+		},
+		true,
+		"""Display the full documentation of a function."""
+		);
 
-		if (name == null) {
-			Minibuf.error ("%s is undefined", binding);
-			ok = false;
-        }
-    }
+	new LispFunc (
+		"describe-variable",
+		(uniarg, arglist) => {
+			bool ok = true;
+			string? name = str_init (ref arglist);
+			if (name == null)
+				name = minibuf_read_variable_name ("Describe variable: ");
+			if (name == null)
+				ok = false;
+			else {
+				string defval;
+				string doc = get_variable_doc (name, out defval);
+				if (doc == null)
+					ok = false;
+				else
+					write_temp_buffer ("*Help*", true,
+									   write_variable_description,
+									   name, get_variable (name), doc);
+			}
+			return ok;
+		},
+		true,
+		"""Display the full documentation of a variable."""
+		);
 
-	if (ok) {
-		Minibuf.write ("%s runs the command `%s'", binding, name);
+	new LispFunc (
+		"describe-key",
+		(uniarg, arglist) => {
+			bool ok = true;
+			string name = null, binding = "";
 
-		doc = get_function_doc (name);
-		if (doc == null)
-			ok = false;
-		else
-			write_temp_buffer ("*Help*", true,
-							   write_key_description, name, doc, binding);
-    }
-	return ok;
+			string? keystr = str_init (ref arglist);
+			if (keystr != null) {
+				Array<uint?>? keys = keystrtovec (keystr);
+				if (keys != null) {
+					name = get_function_by_keys (keys).name;
+					binding = keyvectodesc (keys);
+				} else
+					ok = false;
+			} else {
+				Minibuf.write ("Describe key:");
+				Array<uint?> keys = get_key_sequence ();
+				name = get_function_by_keys (keys).name;
+				binding = keyvectodesc (keys);
+
+				if (name == null) {
+					Minibuf.error ("%s is undefined", binding);
+					ok = false;
+				}
+			}
+
+			if (ok) {
+				Minibuf.write ("%s runs the command `%s'", binding, name);
+
+				LispFunc? func = LispFunc.find (name);
+				if (func == null)
+					ok = false;
+				else
+					write_temp_buffer ("*Help*", true,
+									   write_key_description, func, binding);
+			}
+			return ok;
+		},
+		true,
+		"""Display documentation of the command invoked by a key sequence."""
+		);
 }

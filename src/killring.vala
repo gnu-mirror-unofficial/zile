@@ -24,7 +24,7 @@ using Lisp;
 Estr *kill_ring_text;
 
 void maybe_destroy_kill_ring () {
-	if (last_command () != F_kill_region)
+	if (last_command () != LispFunc.find ("kill-region"))
 		kill_ring_text = null;
 }
 
@@ -44,7 +44,7 @@ bool copy_or_kill_region (bool kill, Region r) {
 			assert (r.delete ());
     }
 
-	set_this_command ((void *) F_kill_region);
+	set_this_command (LispFunc.find ("kill-region"));
 	deactivate_mark ();
 
 	return true;
@@ -75,11 +75,11 @@ bool kill_line (bool whole_line) {
 		ok = copy_or_kill_region (true, new Region (cur_bp.pt, get_buffer_line_o (cur_bp) + cur_line_len));
 
 	if (ok && (whole_line || only_blanks_to_end_of_line) && !eobp ()) {
-		if (!funcall (F_delete_char))
+		if (!funcall ("delete-char"))
 			return false;
 
 		kill_ring_push (estr_new_astr (Astr.new_cstr ("\n")));
-		set_this_command ((void *) F_kill_region);
+		set_this_command (LispFunc.find ("kill-region"));
     }
 
 	return ok;
@@ -91,40 +91,6 @@ bool kill_whole_line () {
 
 bool kill_line_backward () {
 	return previous_line () && kill_whole_line ();
-}
-
-/*
-DEFUN_ARGS ("kill-line", kill_line, INT_OR_UNIARG (arg))
-*+
-Kill the rest of the current line; if no nonblanks there, kill thru newline.
-With prefix argument ARG, kill that many lines from point.
-Negative arguments kill lines backward.
-With zero argument, kills the text before point on the current line.
-
-If `kill-whole-line' is non-nil, then this command kills the whole line
-including its terminating newline, when used at the beginning of a line
-with no argument.
-+*/
-public bool F_kill_line (long uniarg, Lexp *arglist) {
-	maybe_destroy_kill_ring ();
-
-	bool ok = true;
-	if (noarg (arglist))
-		ok = kill_line (bolp () && get_variable_bool ("kill-whole-line"));
-	else {
-		long arg = 1;
-		if (!int_or_uniarg_init (ref arglist, ref arg, uniarg))
-			ok = false;
-		else {
-			if (arg <= 0)
-				ok = bolp () || copy_or_kill_region (true, new Region (get_buffer_line_o (cur_bp), cur_bp.pt));
-			if (arg != 0 && ok)
-				ok = execute_with_uniarg (arg, kill_whole_line, kill_line_backward);
-		}
-	}
-
-	deactivate_mark ();
-	return ok;
 }
 
 bool copy_or_kill_the_region (bool kill) {
@@ -139,10 +105,65 @@ bool copy_or_kill_the_region (bool kill) {
 	return ok;
 }
 
-/*
-DEFUN ("kill-region", kill_region)
-*+
-Kill (\"cut\") text between point and mark.
+bool kill_text (long uniarg, Function mark_func) {
+	maybe_destroy_kill_ring ();
+
+	if (warn_if_readonly_buffer ())
+		return false;
+
+	push_mark ();
+	mark_func (uniarg, null);
+	funcall ("kill-region");
+	pop_mark ();
+
+	set_this_command (LispFunc.find ("kill-region"));
+	Minibuf.write ("%s", "");		/* Erase "Set mark" message.  */
+	return true;
+}
+
+
+public void killring_init () {
+	new LispFunc (
+		"kill-line",
+		(uniarg, arglist) => {
+			maybe_destroy_kill_ring ();
+
+			bool ok = true;
+			if (noarg (arglist))
+				ok = kill_line (bolp () && get_variable_bool ("kill-whole-line"));
+			else {
+				long arg = 1;
+				if (!int_or_uniarg_init (ref arglist, ref arg, uniarg))
+					ok = false;
+				else {
+					if (arg <= 0)
+						ok = bolp () || copy_or_kill_region (true, new Region (get_buffer_line_o (cur_bp), cur_bp.pt));
+					if (arg != 0 && ok)
+						ok = execute_with_uniarg (arg, kill_whole_line, kill_line_backward);
+				}
+			}
+
+			deactivate_mark ();
+			return ok;
+		},
+		true,
+		"""Kill the rest of the current line; if no nonblanks there, kill thru newline.
+With prefix argument ARG, kill that many lines from point.
+Negative arguments kill lines backward.
+With zero argument, kills the text before point on the current line.
+
+If `kill-whole-line' is non-nil, then this command kills the whole line
+including its terminating newline, when used at the beginning of a line
+with no argument."""
+		);
+
+	new LispFunc (
+		"kill-region",
+		(uniarg, arglist) => {
+			return copy_or_kill_the_region (true);
+		},
+		true,
+		"""Kill (\"cut\") text between point and mark.
 This deletes the text from the buffer and saves it in the kill ring.
 The command \\[yank] can retrieve it from there.
 
@@ -153,100 +174,82 @@ to make one entry in the kill ring.
 
 If the buffer is read-only, Zile will beep and refrain from deleting
 the text, but put the text in the kill ring anyway.  This means that
-you can use the killing commands to copy text from a read-only buffer.
-+*/
-public bool F_kill_region (long uniarg, Lexp *arglist) {
-	return copy_or_kill_the_region (true);
-}
+you can use the killing commands to copy text from a read-only buffer."""
+		);
 
-/*
-DEFUN ("copy-region-as-kill", copy_region_as_kill)
-*+
-Save the region as if killed, but don't kill it.
-+*/
-public bool F_copy_region_as_kill (long uniarg, Lexp *arglist) {
-	return copy_or_kill_the_region (false);
-}
+	new LispFunc (
+		"copy-region-as-kill",
+		(uniarg, arglist) => {
+			return copy_or_kill_the_region (false);
+		},
+		true,
+		"""Save the region as if killed, but don't kill it."""
+		);
 
-bool kill_text (long uniarg, Function mark_func) {
-	maybe_destroy_kill_ring ();
+	new LispFunc (
+		"kill-word",
+		(uniarg, arglist) => {
+			bool ok = true;
+			long arg = 1;
+			if (!noarg (arglist) &&
+				!int_or_uniarg_init (ref arglist, ref arg, uniarg))
+				ok = false;
+			if (ok)
+				ok = kill_text (arg, LispFunc.find ("mark-word").func);
+			return ok;
+		},
+		true,
+		"""Kill characters forward until encountering the end of a word.
+With argument ARG, do this that many times."""
+		);
 
-	if (warn_if_readonly_buffer ())
-		return false;
+	new LispFunc (
+		"backward-kill-word",
+		(uniarg, arglist) => {
+			bool ok = true;
+			long arg = 1;
+			if (!noarg (arglist) &&
+				!int_or_uniarg_init (ref arglist, ref arg, uniarg))
+				ok = false;
+			if (ok)
+				ok = kill_text (-arg, LispFunc.find ("mark-word").func);
+			return ok;
+		},
+		true,
+		"""Kill characters backward until encountering the end of a word.
+With argument ARG, do this that many times."""
+		);
 
-	push_mark ();
-	mark_func (uniarg, null);
-	funcall (F_kill_region);
-	pop_mark ();
-
-	set_this_command ((void *) F_kill_region);
-	Minibuf.write ("%s", "");		/* Erase "Set mark" message.  */
-	return true;
-}
-
-/*
-DEFUN_ARGS ("kill-word", kill_word, INT_OR_UNIARG (arg))
-*+
-Kill characters forward until encountering the end of a word.
-With argument ARG, do this that many times.
-+*/
-public bool F_kill_word (long uniarg, Lexp *arglist) {
-	bool ok = true;
-	long arg = 1;
-	if (!noarg (arglist) &&
-		!int_or_uniarg_init (ref arglist, ref arg, uniarg))
-		ok = false;
-	if (ok)
-		ok = kill_text (arg, F_mark_word);
-	return ok;
-}
-
-/*
-DEFUN_ARGS ("backward-kill-word", backward_kill_word, INT_OR_UNIARG (arg))
-*+
-Kill characters backward until encountering the end of a word.
-With argument ARG, do this that many times.
-+*/
-public bool F_backward_kill_word (long uniarg, Lexp *arglist) {
-	bool ok = true;
-	long arg = 1;
-	if (!noarg (arglist) &&
-		!int_or_uniarg_init (ref arglist, ref arg, uniarg))
-		ok = false;
-	if (ok)
-		ok = kill_text (-arg, F_mark_word);
-	return ok;
-}
-
-/*
-DEFUN ("kill-sexp", kill_sexp)
-*+
-Kill the sexp (balanced expression) following the cursor.
+	new LispFunc (
+		"kill-sexp",
+		(uniarg, arglist) => {
+			return kill_text (uniarg, LispFunc.find ("mark-sexp").func);
+		},
+		true,
+		"""Kill the sexp (balanced expression) following the cursor.
 With ARG, kill that many sexps after the cursor.
-Negative arg -N means kill N sexps before the cursor.
-+*/
-public bool F_kill_sexp (long uniarg, Lexp *arglist) {
-	return kill_text (uniarg, F_mark_sexp);
-}
+Negative arg -N means kill N sexps before the cursor."""
+		);
 
-/*
-DEFUN ("yank", yank)
-*+
-Reinsert (\"paste\") the last stretch of killed text.
+	new LispFunc (
+		"yank",
+		(uniarg, arglist) => {
+			if (kill_ring_text == null) {
+				Minibuf.error ("Kill ring is empty");
+				return false;
+			}
+
+			if (warn_if_readonly_buffer ())
+				return false;
+
+			funcall ("set-mark-command");
+			insert_estr (kill_ring_text);
+			deactivate_mark ();
+			return true;
+		},
+		true,
+		"""Reinsert (\"paste\") the last stretch of killed text.
 More precisely, reinsert the stretch of killed text most recently
-killed OR yanked.  Put point at end, and set mark at beginning.
-+*/
-public bool F_yank (long uniarg, Lexp *arglist) {
-	if (kill_ring_text == null) {
-		Minibuf.error ("Kill ring is empty");
-		return false;
-    }
-
-	if (warn_if_readonly_buffer ())
-		return false;
-
-	funcall (F_set_mark_command);
-	insert_estr (kill_ring_text);
-	deactivate_mark ();
-	return true;
+killed OR yanked.  Put point at end, and set mark at beginning."""
+		);
 }

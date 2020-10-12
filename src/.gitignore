@@ -7,8 +7,6 @@ dummy.vala
 dummy.c
 tbl_bindings.vala
 tbl_bindings.c
-tbl_funcs.c
-tbl_funcs.vala
 tbl_opts.c
 basic.c
 bind.c

@@ -38,12 +38,12 @@ namespace Lisp {
 	[CCode(has_target=false)]
 	public delegate bool Function (long uniarg, Lexp *list);
 
-	public bool funcall (Function c_func) {
-		return c_func (1, leNIL);
+	public bool funcall (string name) {
+		return LispFunc.find (name).func (1, leNIL);
 	}
 
-	public bool funcall_arg (Function c_func, long uniarg) {
-		return c_func (uniarg, null);
+	public bool funcall_arg (string name, long uniarg) {
+		return LispFunc.find (name).func (uniarg, null);
 	}
 
 	public string str_init (ref Lexp *arglist) {
@@ -87,11 +87,6 @@ namespace Lisp {
 	public bool noarg (Lexp *arglist) {
 		return !(Flags.SET_UNIARG in lastflag) && (arglist == leNIL || (arglist != null && arglist->next == null));
 	}
-}
-
-public void init_lisp () {
-	leNIL = new Lexp ("nil");
-	leT = new Lexp ("t");
 }
 
 
@@ -230,19 +225,25 @@ bool lisp_loadfile (string file) {
 	return true;
 }
 
-/*
-DEFUN ("load", load)
-*+
-Execute a file of Lisp code named FILE.
-+*/
-public bool F_load (long uniarg, Lexp *arglist) {
-	return arglist != null && countNodes (arglist) >= 2 &&
-		lisp_loadfile (arglist->next->data);
-}
-
 public bool lisp_to_number (string? s, out long res) {
 	res = 0;
 	if (s == null)
 		return false;
 	return long.try_parse (s, out res, null, 10);
+}
+
+
+public void lisp_init () {
+	leNIL = new Lexp ("nil");
+	leT = new Lexp ("t");
+
+	new LispFunc (
+		"load",
+		(uniarg, arglist) => {
+			return arglist != null && countNodes (arglist) >= 2 &&
+			lisp_loadfile (arglist->next->data);
+		},
+		true,
+		"""Execute a file of Lisp code named FILE."""
+		);
 }

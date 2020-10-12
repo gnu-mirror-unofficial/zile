@@ -33,7 +33,7 @@ bool no_upper (string s, uint len, bool regex) {
 			quote_flag = !quote_flag;
 		else if (!quote_flag && s[i].isupper ())
 			return false;
-    }
+	}
 
 	return true;
 }
@@ -100,7 +100,7 @@ bool do_search (bool forward, bool regexp, string? pattern_in) {
 								regexp ? "RE search" : "Search", forward ? "" : " backward");
 
 	if (pattern == null)
-		return funcall (F_keyboard_quit);
+		return funcall ("keyboard-quit");
 	if (pattern.length != 0) {
 		last_search = pattern;
 
@@ -108,49 +108,9 @@ bool do_search (bool forward, bool regexp, string? pattern_in) {
 			Minibuf.error ("Search failed: \"%s\"", pattern);
 		else
 			ok = true;
-    }
+	}
 
 	return ok;
-}
-
-/*
-DEFUN_ARGS ("search-forward", search_forward, STR_ARG (pattern))
-*+
-Search forward from point for the user specified text.
-+*/
-public bool F_search_forward (long uniarg, Lexp *arglist) {
-	string? pattern = str_init (ref arglist);
-	return do_search (true, false, pattern);
-}
-
-/*
-DEFUN_ARGS ("search-backward", search_backward, STR_ARG (pattern))
-*+
-Search backward from point for the user specified text.
-+*/
-public bool F_search_backward (long uniarg, Lexp *arglist) {
-	string? pattern = str_init (ref arglist);
-	return do_search (false, false, pattern);
-}
-
-/*
-DEFUN_ARGS ("search-forward-regexp", search_forward_regexp, STR_ARG (pattern))
-*+
-Search forward from point for regular expression REGEXP.
-+*/
-public bool F_search_forward_regexp (long uniarg, Lexp *arglist) {
-	string? pattern = str_init (ref arglist);
-	return do_search (true, true, pattern);
-}
-
-/*
-DEFUN_ARGS ("search-backward-regexp", search_backward_regexp, STR_ARG (pattern))
-*+
-Search backward from point for match for regular expression REGEXP.
-+*/
-public bool F_search_backward_regexp (long uniarg, Lexp *arglist) {
-	string pattern = str_init (ref arglist);
-	return do_search (false, true, pattern);
 }
 
 /*
@@ -179,10 +139,10 @@ bool isearch (bool forward, bool regexp) {
 				re_find_err.has_prefix ("Unmatched ") ||
 				re_find_err.has_prefix ("Invalid ")) {
 				re_find_err = "incomplete input";
-            }
+			}
 			buf.cat (Astr.fmt (" [%s]", re_find_err));
 			re_find_err = null;
-        }
+		}
 
 		Minibuf.write ("%s", buf.cstr ());
 
@@ -193,7 +153,7 @@ bool isearch (bool forward, bool regexp) {
 			thisflag |= Flags.NEED_RESYNC;
 
 			/* Quit. */
-			funcall (F_keyboard_quit);
+			funcall ("keyboard-quit");
 
 			/* Restore old mark position. */
 			if (cur_bp.mark != null)
@@ -201,18 +161,18 @@ bool isearch (bool forward, bool regexp) {
 
 			cur_bp.mark = Marker.copy (old_mark);
 			break;
-        } else if (c == KBD_BS) {
+		} else if (c == KBD_BS) {
 			if (pattern.length > 0) {
 				pattern = pattern.slice (0, -1);
 				cur = start;
 				goto_offset (start);
 				thisflag |= Flags.NEED_RESYNC;
-            } else
+			} else
 				ding ();
-        } else if ((c & KBD_CTRL) != 0 && (c & 0xff) == 'q') {
+		} else if ((c & KBD_CTRL) != 0 && (c & 0xff) == 'q') {
 			Minibuf.write ("%s^Q-", buf.cstr ());
 			pattern += ((char) getkey_unfiltered (GETKEY_DEFAULT)).to_string ();
-        } else if ((c & KBD_CTRL) != 0 && ((char) (c & 0xff) == 'r' || (char) (c & 0xff) == 's')) {
+		} else if ((c & KBD_CTRL) != 0 && ((char) (c & 0xff) == 'r' || (char) (c & 0xff) == 's')) {
 			/* Invert direction. */
 			if ((char) (c & 0xff) == 'r')
 				forward = false;
@@ -223,9 +183,9 @@ bool isearch (bool forward, bool regexp) {
 				cur = cur_bp.pt;
 				/* Save search string. */
 				last_search = pattern;
-            } else if (last_search != null)
+			} else if (last_search != null)
 				pattern = last_search;
-        } else if ((c & KBD_META) != 0 || (c & KBD_CTRL) != 0 || c > KBD_TAB) {
+		} else if ((c & KBD_META) != 0 || (c & KBD_CTRL) != 0 || c > KBD_TAB) {
 			if (c == KBD_RET && pattern.length == 0)
 				do_search (forward, regexp, null);
 			else {
@@ -238,26 +198,26 @@ bool isearch (bool forward, bool regexp) {
 					last_search = pattern;
 
 					Minibuf.write ("Mark saved when search started");
-                } else
+				} else
 					Minibuf.clear ();
 				if (c != KBD_RET)
 					ungetkey (c);
-            }
+			}
 			break;
-        } else
+		} else
 			pattern += ((char) c).to_string ();
 
 		if (pattern.length > 0) {
 			goto_offset (cur);
 			last = search (pattern, forward, regexp);
-        } else
+		} else
 			last = true;
 
 		if (Flags.NEED_RESYNC in thisflag) {
 			cur_wp.resync ();
 			term_redisplay ();
-        }
-    }
+		}
+	}
 
 	/* done */
 	cur_wp.bp.isearch = false;
@@ -266,57 +226,6 @@ bool isearch (bool forward, bool regexp) {
 		old_mark.unchain ();
 
 	return true;
-}
-
-/*
-DEFUN ("isearch-forward", isearch_forward)
-*+
-Do incremental search forward.
-With a prefix argument, do an incremental regular expression search instead.
-
-As you type characters, they add to the search string and are found.
-
-Type \\[isearch-exit] to exit, leaving point at location found.
-Type \\[isearch-repeat-forward] to search again forward, \\[isearch-repeat-backward] to search again backward.
-\\[isearch-abort] when search is successful aborts and moves point to starting point.
-+*/
-public bool F_isearch_forward (long uniarg, Lexp *arglist) {
-	return isearch (true, Flags.SET_UNIARG in lastflag);
-}
-
-/*
-DEFUN ("isearch-backward", isearch_backward)
-*+
-Do incremental search backward.
-With a prefix argument, do a regular expression search instead.
-See the command `isearch-forward' for more information.
-+*/
-public bool F_isearch_backward (long uniarg, Lexp *arglist) {
-	return isearch (false, Flags.SET_UNIARG in lastflag);
-}
-
-/*
-DEFUN ("isearch-forward-regexp", isearch_forward_regexp)
-*+
-Do incremental search forward for regular expression.
-With a prefix argument, do a regular string search instead.
-Like ordinary incremental search except that your input is treated
-as a regexp.  See the command `isearch-forward' for more information.
-+*/
-public bool F_isearch_forward_regexp (long uniarg, Lexp *arglist) {
-	return isearch (true, !(Flags.SET_UNIARG in lastflag));
-}
-
-/*
-DEFUN ("isearch-backward-regexp", isearch_backward_regexp)
-*+
-Do incremental search backward for regular expression.
-With a prefix argument, do a regular string search instead.
-Like ordinary incremental search except that your input is treated
-as a regexp.  See the command `isearch-forward-regexp` for more information.
-+*/
-public bool F_isearch_backward_regexp (long uniarg, Lexp *arglist) {
-	return isearch (false, !(Flags.SET_UNIARG in lastflag));
 }
 
 /*
@@ -336,78 +245,172 @@ int check_case (Astr *a) {
 	return i == a.len () ? 1 : 0;
 }
 
-/*
-DEFUN ("query-replace", query_replace)
-*+
-Replace occurrences of a string with other text.
-As each match is found, the user must type a character saying
-what to do with it.
-+*/
-public bool F_query_replace (long uniarg, Lexp *arglist) {
-	bool ok = true;
-	string? find = Minibuf.read ("Query replace string: ", "");
-	if (find == null)
-		return funcall (F_keyboard_quit);
-	if (find.length == 0)
-		return false;
-	bool find_no_upper = no_upper (find, find.length, false);
 
-	string? repl = Minibuf.read ("Query replace `%s' with: ", "", find);
-	if (repl == null)
-		return funcall (F_keyboard_quit);
+public void search_init () {
+	new LispFunc (
+		"search-forward",
+		(uniarg, arglist) => {
+			string? pattern = str_init (ref arglist);
+			return do_search (true, false, pattern);
+		},
+		true,
+		"""Search forward from point for the user specified text."""
+		);
 
-	bool noask = false;
-	size_t count = 0;
-	while (search (find, true, false)) {
-		uint c = ' ';
+	new LispFunc (
+		"search-backward",
+		(uniarg, arglist) => {
+			string? pattern = str_init (ref arglist);
+			return do_search (false, false, pattern);
+		},
+		true,
+		"""Search backward from point for the user specified text."""
+		);
 
-		if (!noask) {
+	new LispFunc (
+		"search-forward-regexp",
+		(uniarg, arglist) => {
+			string? pattern = str_init (ref arglist);
+			return do_search (true, true, pattern);
+		},
+		true,
+		"""Search forward from point for regular expression REGEXP."""
+		);
+
+	new LispFunc (
+		"search-backward-regexp",
+		(uniarg, arglist) => {
+			string pattern = str_init (ref arglist);
+			return do_search (false, true, pattern);
+		},
+		true,
+		"""Search backward from point for match for regular expression REGEXP."""
+		);
+
+	new LispFunc (
+		"isearch-forward",
+		(uniarg, arglist) => {
+			return isearch (true, Flags.SET_UNIARG in lastflag);
+		},
+		true,
+		"""Do incremental search forward.
+With a prefix argument, do an incremental regular expression search instead.
+
+As you type characters, they add to the search string and are found.
+
+Type \\[isearch-exit] to exit, leaving point at location found.
+Type \\[isearch-repeat-forward] to search again forward, \\[isearch-repeat-backward] to search again backward.
+\\[isearch-abort] when search is successful aborts and moves point to starting point."""
+		);
+
+	new LispFunc (
+		"isearch-backward",
+		(uniarg, arglist) => {
+			return isearch (false, Flags.SET_UNIARG in lastflag);
+		},
+		true,
+		"""Do incremental search backward.
+With a prefix argument, do a regular expression search instead.
+See the command `isearch-forward' for more information."""
+		);
+
+	new LispFunc (
+		"isearch-forward-regexp",
+		(uniarg, arglist) => {
+			return isearch (true, !(Flags.SET_UNIARG in lastflag));
+		},
+		true,
+		"""Do incremental search forward for regular expression.
+With a prefix argument, do a regular string search instead.
+Like ordinary incremental search except that your input is treated
+as a regexp.  See the command `isearch-forward' for more information."""
+		);
+
+	new LispFunc (
+		"isearch-backward-regexp",
+		(uniarg, arglist) => {
+			return isearch (false, !(Flags.SET_UNIARG in lastflag));
+		},
+		true,
+		"""Do incremental search backward for regular expression.
+With a prefix argument, do a regular string search instead.
+Like ordinary incremental search except that your input is treated
+as a regexp.  See the command `isearch-forward-regexp` for more information."""
+		);
+
+	new LispFunc (
+		"query-replace",
+		(uniarg, arglist) => {
+			bool ok = true;
+			string? find = Minibuf.read ("Query replace string: ", "");
+			if (find == null)
+				return funcall ("keyboard-quit");
+			if (find.length == 0)
+				return false;
+			bool find_no_upper = no_upper (find, find.length, false);
+
+			string? repl = Minibuf.read ("Query replace `%s' with: ", "", find);
+			if (repl == null)
+				return funcall ("keyboard-quit");
+
+			bool noask = false;
+			size_t count = 0;
+			while (search (find, true, false)) {
+				uint c = ' ';
+
+				if (!noask) {
+					if (Flags.NEED_RESYNC in thisflag)
+						cur_wp.resync ();
+
+					Minibuf.write ("Query replacing `%s' with `%s' (y, n, !, ., q)? ", find, repl);
+					c = (uint) getkey (GETKEY_DEFAULT);
+					Minibuf.clear ();
+
+					if (c == 'q')			/* Quit immediately. */
+						break;
+					else if (c == KBD_CANCEL) {
+						ok = funcall ("keyboard-quit");
+						break;
+					} else if (c == '!')
+						noask = true;
+				}
+
+				if (c == KBD_RET || c == ' ' || c == 'y' || c == 'Y' ||  c == '.' || c == '!') { /* Perform replacement. */
+					++count;
+					string case_repl = repl;
+					Region r = new Region (cur_bp.pt - find.length, cur_bp.pt);
+					if (find_no_upper && get_variable_bool ("case-replace")) {
+						int case_type = check_case (estr_get_as (get_buffer_region (cur_bp, r)));
+						if (case_type != 0)
+							case_repl = Astr.new_cstr (repl).recase (case_type == 1 ? Case.capitalized : Case.upper).cstr ();
+					}
+
+					Marker m = Marker.point ();
+					goto_offset (r.start);
+					replace_estr (find.length, estr_new_astr (Astr.new_cstr (case_repl)));
+					goto_offset (m.o);
+					m.unchain ();
+
+					if (c == '.')		/* Replace and quit. */
+						break;
+				} else if (!(c == KBD_RET || c == KBD_DEL || c == 'n' || c == 'N')) {
+					ungetkey (c);
+					ok = false;
+					break;
+				}
+			}
+
 			if (Flags.NEED_RESYNC in thisflag)
 				cur_wp.resync ();
 
-			Minibuf.write ("Query replacing `%s' with `%s' (y, n, !, ., q)? ", find, repl);
-			c = (uint) getkey (GETKEY_DEFAULT);
-			Minibuf.clear ();
+			if (ok)
+				Minibuf.write ("Replaced %zu occurrences", count);
 
-			if (c == 'q')			/* Quit immediately. */
-				break;
-			else if (c == KBD_CANCEL) {
-				ok = funcall (F_keyboard_quit);
-				break;
-            } else if (c == '!')
-				noask = true;
-        }
-
-		if (c == KBD_RET || c == ' ' || c == 'y' || c == 'Y' ||  c == '.' || c == '!') { /* Perform replacement. */
-			++count;
-			string case_repl = repl;
-			Region r = new Region (cur_bp.pt - find.length, cur_bp.pt);
-			if (find_no_upper && get_variable_bool ("case-replace")) {
-				int case_type = check_case (estr_get_as (get_buffer_region (cur_bp, r)));
-				if (case_type != 0)
-					case_repl = Astr.new_cstr (repl).recase (case_type == 1 ? Case.capitalized : Case.upper).cstr ();
-            }
-
-			Marker m = Marker.point ();
-			goto_offset (r.start);
-			replace_estr (find.length, estr_new_astr (Astr.new_cstr (case_repl)));
-			goto_offset (m.o);
-			m.unchain ();
-
-			if (c == '.')		/* Replace and quit. */
-				break;
-        } else if (!(c == KBD_RET || c == KBD_DEL || c == 'n' || c == 'N')) {
-			ungetkey (c);
-			ok = false;
-			break;
-        }
-    }
-
-	if (Flags.NEED_RESYNC in thisflag)
-		cur_wp.resync ();
-
-	if (ok)
-		Minibuf.write ("Replaced %zu occurrences", count);
-
-	return ok;
+			return ok;
+		},
+		true,
+		"""Replace occurrences of a string with other text.
+As each match is found, the user must type a character saying
+what to do with it."""
+		);
 }

@@ -153,123 +153,10 @@ public void create_scratch_window () {
 	wp.bp = cur_bp = bp;
 }
 
-/*
-DEFUN ("split-window", split_window)
-*+
-Split current window into two windows, one above the other.
-Both windows display the same buffer now current.
-+*/
-public bool F_split_window (long uniarg, Lexp *arglist) {
-	/* Windows smaller than 4 lines cannot be split. */
-	if (cur_wp.fheight < 4) {
-		Minibuf.error ("Window height %zu too small (after splitting)",
-					   cur_wp.fheight);
-		return false;
-	}
-
-	/* Copy cur_wp. */
-	Window newwp = new Window ();
-	newwp.next = cur_wp.next;
-	newwp.bp = cur_wp.bp;
-	newwp.topdelta = cur_wp.topdelta;
-	newwp.start_column = cur_wp.start_column;
-	newwp.saved_pt = cur_wp.saved_pt;
-	newwp.fwidth = cur_wp.fwidth;
-	newwp.fheight = cur_wp.fheight;
-	newwp.ewidth = cur_wp.ewidth;
-	newwp.eheight = cur_wp.eheight;
-	newwp.all_displayed = cur_wp.all_displayed;
-	newwp.lastpointn = cur_wp.lastpointn;
-
-	/* Adjust new window. */
-	newwp.fheight = cur_wp.fheight / 2 + cur_wp.fheight % 2;
-	newwp.eheight = newwp.fheight - 1;
-	newwp.saved_pt = Marker.point ();
-
-	/* Adjust cur_wp. */
-	cur_wp.next = newwp;
-	cur_wp.fheight = cur_wp.fheight / 2;
-	cur_wp.eheight = cur_wp.fheight - 1;
-	if (cur_wp.topdelta >= cur_wp.eheight)
-		recenter (cur_wp);
-
-	return true;
-}
-
-/*
-DEFUN ("delete-window", delete_window)
-*+
-Remove the current window from the screen.
-+*/
-public bool F_delete_window (long uniarg, Lexp *arglist) {
-	if (cur_wp == head_wp && cur_wp.next == null) {
-		Minibuf.error ("Attempt to delete sole ordinary window");
-		return false;
-	}
-
-	cur_wp.delete ();
-	return true;
-}
-
-/*
-DEFUN ("enlarge-window", enlarge_window)
-*+
-Make current window one line bigger.
-+*/
-public bool F_enlarge_window (long uniarg, Lexp *arglist) {
-	if (cur_wp == head_wp && (cur_wp.next == null || cur_wp.next.fheight < 3))
-		return false;
-
-	Window wp = cur_wp.next;
-	if (wp == null || wp.fheight < 3)
-		for (wp = head_wp; wp != null; wp = wp.next)
-			if (wp.next == cur_wp) {
-				if (wp.fheight < 3)
-					return false;
-				break;
-			}
-
-	assert (wp != null);
-	--wp.fheight;
-	--wp.eheight;
-	if (wp.topdelta >= wp.eheight)
-		recenter (wp);
-	++cur_wp.fheight;
-	++cur_wp.eheight;
-
-	return true;
-}
-
-/*
-DEFUN ("shrink-window", shrink_window)
-*+
-Make current window one line smaller.
-+*/
-public bool F_shrink_window (long uniarg, Lexp *arglist) {
-	if ((cur_wp == head_wp && cur_wp.next == null) || cur_wp.fheight < 3)
-		return false;
-
-	Window wp = cur_wp.next;
-	if (wp == null)
-		for (wp = head_wp; wp != null; wp = wp.next)
-			if (wp.next == cur_wp)
-				break;
-
-	assert (wp != null);
-	++wp.fheight;
-	++wp.eheight;
-	--cur_wp.fheight;
-	--cur_wp.eheight;
-	if (cur_wp.topdelta >= cur_wp.eheight)
-		recenter (cur_wp);
-
-	return true;
-}
-
 Window popup_window () {
 	if (head_wp != null && head_wp.next == null) {
 		/* There is only one window on the screen, so split it. */
-		funcall (F_split_window);
+		funcall ("split-window");
 		return cur_wp.next;
 	}
 
@@ -277,31 +164,147 @@ Window popup_window () {
 	return cur_wp.next != null ? cur_wp.next : head_wp;
 }
 
-/*
-DEFUN ("delete-other-windows", delete_other_windows)
-*+
-Make the selected window fill the screen.
-+*/
-public bool F_delete_other_windows (long uniarg, Lexp *arglist) {
-	for (Window wp = head_wp, nextwp = null; wp != null; wp = nextwp) {
-		nextwp = wp.next;
-		if (wp != cur_wp)
-			wp.delete ();
-	}
-	return true;
-}
 
-/*
-DEFUN ("other-window", other_window)
-*+
-Select the first different window on the screen.
+public void window_init () {
+	new LispFunc (
+		"split-window",
+		(uniarg, arglist) => {
+			/* Windows smaller than 4 lines cannot be split. */
+			if (cur_wp.fheight < 4) {
+				Minibuf.error ("Window height %zu too small (after splitting)",
+							   cur_wp.fheight);
+				return false;
+			}
+
+			/* Copy cur_wp. */
+			Window newwp = new Window ();
+			newwp.next = cur_wp.next;
+			newwp.bp = cur_wp.bp;
+			newwp.topdelta = cur_wp.topdelta;
+			newwp.start_column = cur_wp.start_column;
+			newwp.saved_pt = cur_wp.saved_pt;
+			newwp.fwidth = cur_wp.fwidth;
+			newwp.fheight = cur_wp.fheight;
+			newwp.ewidth = cur_wp.ewidth;
+			newwp.eheight = cur_wp.eheight;
+			newwp.all_displayed = cur_wp.all_displayed;
+			newwp.lastpointn = cur_wp.lastpointn;
+
+			/* Adjust new window. */
+			newwp.fheight = cur_wp.fheight / 2 + cur_wp.fheight % 2;
+			newwp.eheight = newwp.fheight - 1;
+			newwp.saved_pt = Marker.point ();
+
+			/* Adjust cur_wp. */
+			cur_wp.next = newwp;
+			cur_wp.fheight = cur_wp.fheight / 2;
+			cur_wp.eheight = cur_wp.fheight - 1;
+			if (cur_wp.topdelta >= cur_wp.eheight)
+				recenter (cur_wp);
+
+			return true;
+		},
+		true,
+		"""Split current window into two windows, one above the other.
+		Both windows display the same buffer now current."""
+		);
+
+	new LispFunc (
+		"delete-window",
+		(uniarg, arglist) => {
+			if (cur_wp == head_wp && cur_wp.next == null) {
+				Minibuf.error ("Attempt to delete sole ordinary window");
+				return false;
+			}
+
+			cur_wp.delete ();
+			return true;
+		},
+		true,
+		"""Remove the current window from the screen."""
+		);
+
+	new LispFunc (
+		"enlarge-window",
+		(uniarg, arglist) => {
+			if (cur_wp == head_wp && (cur_wp.next == null || cur_wp.next.fheight < 3))
+				return false;
+
+			Window wp = cur_wp.next;
+			if (wp == null || wp.fheight < 3)
+				for (wp = head_wp; wp != null; wp = wp.next)
+					if (wp.next == cur_wp) {
+						if (wp.fheight < 3)
+							return false;
+						break;
+					}
+
+			assert (wp != null);
+			--wp.fheight;
+			--wp.eheight;
+			if (wp.topdelta >= wp.eheight)
+				recenter (wp);
+			++cur_wp.fheight;
+			++cur_wp.eheight;
+
+			return true;
+		},
+		true,
+		"""Make current window one line bigger."""
+		);
+
+	new LispFunc (
+		"shrink-window",
+		(uniarg, arglist) => {
+			if ((cur_wp == head_wp && cur_wp.next == null) || cur_wp.fheight < 3)
+				return false;
+
+			Window wp = cur_wp.next;
+			if (wp == null)
+				for (wp = head_wp; wp != null; wp = wp.next)
+					if (wp.next == cur_wp)
+						break;
+
+			assert (wp != null);
+			++wp.fheight;
+			++wp.eheight;
+			--cur_wp.fheight;
+			--cur_wp.eheight;
+			if (cur_wp.topdelta >= cur_wp.eheight)
+				recenter (cur_wp);
+
+			return true;
+		},
+		true,
+		"""Make current window one line smaller."""
+		);
+
+	new LispFunc (
+		"delete-other-windows",
+		(uniarg, arglist) => {
+			for (Window wp = head_wp, nextwp = null; wp != null; wp = nextwp) {
+				nextwp = wp.next;
+				if (wp != cur_wp)
+					wp.delete ();
+			}
+			return true;
+		},
+		true,
+		"""Make the selected window fill the screen."""
+		);
+
+	new LispFunc (
+		"other-window",
+		(uniarg, arglist) => {
+			if (cur_wp.next != null)
+				cur_wp.next.set_current ();
+			else
+				head_wp.set_current ();
+			return true;
+		},
+		true,
+		"""Select the first different window on the screen.
 All windows are arranged in a cyclic order.
-This command selects the window one step away in that order.
-+*/
-public bool F_other_window (long uniarg, Lexp *arglist) {
-	if (cur_wp.next != null)
-		cur_wp.next.set_current ();
-	else
-		head_wp.set_current ();
-	return true;
+This command selects the window one step away in that order."""
+		);
 }

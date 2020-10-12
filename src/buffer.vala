@@ -460,44 +460,6 @@ void kill_buffer (Buffer kill_bp) {
 			wp.resync ();
 }
 
-/*
-DEFUN_ARGS ("kill-buffer", kill_buffer, STR_ARG (buf))
-*+
-Kill buffer BUFFER.
-With a nil argument, kill the current buffer.
-+*/
-public bool F_kill_buffer (long uniarg, Lexp *arglist) {
-	bool ok = true;
-
-	string? buf = str_init (ref arglist);
-	if (buf == null) {
-		Completion *cp = make_buffer_completion ();
-		buf = Minibuf.read_completion ("Kill buffer (default %s): ",
-									   "", cp, null, cur_bp.name);
-		if (buf == null)
-			ok = funcall (F_keyboard_quit);
-	}
-
-	Buffer? bp = null;
-	if (buf != null && buf.length > 0) {
-		bp = find_buffer (buf);
-		if (bp == null) {
-			Minibuf.error ("Buffer `%s' not found", buf);
-			ok = false;
-		}
-	} else
-		bp = cur_bp;
-
-	if (ok) {
-		if (!check_modified_buffer (bp))
-			ok = false;
-		else
-			kill_buffer (bp);
-	}
-
-	return ok;
-}
-
 Completion make_buffer_completion () {
   Completion cp = new Completion (false);
   for (Buffer? bp = head_bp; bp != null; bp = bp.next)
@@ -517,7 +479,7 @@ bool check_modified_buffer (Buffer bp) {
 			int ans = Minibuf.read_yesno
 				("Buffer %s modified; kill anyway? (yes or no) ", bp.name);
 			if (ans == -1) {
-				funcall (F_keyboard_quit);
+				funcall ("keyboard-quit");
 				return false;
 			}
 			else if (ans == 0)
@@ -540,9 +502,9 @@ bool move_char (long offset) {
 			thisflag |= Flags.NEED_RESYNC;
 			set_buffer_pt (cur_bp, cur_bp.pt + dir * Posix.strlen (get_buffer_eol (cur_bp)));
 			if (dir > 0)
-				funcall (F_beginning_of_line);
+				funcall ("beginning-of-line");
 			else
-				funcall (F_end_of_line);
+				funcall ("end-of-line");
 		} else
 			return false;
 	}
@@ -578,7 +540,8 @@ public bool move_line (long n) {
 		func = buffer_prev_line;
 	}
 
-	if (last_command () != F_next_line && last_command () != F_previous_line)
+	if (last_command () != LispFunc.find ("next-line") &&
+		last_command () != LispFunc.find ("previous-line"))
 		cur_bp.goalc = get_goalc ();
 
 	for (; n > 0; n--) {
@@ -608,4 +571,45 @@ public void goto_offset (size_t o) {
 		cur_bp.goalc = get_goalc ();
 		thisflag |= Flags.NEED_RESYNC;
 	}
+}
+
+
+public void buffer_init () {
+	new LispFunc (
+		"kill-buffer",
+		(uniarg, arglist) => {
+			bool ok = true;
+
+			string? buf = str_init (ref arglist);
+			if (buf == null) {
+				Completion *cp = make_buffer_completion ();
+				buf = Minibuf.read_completion ("Kill buffer (default %s): ",
+											   "", cp, null, cur_bp.name);
+				if (buf == null)
+					ok = funcall ("keyboard-quit");
+			}
+
+			Buffer? bp = null;
+			if (buf != null && buf.length > 0) {
+				bp = find_buffer (buf);
+				if (bp == null) {
+					Minibuf.error ("Buffer `%s' not found", buf);
+					ok = false;
+				}
+			} else
+				bp = cur_bp;
+
+			if (ok) {
+				if (!check_modified_buffer (bp))
+					ok = false;
+				else
+					kill_buffer (bp);
+			}
+
+			return ok;
+		},
+		true,
+		"""Kill buffer BUFFER.
+With a nil argument, kill the current buffer."""
+		);
 }

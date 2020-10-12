@@ -164,188 +164,6 @@ bool find_file (string filename) {
 }
 
 /*
-DEFUN_ARGS ("find-file", find_file, STR_ARG (filename))
-*+
-Edit file FILENAME.
-Switch to a buffer visiting file FILENAME,
-creating one if none already exists.
-+*/
-public bool F_find_file (long uniarg, Lexp *arglist) {
-	bool ok = true;
-	string? filename = str_init (ref arglist);
-	if (filename == null) {
-		filename = Minibuf.read_filename ("Find file: ", cur_bp.dir, null);
-		if (filename == null)
-			ok = funcall (F_keyboard_quit);
-	}
-	if (filename == null || filename.length == 0)
-		ok = false;
-
-	if (ok)
-		ok = find_file (filename);
-
-	return ok;
-}
-
-/*
-DEFUN ("find-file-read-only", find_file_read_only)
-*+
-Edit file FILENAME but don't allow changes.
-Like `find-file', but marks buffer as read-only.
-Use M-x toggle-read-only to permit editing.
-+*/
-public bool F_find_file_read_only (long uniarg, Lexp *arglist) {
-  bool ok = F_find_file (uniarg, arglist);
-  if (ok)
-    cur_bp.readonly = true;
-  return ok;
-}
-
-/*
-DEFUN ("find-alternate-file", find_alternate_file)
-*+
-Find the file specified by the user, select its buffer, kill previous buffer.
-If the current buffer now contains an empty file that you just visited
-(presumably by mistake), use this command to visit the file you really want.
-+*/
-public bool F_find_alternate_file (long uniarg, Lexp *arglist) {
-	string buf = cur_bp.filename;
-	string basename = null;
-
-	if (buf == null)
-		buf = cur_bp.dir;
-	else
-		basename = Path.get_basename (buf);
-	string? ms = Minibuf.read_filename ("Find alternate: ", buf, basename);
-
-	bool ok = false;
-	if (ms == null)
-		ok = funcall (F_keyboard_quit);
-	else if (ms.length > 0 && check_modified_buffer (cur_bp)) {
-		kill_buffer (cur_bp);
-		ok = find_file (ms);
-    }
-	return ok;
-}
-
-/*
-DEFUN_ARGS ("switch-to-buffer", switch_to_buffer, STR_ARG (buf))
-*+
-Select buffer BUFFER in the current window.
-+*/
-public bool F_switch_to_buffer (long uniarg, Lexp *arglist) {
-	Buffer? bp = ((cur_bp.next != null) ? cur_bp.next : head_bp);
-
-	bool ok = true;
-	string? buf = str_init (ref arglist);
-	if (buf == null) {
-		Completion cp = make_buffer_completion ();
-		buf = Minibuf.read_completion ("Switch to buffer (default %s): ",
-									   "", cp, null, bp.name);
-
-		if (buf == null)
-			ok = funcall (F_keyboard_quit);
-	}
-	if (buf == null)
-		ok = false;
-
-	if (ok) {
-		if (buf != null && buf.length > 0) {
-			bp = find_buffer (buf);
-			if (bp == null) {
-				bp = new Buffer ();
-				bp.name = buf;
-				bp.needname = true;
-				bp.nosave = true;
-            }
-        }
-
-		switch_to_buffer (bp);
-    }
-
-	return ok;
-}
-
-/*
-DEFUN_ARGS ("insert-buffer", insert_buffer, STR_ARG (buf))
-*+
-Insert after point the contents of BUFFER.
-Puts mark after the inserted text.
-+*/
-public bool F_insert_buffer (long uniarg, Lexp *arglist) {
-	Buffer? def_bp = ((cur_bp.next != null) ? cur_bp.next : head_bp);
-
-	if (warn_if_readonly_buffer ())
-		return false;
-
-	bool ok = true;
-	string buf = str_init (ref arglist);
-	if (buf == null) {
-		Completion *cp = make_buffer_completion ();
-		buf = Minibuf.read_completion ("Insert buffer (default %s): ",
-									   "", cp, null, def_bp.name);
-		if (buf == null)
-			ok = funcall (F_keyboard_quit);
-    }
-	if (buf == null)
-		ok = false;
-
-	if (ok) {
-		Buffer? bp;
-
-		if (buf != null && buf.length > 0) {
-			bp = find_buffer (buf);
-			if (bp == null) {
-				Minibuf.error ("Buffer `%s' not found", buf);
-				ok = false;
-            }
-        } else
-			bp = def_bp;
-
-		if (ok) {
-			insert_buffer (bp);
-			funcall (F_set_mark_command);
-        }
-    }
-
-	return ok;
-}
-
-/*
-DEFUN_ARGS ("insert-file", insert_file, STR_ARG (file))
-*+
-Insert contents of file FILENAME into buffer after point.
-Set mark after the inserted text.
-+*/
-public bool F_insert_file (long uniarg, Lexp *arglist) {
-	if (warn_if_readonly_buffer ())
-		return false;
-
-	bool ok = true;
-	string? file = str_init (ref arglist);
-	if (file == null) {
-		file = Minibuf.read_filename ("Insert file: ", cur_bp.dir, null);
-		if (file == null)
-			ok = funcall (F_keyboard_quit);
-	}
-
-	if (file == null || file.length == 0)
-		ok = false;
-
-	if (ok) {
-		Estr *es = estr_readf (file);
-		if (es != null) {
-			insert_estr (es);
-			funcall (F_set_mark_command);
-		} else {
-			ok = false;
-			Minibuf.error ("%s: %s", file, Posix.strerror (errno));
-		}
-	}
-	return ok;
-}
-
-/*
  * Write buffer to given file name with given mode.
  */
 ssize_t write_to_disk (Buffer bp, string filename, mode_t mode) {
@@ -445,7 +263,7 @@ bool write_buffer (Buffer bp, bool needname, bool confirm, string? name0, string
 	} else {
 		name = Minibuf.read_filename ("%s", "", null, prompt);
 		if (name == null)
-			return funcall (F_keyboard_quit);
+			return funcall ("keyboard-quit");
 		if (name.length == 0)
 			return false;
 		confirm = true;
@@ -469,7 +287,7 @@ bool write_buffer (Buffer bp, bool needname, bool confirm, string? name0, string
 		}
 
 		if (ans == -1)
-			funcall (F_keyboard_quit);
+			funcall ("keyboard-quit");
 		else if (ans == 0)
 			Minibuf.error ("Canceled");
 		if (ans != 1)
@@ -502,104 +320,6 @@ bool save_buffer (Buffer bp) {
 }
 
 /*
-DEFUN ("save-buffer", save_buffer)
-*+
-Save current buffer in visited file if modified.  By default, makes the
-previous version into a backup file if this is the first save.
-+*/
-public bool F_save_buffer (long uniarg, Lexp *arglist) {
-	return save_buffer (cur_bp);
-}
-
-/*
-DEFUN ("write-file", write_file)
-*+
-Write current buffer into file FILENAME.
-This makes the buffer visit that file, and marks it as not modified.
-
-Interactively, confirmation is required unless you supply a prefix argument.
-+*/
-public bool F_write_file (long uniarg, Lexp *arglist) {
-	return write_buffer (cur_bp, true,
-						 arglist != null && !(Flags.SET_UNIARG in lastflag),
-						 null, "Write file: ");
-}
-
-/*
-DEFUN ("save-some-buffers", save_some_buffers)
-*+
-Save some modified file-visiting buffers.  Asks user about each one.
-+*/
-public bool F_save_some_buffers (long uniarg, Lexp *arglist) {
-	bool noask = false;
-
-	for (Buffer? bp = head_bp; bp != null; (bp = bp.next) != null) {
-		if (bp.modified && !bp.nosave) {
-			string fname = get_buffer_filename_or_name (bp);
-			if (noask)
-				save_buffer (bp);
-			else
-				for (;;) {
-					Minibuf.write ("Save file %s? (y, n, !, ., q) ", fname);
-					uint c = getkey (GETKEY_DEFAULT);
-					Minibuf.clear ();
-
-					if (c == KBD_CANCEL) {	/* C-g */
-						funcall (F_keyboard_quit);
-						return false;
-					} else if (c == 'q') {
-						return true;
-					} else if (c == '.') {
-						save_buffer (bp);
-						return true;
-					} else if (c == '!') {
-						noask = true;
-						save_buffer (bp);
-						break;
-					} else if (c == ' ' || c == 'y') {
-						save_buffer (bp);
-						break;
-					} else if (c == 'n' || c == KBD_RET || c == KBD_DEL)
-						break;
-					else {
-						Minibuf.error ("Please answer y, n, !, . or q.");
-						waitkey ();
-					}
-				}
-        }
-    }
-
-	Minibuf.write ("(No files need saving)");
-	return true;
-}
-
-/*
-DEFUN ("save-buffers-kill-emacs", save_buffers_kill_emacs)
-*+
-Offer to save each buffer, then kill this Zile process.
-+*/
-public bool F_save_buffers_kill_emacs (long uniarg, Lexp *arglist) {
-	if (!funcall (F_save_some_buffers))
-		return false;
-
-	for (Buffer? bp = head_bp; bp != null; bp = bp.next)
-		if (bp.modified && !bp.needname) {
-			for (;;) {
-				int ans = Minibuf.read_yesno ("Modified buffers exist; exit anyway? (yes or no) ");
-				if (ans == -1)
-					return funcall (F_keyboard_quit);
-				else if (ans == 0)
-					return false;
-				break;
-			}
-			break; /* We have found a modified buffer, so stop. */
-		}
-
-	thisflag |= Flags.QUIT;
-	return true;
-}
-
-/*
  * Function called on unexpected error or Zile crash (SIGSEGV).
  * Attempts to save modified buffers.
  * If doabort is true, aborts to allow core dump generation;
@@ -621,27 +341,310 @@ public void zile_exit (bool doabort) {
 		exit (EXIT_CRASH);
 }
 
-/*
-DEFUN_ARGS ("cd", cd, STR_ARG (dir))
-*+
-Make DIR become the current buffer's default directory.
-+*/
-public bool F_cd (long uniarg, Lexp *arglist) {
-	bool ok = true;
-	string? dir = str_init (ref arglist);
-	if (arglist == leNIL)
-		dir = Minibuf.read_filename ("Change default directory: ", cur_bp.dir, null);
 
-	if (dir == null)
-		ok = funcall (F_keyboard_quit);
-	else if (dir.length > 0) {
-		if (!FileUtils.test (dir, IS_DIR)) {
-			Minibuf.error ("`%s' is not a directory", dir);
-			ok = false;
-        } else if (chdir (dir) == -1) {
-			Minibuf.write ("%s: %s", dir, Posix.strerror (errno));
-			ok = false;
-        }
-    }
-	return true;
+public void file_init () {
+	new LispFunc (
+		"find-file",
+		(uniarg, arglist) => {
+			bool ok = true;
+			string? filename = str_init (ref arglist);
+			if (filename == null) {
+				filename = Minibuf.read_filename ("Find file: ", cur_bp.dir, null);
+				if (filename == null)
+					ok = funcall ("keyboard-quit");
+			}
+			if (filename == null || filename.length == 0)
+				ok = false;
+
+			if (ok)
+				ok = find_file (filename);
+
+			return ok;
+		},
+		true,
+		"""Edit file FILENAME.
+Switch to a buffer visiting file FILENAME,
+creating one if none already exists."""
+		);
+
+	new LispFunc (
+		"find-file-read-only",
+		(uniarg, arglist) => {
+			bool ok = LispFunc.find ("find-file").func (uniarg, arglist);
+			if (ok)
+				cur_bp.readonly = true;
+			return ok;
+		},
+		true,
+		"""Edit file FILENAME but don't allow changes.
+Like `find-file', but marks buffer as read-only.
+Use M-x toggle-read-only to permit editing."""
+		);
+
+	new LispFunc (
+		"find-alternate-file",
+		(uniarg, arglist) => {
+			string buf = cur_bp.filename;
+			string basename = null;
+
+			if (buf == null)
+				buf = cur_bp.dir;
+			else
+				basename = Path.get_basename (buf);
+			string? ms = Minibuf.read_filename ("Find alternate: ", buf, basename);
+
+			bool ok = false;
+			if (ms == null)
+				ok = funcall ("keyboard-quit");
+			else if (ms.length > 0 && check_modified_buffer (cur_bp)) {
+				kill_buffer (cur_bp);
+				ok = find_file (ms);
+			}
+			return ok;
+		},
+		true,
+		"""Find the file specified by the user, select its buffer, kill previous buffer.
+If the current buffer now contains an empty file that you just visited
+(presumably by mistake), use this command to visit the file you really want."""
+		);
+
+	new LispFunc (
+		"switch-to-buffer",
+		(uniarg, arglist) => {
+			Buffer? bp = ((cur_bp.next != null) ? cur_bp.next : head_bp);
+
+			bool ok = true;
+			string? buf = str_init (ref arglist);
+			if (buf == null) {
+				Completion cp = make_buffer_completion ();
+				buf = Minibuf.read_completion ("Switch to buffer (default %s): ",
+											   "", cp, null, bp.name);
+
+				if (buf == null)
+					ok = funcall ("keyboard-quit");
+			}
+			if (buf == null)
+				ok = false;
+
+			if (ok) {
+				if (buf != null && buf.length > 0) {
+					bp = find_buffer (buf);
+					if (bp == null) {
+						bp = new Buffer ();
+						bp.name = buf;
+						bp.needname = true;
+						bp.nosave = true;
+					}
+				}
+
+				switch_to_buffer (bp);
+			}
+
+			return ok;
+		},
+		true,
+		"""Select buffer BUFFER in the current window."""
+		);
+
+	new LispFunc (
+		"insert-buffer",
+		(uniarg, arglist) => {
+			Buffer? def_bp = ((cur_bp.next != null) ? cur_bp.next : head_bp);
+
+			if (warn_if_readonly_buffer ())
+				return false;
+
+			bool ok = true;
+			string buf = str_init (ref arglist);
+			if (buf == null) {
+				Completion *cp = make_buffer_completion ();
+				buf = Minibuf.read_completion ("Insert buffer (default %s): ",
+											   "", cp, null, def_bp.name);
+				if (buf == null)
+					ok = funcall ("keyboard-quit");
+			}
+			if (buf == null)
+				ok = false;
+
+			if (ok) {
+				Buffer? bp;
+
+				if (buf != null && buf.length > 0) {
+					bp = find_buffer (buf);
+					if (bp == null) {
+						Minibuf.error ("Buffer `%s' not found", buf);
+						ok = false;
+					}
+				} else
+					bp = def_bp;
+
+				if (ok) {
+					insert_buffer (bp);
+					funcall ("set-mark-command");
+				}
+			}
+
+			return ok;
+		},
+		true,
+		"""Insert after point the contents of BUFFER.
+Puts mark after the inserted text."""
+		);
+
+	new LispFunc (
+		"insert-file",
+		(uniarg, arglist) => {
+			if (warn_if_readonly_buffer ())
+				return false;
+
+			bool ok = true;
+			string? file = str_init (ref arglist);
+			if (file == null) {
+				file = Minibuf.read_filename ("Insert file: ", cur_bp.dir, null);
+				if (file == null)
+					ok = funcall ("keyboard-quit");
+			}
+
+			if (file == null || file.length == 0)
+				ok = false;
+
+			if (ok) {
+				Estr *es = estr_readf (file);
+				if (es != null) {
+					insert_estr (es);
+					funcall ("set-mark-command");
+				} else {
+					ok = false;
+					Minibuf.error ("%s: %s", file, Posix.strerror (errno));
+				}
+			}
+			return ok;
+		},
+		true,
+		"""Insert contents of file FILENAME into buffer after point.
+Set mark after the inserted text."""
+		);
+
+	new LispFunc (
+		"save-buffer",
+		(uniarg, arglist) => {
+			return save_buffer (cur_bp);
+		},
+		true,
+		"""Save current buffer in visited file if modified.  By default, makes the
+previous version into a backup file if this is the first save."""
+		);
+
+	new LispFunc (
+		"write-file",
+		(uniarg, arglist) => {
+			return write_buffer (cur_bp, true,
+								 arglist != null && !(Flags.SET_UNIARG in lastflag),
+								 null, "Write file: ");
+		},
+		true,
+		"""Write current buffer into file FILENAME.
+This makes the buffer visit that file, and marks it as not modified.
+
+Interactively, confirmation is required unless you supply a prefix argument."""
+		);
+
+	new LispFunc (
+		"save-some-buffers",
+		(uniarg, arglist) => {
+			bool noask = false;
+
+			for (Buffer? bp = head_bp; bp != null; (bp = bp.next) != null) {
+				if (bp.modified && !bp.nosave) {
+					string fname = get_buffer_filename_or_name (bp);
+					if (noask)
+						save_buffer (bp);
+					else
+						for (;;) {
+							Minibuf.write ("Save file %s? (y, n, !, ., q) ", fname);
+							uint c = getkey (GETKEY_DEFAULT);
+							Minibuf.clear ();
+
+							if (c == KBD_CANCEL) {	/* C-g */
+								funcall ("keyboard-quit");
+								return false;
+							} else if (c == 'q') {
+								return true;
+							} else if (c == '.') {
+								save_buffer (bp);
+								return true;
+							} else if (c == '!') {
+								noask = true;
+								save_buffer (bp);
+								break;
+							} else if (c == ' ' || c == 'y') {
+								save_buffer (bp);
+								break;
+							} else if (c == 'n' || c == KBD_RET || c == KBD_DEL)
+								break;
+							else {
+								Minibuf.error ("Please answer y, n, !, . or q.");
+								waitkey ();
+							}
+						}
+				}
+			}
+
+			Minibuf.write ("(No files need saving)");
+			return true;
+		},
+		true,
+		"""Save some modified file-visiting buffers.  Asks user about each one."""
+		);
+
+	new LispFunc (
+		"save-buffers-kill-emacs",
+		(uniarg, arglist) => {
+			if (!funcall ("save-some-buffers"))
+				return false;
+
+			for (Buffer? bp = head_bp; bp != null; bp = bp.next)
+				if (bp.modified && !bp.needname) {
+					for (;;) {
+						int ans = Minibuf.read_yesno ("Modified buffers exist; exit anyway? (yes or no) ");
+						if (ans == -1)
+							return funcall ("keyboard-quit");
+						else if (ans == 0)
+							return false;
+						break;
+					}
+					break; /* We have found a modified buffer, so stop. */
+				}
+
+			thisflag |= Flags.QUIT;
+			return true;
+		},
+		true,
+		"""Offer to save each buffer, then kill this Zile process."""
+		);
+
+	new LispFunc (
+		"cd",
+		(uniarg, arglist) => {
+			bool ok = true;
+			string? dir = str_init (ref arglist);
+			if (arglist == leNIL)
+				dir = Minibuf.read_filename ("Change default directory: ", cur_bp.dir, null);
+
+			if (dir == null)
+				ok = funcall ("keyboard-quit");
+			else if (dir.length > 0) {
+				if (!FileUtils.test (dir, IS_DIR)) {
+					Minibuf.error ("`%s' is not a directory", dir);
+					ok = false;
+				} else if (chdir (dir) == -1) {
+					Minibuf.write ("%s: %s", dir, Posix.strerror (errno));
+					ok = false;
+				}
+			}
+			return true;
+		},
+		true,
+		"""Make DIR become the current buffer's default directory."""
+		);
 }

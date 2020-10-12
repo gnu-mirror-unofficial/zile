@@ -65,17 +65,32 @@ bool pipe_command (string cmd, Astr *instr, bool do_insert, bool do_replace) {
 string? minibuf_read_shell_command () {
 	string? ms = Minibuf.read ("Shell command: ", "");
 	if (ms == null) {
-		funcall (F_keyboard_quit);
+		funcall ("keyboard-quit");
 		return null;
 	}
 
 	return ms.length == 0 ? null : ms;
 }
 
-/*
-DEFUN_ARGS ("shell-command", shell_command, STR_ARG (cmd) BOOL_ARG (insert))
-*+
-Execute string COMMAND in inferior shell; display output, if any.
+
+public void shell_init () {
+	new LispFunc (
+		"shell-command",
+		(uniarg, arglist) => {
+			bool ok = true;
+			string? cmd = str_init (ref arglist);
+			if (cmd == null)
+				cmd = minibuf_read_shell_command ();
+			bool insert;
+			if (!bool_init (ref arglist, out insert))
+				insert = Flags.SET_UNIARG in lastflag;
+
+			if (cmd != null)
+				ok = pipe_command (cmd, Astr.new_ (), insert, false);
+			return ok;
+		},
+		true,
+		"""Execute string COMMAND in inferior shell; display output, if any.
 With prefix argument, insert the command's output at point.
 
 Command is executed synchronously.  The output appears in the buffer
@@ -85,26 +100,34 @@ in buffer `*Shell Command Output*' even though that buffer is not
 automatically displayed.
 
 The optional second argument OUTPUT-BUFFER, if non-nil,
-says to insert the output in the current buffer.
-+*/
-public bool F_shell_command (long uniarg, Lexp *arglist) {
-	bool ok = true;
-	string? cmd = str_init (ref arglist);
-	if (cmd == null)
-		cmd = minibuf_read_shell_command ();
-	bool insert;
-	if (!bool_init (ref arglist, out insert))
-		insert = Flags.SET_UNIARG in lastflag;
+says to insert the output in the current buffer."""
+		);
 
-	if (cmd != null)
-		ok = pipe_command (cmd, Astr.new_ (), insert, false);
-	return ok;
-}
+	new LispFunc (
+		"shell-command-on-region",
+		(uniarg, arglist) => {
+			/* Skip arguments `start' and `end' for Emacs compatibility. */
+			str_init (ref arglist);
+			str_init (ref arglist);
 
-/*
-DEFUN_ARGS ("shell-command-on-region", shell_command_on_region, STR_ARG (start) STR_ARG (end) STR_ARG (cmd) BOOL_ARG (insert))
-*+
-Execute string command in inferior shell with region as input.
+			string? cmd = str_init (ref arglist);
+			if (cmd == null)
+				cmd = minibuf_read_shell_command ();
+			bool insert;
+			if (!bool_init (ref arglist, out insert))
+				insert = Flags.SET_UNIARG in lastflag;
+
+			bool ok = true;
+			if (cmd != null) {
+				if (warn_if_no_mark ())
+					ok = false;
+				else
+					ok = pipe_command (cmd, estr_get_as (get_buffer_region (cur_bp, Region.calculate ())), insert, true);
+			}
+			return ok;
+		},
+		true,
+		"""Execute string command in inferior shell with region as input.
 Normally display output (if any) in temp buffer `*Shell Command Output*';
 Prefix arg means replace the region with it.  Return the exit code of
 command.
@@ -113,26 +136,6 @@ If the command generates output, the output may be displayed
 in the echo area or in a buffer.
 If the output is short enough to display in the echo area, it is shown
 there.  Otherwise it is displayed in the buffer `*Shell Command Output*'.
-The output is available in that buffer in both cases.
-+*/
-public bool F_shell_command_on_region (long uniarg, Lexp *arglist) {
-	/* Skip arguments `start' and `end' for Emacs compatibility. */
-	str_init (ref arglist);
-	str_init (ref arglist);
-
-	string? cmd = str_init (ref arglist);
-	if (cmd == null)
-		cmd = minibuf_read_shell_command ();
-	bool insert;
-	if (!bool_init (ref arglist, out insert))
-		insert = Flags.SET_UNIARG in lastflag;
-
-	bool ok = true;
-	if (cmd != null) {
-		if (warn_if_no_mark ())
-			ok = false;
-		else
-			ok = pipe_command (cmd, estr_get_as (get_buffer_region (cur_bp, Region.calculate ())), insert, true);
-	}
-	return ok;
+The output is available in that buffer in both cases."""
+		);
 }

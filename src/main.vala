@@ -113,10 +113,25 @@ PACKAGE_NAME + " is Free Software--Free as in Freedom--so you can redistribute c
 
 	/* Set up Lisp environment now so it's available to files and
 	   expressions specified on the command-line. */
-	init_lisp ();
+	lisp_init ();
 	init_variables ();
-	init_eval ();
-	init_fentry ();
+	basic_init ();
+	buffer_init ();
+	bind_init ();
+	eval_init ();
+	file_init ();
+	funcs_init ();
+	help_init ();
+	killring_init ();
+	line_init ();
+	macro_init ();
+	redisplay_init ();
+	registers_init ();
+	search_init ();
+	shell_init ();
+	undo_init ();
+	variables_init ();
+	window_init ();
 
 	bool qflag = false;
 	var arg_type = new List<ArgType> ();
@@ -250,7 +265,7 @@ PACKAGE_NAME + " is Free Software--Free as in Freedom--so you can redistribute c
 		switch_to_buffer (bp);
 		bprintf ("%s", splash_str);
 		bp.readonly = true;
-		funcall (F_beginning_of_buffer);
+		funcall ("beginning-of-buffer");
     }
 
 	/* Load files and load files and run functions given on the command
@@ -276,7 +291,7 @@ PACKAGE_NAME + " is Free Software--Free as in Freedom--so you can redistribute c
 		{
             ok = find_file (arg);
             if (ok)
-				funcall_arg (F_goto_line, (long) arg_line.nth_data (i));
+				funcall_arg ("goto-line", (long) arg_line.nth_data (i));
 			break;
 		}
         default:
@@ -297,11 +312,11 @@ PACKAGE_NAME + " is Free Software--Free as in Freedom--so you can redistribute c
 		files++;
     }
 	if (files == 3) { /* *scratch* and two files. */
-		funcall (F_split_window);
+		funcall ("split-window");
 		switch_to_buffer (last_bp);
-		funcall (F_other_window);
+		funcall ("other-window");
     } else if (files > 3) /* More than two files. */
-		funcall (F_list_buffers);
+		funcall ("list-buffers");
 
 	/* Reinitialise the scratch buffer to catch settings */
 	init_buffer (scratch_bp);

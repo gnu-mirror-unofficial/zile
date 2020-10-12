@@ -56,47 +56,6 @@ public void cancel_kbd_macro () {
 	thisflag &= ~Flags.DEFINING_MACRO;
 }
 
-/*
-DEFUN ("start-kbd-macro", start_kbd_macro)
-*+
-Record subsequent keyboard input, defining a keyboard macro.
-The commands are recorded even as they are executed.
-Use \\[end-kbd-macro] to finish recording and make the macro available.
-+*/
-public bool F_start_kbd_macro (long uniarg, Lexp *arglist) {
-	if (Flags.DEFINING_MACRO in thisflag) {
-		Minibuf.error ("Already defining a keyboard macro");
-		return false;
-	}
-
-	if (cur_mp != null)
-		cancel_kbd_macro ();
-
-	Minibuf.write ("Defining keyboard macro...");
-
-	thisflag |= Flags.DEFINING_MACRO;
-	cur_mp = new Macro ();
-
-	return true;
-}
-
-/*
-DEFUN ("end-kbd-macro", end_kbd_macro)
-*+
-Finish defining a keyboard macro.
-The definition was started by \\[start-kbd-macro].
-The macro is now available for use via \\[call-last-kbd-macro].
-+*/
-public bool F_end_kbd_macro (long uniarg, Lexp *arglist) {
-	if (!(Flags.DEFINING_MACRO in thisflag)) {
-		Minibuf.error ("Not defining a keyboard macro");
-		return false;
-	}
-
-	thisflag &= ~Flags.DEFINING_MACRO;
-	return true;
-}
-
 void process_keys (Array<uint?> keys) {
 	size_t cur = term_buf_len ();
 	for (uint i = 0; i < keys.length; i++)
@@ -115,37 +74,80 @@ bool call_macro () {
 }
 
 
-/*
-DEFUN ("call-last-kbd-macro", call_last_kbd_macro)
-*+
-Call the last keyboard macro that you defined with \\[start-kbd-macro].
-A prefix argument serves as a repeat count.
-+*/
-public bool F_call_last_kbd_macro (long uniarg, Lexp *arglist) {
-	if (cur_mp == null) {
-		Minibuf.error ("No kbd macro has been defined");
-		return false;
-	}
+public void macro_init () {
+	new LispFunc (
+		"start-kbd-macro",
+		(uniarg, arglist) => {
+			if (Flags.DEFINING_MACRO in thisflag) {
+				Minibuf.error ("Already defining a keyboard macro");
+				return false;
+			}
 
-	/* FIXME: Call execute-kbd-macro (needs a way to reverse keystrtovec) */
-	/* F_execute_kbd_macro (uniarg, true, leAddDataElement (leNew (null), keyvectostr (cur_mp.keys), false)); */
-	macro_keys = cur_mp.keys;
-	execute_with_uniarg (uniarg, call_macro, null);
-	return true;
-}
+			if (cur_mp != null)
+				cancel_kbd_macro ();
 
-/*
-DEFUN_NONINTERACTIVE_ARGS ("execute-kbd-macro", execute_kbd_macro, STR_ARG (keystr))
-*+
-Execute macro as string of editor command characters.
-+*/
-public bool F_execute_kbd_macro (long uniarg, Lexp *arglist) {
-	string? keystr = str_init (ref arglist);
-	Array<uint?>? keys = keystrtovec (keystr);
-	if (keys == null)
-		return false;
+			Minibuf.write ("Defining keyboard macro...");
 
-	macro_keys = keys;
-	execute_with_uniarg (uniarg, call_macro, null);
-	return true;
+			thisflag |= Flags.DEFINING_MACRO;
+			cur_mp = new Macro ();
+
+			return true;
+		},
+		true,
+		"""Record subsequent keyboard input, defining a keyboard macro.
+		The commands are recorded even as they are executed.
+		Use \\[end-kbd-macro] to finish recording and make the macro available."""
+		);
+
+	new LispFunc (
+		"end-kbd-macro",
+		(uniarg, arglist) => {
+			if (!(Flags.DEFINING_MACRO in thisflag)) {
+				Minibuf.error ("Not defining a keyboard macro");
+				return false;
+			}
+
+			thisflag &= ~Flags.DEFINING_MACRO;
+			return true;
+		},
+		true,
+		"""Finish defining a keyboard macro.
+		The definition was started by \\[start-kbd-macro].
+		The macro is now available for use via \\[call-last-kbd-macro]."""
+		);
+
+	new LispFunc (
+		"call-last-kbd-macro",
+		(uniarg, arglist) => {
+			if (cur_mp == null) {
+				Minibuf.error ("No kbd macro has been defined");
+				return false;
+			}
+
+			/* FIXME: Call execute-kbd-macro (needs a way to reverse keystrtovec) */
+			/* F_execute_kbd_macro (uniarg, true, leAddDataElement (leNew (null), keyvectostr (cur_mp.keys), false)); */
+			macro_keys = cur_mp.keys;
+			execute_with_uniarg (uniarg, call_macro, null);
+			return true;
+		},
+		true,
+		"""Call the last keyboard macro that you defined with \\[start-kbd-macro].
+		A prefix argument serves as a repeat count."""
+		);
+
+	new LispFunc (
+		"execute-kbd-macro",
+		(uniarg, arglist) => {
+			string? keystr = str_init (ref arglist);
+			Array<uint?>? keys = keystrtovec (keystr);
+			if (keys == null)
+				return false;
+
+			macro_keys = keys;
+			execute_with_uniarg (uniarg, call_macro, null);
+			return true;
+		},
+		true,
+		"""Execute macro as string of editor command characters."""
+		);
 }

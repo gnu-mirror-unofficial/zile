@@ -91,7 +91,7 @@ namespace Minibuf {
 			string? a = read ("%s", "", buf);
 			if (a == null) {
 				n = long.MAX;
-				funcall (F_keyboard_quit);
+				funcall ("keyboard-quit");
 				break;
 			}
 			if (a.length == 0) {
@@ -178,7 +178,7 @@ namespace Minibuf {
 			ms = TermMinibuf.read (buf, val, long.MAX, cp, hp);
 
 			if (ms == null) { /* Cancelled. */
-				funcall (F_keyboard_quit);
+				funcall ("keyboard-quit");
 				break;
 			} else if (ms.length == 0) {
 				error ("%s", empty_err);

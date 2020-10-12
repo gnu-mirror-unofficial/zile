@@ -27,7 +27,7 @@ using Lisp;
 
 public class Binding {
 	public size_t key; /* The key code (for every level except the root). */
-	public Function? func; /* The function for this key (if a leaf node). */
+	public LispFunc? func; /* The function for this key (if a leaf node). */
 
 	/* Branch Array. FIXME: make a hash table. */
 	public Array<Binding> vec;
@@ -47,7 +47,7 @@ Binding? search_node (Binding tree, uint key) {
 	return null;
 }
 
-void bind_key_vec (Binding tree, Array<uint?> keys, uint from, Function func) {
+void bind_key_vec (Binding tree, Array<uint?> keys, uint from, LispFunc func) {
 	Binding? s = search_node (tree, keys.index (from));
 	uint n = keys.length - from;
 
@@ -124,14 +124,14 @@ Array<uint?> get_key_sequence () {
 	return keys;
 }
 
-Function get_function_by_keys (Array<uint?> keys)
+LispFunc get_function_by_keys (Array<uint?> keys)
 {
 	/* Detect Meta-digit */
 	if (keys.length == 1) {
 		uint key = keys.index (0);
 		if ((key & KBD_META) != 0 &&
 			(((char) (key & 0xff)).isdigit () || (char) (key & 0xff) == '-'))
-			return F_universal_argument;
+			return LispFunc.find ("universal-argument");
 	}
 
 	/* See if we've got a valid key sequence */
@@ -156,28 +156,18 @@ bool self_insert_command () {
 	return ret;
 }
 
-/*
-DEFUN ("self-insert-command", self_insert_command)
-*+
-Insert the character you type.
-Whichever character you type to run this command is inserted.
-+*/
-public bool F_self_insert_command (long uniarg, Lexp *arglist) {
-  return execute_with_uniarg (uniarg, self_insert_command, null);
-}
+LispFunc _last_command;
+LispFunc _this_command;
 
-Function _last_command;
-Function _this_command;
-
-Function last_command () {
+LispFunc last_command () {
 	return _last_command;
 }
 
-void set_this_command (void *cmd) {
-	_this_command = (Function) cmd;
+void set_this_command (LispFunc cmd) {
+	_this_command = cmd;
 }
 
-bool call_command (Function f, long uniarg, Lexp *branch) {
+bool call_command (LispFunc f, long uniarg, Lexp *branch) {
 	thisflag = lastflag & Flags.DEFINING_MACRO;
 	undo_start_sequence ();
 
@@ -188,7 +178,7 @@ bool call_command (Function f, long uniarg, Lexp *branch) {
 
 	/* Execute the command. */
 	_this_command = f;
-	bool ok = f ((long) uniarg, branch);
+	bool ok = f.func ((long) uniarg, branch);
 	_last_command = _this_command;
 
 	/* Only add keystrokes if we were already in macro defining mode
@@ -204,7 +194,7 @@ bool call_command (Function f, long uniarg, Lexp *branch) {
 
 void get_and_run_command () {
 	Array<uint?> keys = get_key_sequence ();
-	Function f = get_function_by_keys (keys);
+	LispFunc f = get_function_by_keys (keys);
 
 	Minibuf.clear ();
 	if (f != null)
@@ -221,48 +211,11 @@ public void init_default_bindings () {
 		var keys = new Array<uint?> ();
 		if (((char) i).isprint ()) {
 			keys.append_val (i);
-			bind_key_vec (root_bindings, keys, 0, F_self_insert_command);
+			bind_key_vec (root_bindings, keys, 0, LispFunc.find ("self-insert-command"));
 		}
 	}
 
 	lisp_loadstring (default_bindings);
-}
-
-/*
-DEFUN_ARGS ("global-set-key", global_set_key, STR_ARG (keystr), STR_ARG (name))
-*+
-Bind a command to a key sequence.
-Read key sequence and function name, and bind the function to the key
-sequence.
-+*/
-public bool F_global_set_key (long uniarg, Lexp *arglist) {
-	Array<uint?>? keys;
-	string keystr = str_init (ref arglist);
-	if (keystr != null) {
-		keys = keystrtovec (keystr);
-		if (keys == null) {
-			Minibuf.error ("Key sequence %s is invalid", keystr);
-			return false;
-		}
-	} else {
-		Minibuf.write ("Set key globally: ");
-		keys = get_key_sequence ();
-		keystr = keyvectodesc (keys);
-	}
-
-	string? name = str_init (ref arglist);
-	if (name == null)
-		name = minibuf_read_function_name ("Set key %s to command: ", keystr);
-	if (name == null)
-		return false;
-
-	Function func = get_function (name);
-	if (func == null) { /* Possible if called non-interactively */
-		Minibuf.error ("No such function `%s'", name);
-		return false;
-	}
-	bind_key_vec (root_bindings, keys, 0, func);
-	return true;
 }
 
 delegate void BindingsProcessor (string key, Binding p);
@@ -289,56 +242,106 @@ void walk_bindings (Binding tree, BindingsProcessor process) {
 	walk_bindings_tree (tree, new Array<string> (), process);
 }
 
-/*
-DEFUN ("where-is", where_is)
-*+
-Print message listing key sequences that invoke the command DEFINITION.
-Argument is a command name.
-+*/
-public bool F_where_is (long uniarg, Lexp *arglist) {
-	string? name = minibuf_read_function_name ("Where is command: ");
-	bool ok = false;
-
-	if (name != null) {
-		Function f = get_function (name);
-		if (f != null) {
-			string bindings = "";
-			BindingsProcessor gather_bindings = (key, p) => {
-				if (p.func == f) {
-					if (bindings.length > 0)
-						bindings += ", ";
-					bindings += key;
-				}
-			};
-			walk_bindings (root_bindings, gather_bindings);
-
-			if (bindings.length == 0)
-				Minibuf.write ("%s is not on any key", name);
-			else
-				Minibuf.write ("%s is on %s", name, bindings);
-			ok = true;
-		}
-	}
-	return ok;
-}
-
 void write_bindings_list (va_list ap) {
 	bprintf ("Key translations:\n");
 	bprintf ("%-15s %s\n", "key", "binding");
 	bprintf ("%-15s %s\n", "---", "-------");
 
 	BindingsProcessor print_binding = (key, p) => {
-		bprintf ("%-15s %s\n", key, get_function_name (p.func));
+		bprintf ("%-15s %s\n", key, p.func.name);
 	};
 	walk_bindings (root_bindings, print_binding);
 }
 
-/*
-DEFUN ("describe-bindings", describe_bindings)
-*+
-Show a list of all defined keys, and their definitions.
-+*/
-public bool F_describe_bindings (long uniarg, Lexp *arglist) {
-	write_temp_buffer ("*Help*", true, write_bindings_list);
-	return true;
+
+public void bind_init () {
+	new LispFunc (
+		"global-set-key",
+		(uniarg, arglist) => {
+			Array<uint?>? keys;
+			string keystr = str_init (ref arglist);
+			if (keystr != null) {
+				keys = keystrtovec (keystr);
+				if (keys == null) {
+					Minibuf.error ("Key sequence %s is invalid", keystr);
+					return false;
+				}
+			} else {
+				Minibuf.write ("Set key globally: ");
+				keys = get_key_sequence ();
+				keystr = keyvectodesc (keys);
+			}
+
+			string? name = str_init (ref arglist);
+			if (name == null)
+				name = minibuf_read_function_name ("Set key %s to command: ", keystr);
+			if (name == null)
+				return false;
+
+			LispFunc func = LispFunc.find (name);
+			if (func == null) { /* Possible if called non-interactively */
+				Minibuf.error ("No such function `%s'", name);
+				return false;
+			}
+			bind_key_vec (root_bindings, keys, 0, func);
+			return true;
+		},
+		true,
+		"""Bind a command to a key sequence.
+Read key sequence and function name, and bind the function to the key
+sequence."""
+		);
+
+	new LispFunc (
+		"self-insert-command",
+		(uniarg, arglist) => {
+			return execute_with_uniarg (uniarg, self_insert_command, null);
+		},
+		true,
+		"""Insert the character you type.
+Whichever character you type to run this command is inserted."""
+		);
+
+	new LispFunc (
+		"where-is",
+		(uniarg, arglist) => {
+			string? name = minibuf_read_function_name ("Where is command: ");
+			bool ok = false;
+
+			if (name != null) {
+				LispFunc? f = LispFunc.find (name);
+				if (f != null) {
+					string bindings = "";
+					BindingsProcessor gather_bindings = (key, p) => {
+						if (p.func == f) {
+							if (bindings.length > 0)
+								bindings += ", ";
+							bindings += key;
+						}
+					};
+					walk_bindings (root_bindings, gather_bindings);
+
+					if (bindings.length == 0)
+						Minibuf.write ("%s is not on any key", name);
+					else
+						Minibuf.write ("%s is on %s", name, bindings);
+					ok = true;
+				}
+			}
+			return ok;
+		},
+		true,
+		"""Print message listing key sequences that invoke the command DEFINITION.
+Argument is a command name."""
+		);
+
+	new LispFunc (
+		"describe-bindings",
+		(uniarg, arglist) => {
+			write_temp_buffer ("*Help*", true, write_bindings_list);
+			return true;
+		},
+		true,
+		"""Show a list of all defined keys, and their definitions."""
+		);
 }

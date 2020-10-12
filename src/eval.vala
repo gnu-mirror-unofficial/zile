@@ -29,42 +29,30 @@ public delegate bool MovementNDelegate (long uniarg);
 /*
  * Zile Lisp functions.
  */
-struct Fentry {
-	string name;		/* The function name. */
-	void * func;		/* The function pointer. */
-	bool interactive;	/* Whether function can be used interactively. */
-	string doc;			/* Documentation string. */
-}
+public class LispFunc {
+	public string name;		 /* The function name. */
+	public Function func;	 /* The function. */
+	public bool interactive; /* Whether function can be used interactively. */
+	public string doc;		 /* Documentation string. */
 
-Fentry? get_fentry (string name) {
-	foreach (Fentry f in fentry_table) {
-		if (name == f.name)
-			return f;
+	public static HashTable<string, LispFunc> table;
+
+	static construct {
+		table = new HashTable<string, LispFunc> (str_hash, str_equal);
 	}
-	return null;
-}
 
-Function get_function (string name) {
-	Fentry? f = get_fentry (name);
-	return f != null ? (Function) f.func : null;
-}
+	public LispFunc (string name, Function func, bool interactive, string doc) {
+		this.name = name;
+		this.func = func;
+		this.interactive = interactive;
+		this.doc = doc;
 
-/* Return function's interactive flag, or -1 if not found. */
-int get_function_interactive (string name) {
-	Fentry? f = get_fentry (name);
-	return f != null ? (int) f.interactive : -1;
-}
+		table.insert (name, this);
+	}
 
-string get_function_doc (string name) {
-	Fentry? f = get_fentry (name);
-	return f != null ? f.doc : null;
-}
-
-string? get_function_name (Function p) {
-	foreach (Fentry f in fentry_table)
-		if ((Function) f.func == p)
-			return f.name;
-	return null;
+	public static LispFunc? find (string name) {
+		return table.lookup (name);
+	}
 }
 
 
@@ -91,9 +79,9 @@ Lexp *evaluateBranch (Lexp * trybranch) {
 	if (keyword->data == null)
 		return leNIL;
 
-	Fentry? func = get_fentry (keyword->data);
+	LispFunc? func = LispFunc.find (keyword->data);
 	if (func != null)
-		return call_command ((Function) func.func, 1, trybranch) ? leT : leNIL;
+		return call_command (func, 1, trybranch) ? leT : leNIL;
 
 	return null;
 }
@@ -115,26 +103,6 @@ Lexp *evaluateNode (Lexp * node) {
     }
 
 	return value;
-}
-
-/*
-DEFUN_NONINTERACTIVE ("setq", setq)
-*+
-(setq [sym val]...)
-
-Set each sym to the value of its val.
-The symbols sym are variables; they are literal (not evaluated).
-The values val are expressions; they are evaluated.
-+*/
-public bool F_setq (long uniarg, Lexp *arglist) {
-	if (arglist != null && countNodes (arglist) >= 2) {
-		for (Lexp *current = arglist->next; current != null; current = current->next->next) {
-			set_variable (current->data, evaluateNode (current->next)->data);
-			if (current->next == null)
-				break; /* Cope with odd-length argument lists. */
-        }
-    }
-	return true;
 }
 
 public void leEval (Lexp *list) {
@@ -162,31 +130,8 @@ public bool move_with_uniarg (long uniarg, MovementNDelegate move) {
 }
 
 bool execute_function (string name, long uniarg, bool is_uniarg) {
-	Function func = get_function (name);
+	LispFunc func = LispFunc.find (name);
 	return func != null ? call_command (func, uniarg, is_uniarg ? null : leNIL) : false;
-}
-
-/*
-DEFUN ("execute-extended-command", execute_extended_command)
-*+
-Read function name, then read its arguments and call it.
-+*/
-public bool F_execute_extended_command (long uniarg, Lexp *arglist) {
-	string msg = "";
-
-	if (Flags.SET_UNIARG in lastflag) {
-		if (Flags.UNIARG_EMPTY in lastflag)
-			msg = "C-u ";
-		else
-			msg = @"$uniarg ";
-    }
-	msg += "M-x ";
-
-	string? name = minibuf_read_function_name ("%s", msg);
-	if (name == null)
-		return false;
-
-	return execute_function (name, uniarg, Flags.SET_UNIARG in lastflag);
 }
 
 /*
@@ -196,9 +141,10 @@ History *functions_history = null;
 string? minibuf_read_function_name (string fmt, ...) {
 	Completion cp = new Completion (false);
 
-	for (size_t i = 0; i < fentry_table.length; ++i)
-		if (fentry_table[i].interactive)
-			cp.completions.append (fentry_table[i].name);
+	LispFunc.table.@foreach ((name, f) => {
+			if (f.interactive)
+				cp.completions.append (name);
+		});
 	cp.completions.sort (strcmp); // FIXME: Move this inside Completion
 
 	return Minibuf.vread_completion (fmt, "", cp, functions_history,
@@ -207,6 +153,50 @@ string? minibuf_read_function_name (string fmt, ...) {
 									 "Undefined function name `%s'", va_list());
 }
 
-public void init_eval () {
+
+public void eval_init () {
 	functions_history = new History ();
+
+	new LispFunc (
+		"setq",
+		(uniarg, arglist) => {
+			if (arglist != null && countNodes (arglist) >= 2) {
+				for (Lexp *current = arglist->next; current != null; current = current->next->next) {
+					set_variable (current->data, evaluateNode (current->next)->data);
+					if (current->next == null)
+						break; /* Cope with odd-length argument lists. */
+				}
+			}
+			return true;
+		},
+		false,
+		"""(setq [sym val]...)
+
+	  Set each sym to the value of its val.
+	  The symbols sym are variables; they are literal (not evaluated).
+	  The values val are expressions; they are evaluated."""
+		);
+
+	new LispFunc (
+		"execute-extended-command",
+		(uniarg, arglist) => {
+			string msg = "";
+
+			if (Flags.SET_UNIARG in lastflag) {
+				if (Flags.UNIARG_EMPTY in lastflag)
+					msg = "C-u ";
+				else
+					msg = @"$uniarg ";
+			}
+			msg += "M-x ";
+
+			string? name = minibuf_read_function_name ("%s", msg);
+			if (name == null)
+				return false;
+
+			return execute_function (name, uniarg, Flags.SET_UNIARG in lastflag);
+		},
+		true,
+		"""Read function name, then read its arguments and call it."""
+		);
 }
