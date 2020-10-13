@@ -219,27 +219,33 @@ public void init_default_bindings () {
 }
 
 delegate void BindingsProcessor (string key, Binding p);
-void walk_bindings_tree (Binding tree, Array<string> keys, BindingsProcessor process) {
-	for (uint i = 0; i < tree.vec.length; ++i) {
-		Binding p = tree.vec.index (i);
-		assert (p != null);
+delegate void BindingsWalker (Binding tree);
+void walk_bindings (BindingsProcessor process) {
+	var keys = new Array<string> ();
+	BindingsWalker walker = null;
+	walker = (tree) => {
+		for (uint i = 0; i < tree.vec.length; ++i) {
+			Binding p = tree.vec.index (i);
+			assert (p != null);
 
-		if (p.func != null) {
-			string key = "";
-			for (uint j = 0; j < keys.length; j++)
-				key += keys.index (j) + " ";
-			key += chordtodesc (p.key);
-			process (key, p);
-		} else {
-			keys.append_val (chordtodesc (p.key));
-			walk_bindings_tree (p, keys, process);
-			keys.remove_index (keys.length - 1);
+			if (p.func != null) {
+				string key = "";
+				for (uint j = 0; j < keys.length; j++)
+					key += keys.index (j) + " ";
+				key += chordtodesc (p.key);
+				process (key, p);
+			} else {
+				// FIXME: would like to pass keys as a Vala array by value,
+				// but Vala does not support this:
+				// https://gitlab.gnome.org/GNOME/vala/-/issues/931
+				keys.append_val (chordtodesc (p.key));
+				walker (p);
+				keys.remove_index (keys.length - 1);
+			}
 		}
-	}
-}
+	};
 
-void walk_bindings (Binding tree, BindingsProcessor process) {
-	walk_bindings_tree (tree, new Array<string> (), process);
+	walker (root_bindings);
 }
 
 
@@ -301,7 +307,7 @@ Whichever character you type to run this command is inserted."""
 				LispFunc? f = LispFunc.find (name);
 				if (f != null) {
 					string bindings = "";
-					walk_bindings (root_bindings, (key, p) => {
+					walk_bindings ((key, p) => {
 							if (p.func == f) {
 								if (bindings.length > 0)
 									bindings += ", ";
@@ -334,7 +340,7 @@ Argument is a command name."""
 					bprintf ("%-15s %s\n", "key", "binding");
 					bprintf ("%-15s %s\n", "---", "-------");
 
-					walk_bindings (root_bindings, (key, p) => {
+					walk_bindings ((key, p) => {
 							bprintf ("%-15s %s\n", key, p.func.name);
 						});
 				});
