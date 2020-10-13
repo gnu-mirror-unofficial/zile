@@ -149,7 +149,6 @@ string? minibuf_read_function_name (string fmt, ...) {
 
 	return Minibuf.vread_completion (fmt, "", cp, functions_history,
 									 "No function name given",
-									 Minibuf.test_in_completions,
 									 "Undefined function name `%s'", va_list());
 }
 

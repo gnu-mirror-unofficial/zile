@@ -136,10 +136,6 @@ namespace Minibuf {
 		return p;
 	}
 
-	public bool test_in_completions (string ms, List<string> completions) {
-		return completions.find_custom (ms, GLib.strcmp) != null;
-	}
-
 	public int read_yesno (string fmt, ...) {
 		string errmsg = "Please answer yes or no.";
 		Completion cp = new Completion (false);
@@ -148,8 +144,7 @@ namespace Minibuf {
 		cp.completions.append ("no");
 		cp.completions.append ("yes");
 
-		string? ms = vread_completion (fmt, "", cp, null, errmsg,
-									   test_in_completions, errmsg, va_list());
+		string? ms = vread_completion (fmt, "", cp, null, errmsg, errmsg, va_list());
 
 		if (ms != null) {
 			unowned List<string> elem = cp.completions.find_custom (ms, GLib.strcmp);
@@ -169,7 +164,6 @@ namespace Minibuf {
 	 */
 	public string? vread_completion (string fmt, string val, Completion cp,
 									 History? hp, string empty_err,
-									 CompletionDelegate test,
 									 string invalid_err, va_list ap) {
 		string? ms = null;
 		string buf = fmt.vprintf (ap);
@@ -189,7 +183,7 @@ namespace Minibuf {
 				if (cp.try (ms, false) == Completion.Code.matched)
 					ms = cp.match;
 
-				if (test (ms, cp.completions)) {
+				if (cp.completions.find_custom (ms, GLib.strcmp) != null) {
 					if (hp != null)
 						hp.add_element (ms);
 					clear ();

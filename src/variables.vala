@@ -115,7 +115,6 @@ string? minibuf_read_variable_name (string fmt, ...) {
 
 	return Minibuf.vread_completion (fmt, "", cp, null,
 									 "No variable name given",
-									 Minibuf.test_in_completions,
 									 "Undefined variable name `%s'", va_list ());
 }
 
