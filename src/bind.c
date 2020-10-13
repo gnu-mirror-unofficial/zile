@@ -390,11 +390,11 @@ walk_bindings_tree (Binding tree, gl_list_t keys,
 }
 
 static void
-walk_bindings (Binding tree, void (*process) (astr key, Binding p, void *st),
-               void *st)
+walk_bindings (void (*process) (astr key, Binding p, void *st), void *st)
 {
-  walk_bindings_tree (tree, gl_list_create_empty (GL_LINKED_LIST,
-                                                  NULL, NULL, NULL, true), process, st);
+  walk_bindings_tree (root_bindings,
+                      gl_list_create_empty (GL_LINKED_LIST,
+                                            NULL, NULL, NULL, true), process, st);
 }
 
 typedef struct
@@ -433,7 +433,7 @@ Argument is a command name.
       if (g.f)
         {
           g.bindings = astr_new ();
-          walk_bindings (root_bindings, gather_bindings, &g);
+          walk_bindings (gather_bindings, &g);
 
           if (astr_len (g.bindings) == 0)
             minibuf_write ("%s is not on any key", astr_cstr (name));
@@ -458,7 +458,7 @@ write_bindings_list (va_list ap _GL_UNUSED_PARAMETER)
   bprintf ("%-15s %s\n", "key", "binding");
   bprintf ("%-15s %s\n", "---", "-------");
 
-  walk_bindings (root_bindings, print_binding, NULL);
+  walk_bindings (print_binding, NULL);
 }
 
 DEFUN ("describe-bindings", describe_bindings)
