@@ -253,9 +253,8 @@ minibuf_read_function_name (const char *fmt, ...)
 
   va_start (ap, fmt);
   const_astr ms = minibuf_vread_completion (fmt, "", cp, functions_history,
-                                       "No function name given",
-                                       minibuf_test_in_completions,
-                                       "Undefined function name `%s'", ap);
+                                            "No function name given",
+                                            "Undefined function name `%s'", ap);
   va_end (ap);
 
   return ms;

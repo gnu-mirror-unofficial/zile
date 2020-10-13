@@ -227,13 +227,11 @@ _GL_ATTRIBUTE_FORMAT_PRINTF(1, 2) void minibuf_write (const char *fmt, ...);
 _GL_ATTRIBUTE_FORMAT_PRINTF(1, 2) void minibuf_error (const char *fmt, ...);
 _GL_ATTRIBUTE_FORMAT_PRINTF(1, 3) const_astr minibuf_read (const char *fmt, const char *value, ...);
 _GL_ATTRIBUTE_FORMAT_PRINTF(1, 2) long minibuf_read_number (const char *fmt, ...);
-bool minibuf_test_in_completions (const char *ms, gl_list_t completions);
 _GL_ATTRIBUTE_FORMAT_PRINTF(1, 2) int minibuf_read_yesno (const char *fmt, ...);
 _GL_ATTRIBUTE_FORMAT_PRINTF(1, 5) const_astr minibuf_read_completion (const char *fmt, const char *value, Completion cp,
                                                                       History hp, ...);
 _GL_ATTRIBUTE_FORMAT_PRINTF(1, 0) const_astr minibuf_vread_completion (const char *fmt, const char *value, Completion cp,
                                                                        History hp, const char *empty_err,
-                                                                       bool (*test) (const char *s, gl_list_t completions),
                                                                        const char *invalid_err, va_list ap);
 _GL_ATTRIBUTE_FORMAT_PRINTF(1, 4) const_astr minibuf_read_filename (const char *fmt, const char *value,
                                                                     const char *file, ...);
