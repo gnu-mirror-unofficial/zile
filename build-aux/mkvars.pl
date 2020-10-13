@@ -1,6 +1,6 @@
 # Produce dotzile.sample
 #
-# Copyright (c) 2010 Free Software Foundation, Inc.
+# Copyright (c) 2010-2020 Free Software Foundation, Inc.
 #
 # This file is part of GNU Zile.
 #
@@ -43,8 +43,6 @@ sub false { 0; }
 sub true { 1; }
 my @xarg;
 sub X { @xarg = @_; }
-my ($D, $O, $A);
-$D = $O = $A = \&X;
 
 open IN, "<$ARGV[0]";
 while (<IN>) {
