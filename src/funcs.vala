@@ -810,12 +810,12 @@ Precisely, if point is on line I, move to the start of line I + N."""
 		(uniarg, arglist) => {
 			if (last_command () == LispFunc.find ("mark-paragraph")) {
 				funcall ("exchange-point-and-mark");
-				funcall_arg ("forward-paragraph", uniarg);
+				funcall ("forward-paragraph", uniarg);
 				funcall ("exchange-point-and-mark");
 			} else {
-				funcall_arg ("forward-paragraph", uniarg);
+				funcall ("forward-paragraph", uniarg);
 				funcall ("set-mark-command");
-				funcall_arg ("backward-paragraph", uniarg);
+				funcall ("backward-paragraph", uniarg);
 			}
 			return true;
 		},
@@ -967,7 +967,7 @@ and the rest lower case."""
 				r.end = size_t.max (r.end, buffer_next_line (cur_bp, cur_bp.pt));
 				do
 					r.start = get_buffer_line_o (cur_bp);
-				while (funcall_arg ("forward-line", -1) && is_blank_line ());
+				while (funcall ("forward-line", -1) && is_blank_line ());
 				goto_offset (m.o);
 				if (r.start != get_buffer_line_o (cur_bp) ||
 					r.end > buffer_next_line (cur_bp, cur_bp.pt))

@@ -145,7 +145,7 @@ void previous_nonblank_goalc () {
 	size_t cur_goalc = get_goalc ();
 
 	/* Find previous non-blank line. */
-	while (funcall_arg ("forward-line", -1) && is_blank_line ());
+	while (funcall ("forward-line", -1) && is_blank_line ());
 
 	/* Go to `cur_goalc' in that non-blank line. */
 	while (!eolp () && get_goalc () < cur_goalc)

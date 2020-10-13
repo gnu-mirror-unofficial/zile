@@ -291,7 +291,7 @@ PACKAGE_NAME + " is Free Software--Free as in Freedom--so you can redistribute c
 		{
             ok = find_file (arg);
             if (ok)
-				funcall_arg ("goto-line", (long) arg_line.nth_data (i));
+				funcall ("goto-line", (long) arg_line.nth_data (i));
 			break;
 		}
         default:

@@ -38,12 +38,20 @@ namespace Lisp {
 	[CCode(has_target=false)]
 	public delegate bool Function (long uniarg, Lexp *list);
 
-	public bool funcall (string name) {
-		return LispFunc.find (name).func (1, leNIL);
-	}
-
-	public bool funcall_arg (string name, long uniarg) {
-		return LispFunc.find (name).func (uniarg, null);
+	public bool funcall (string name, long? maybe_uniarg=null) {
+		/* FIXME: This code is a bit long-winded to work around
+		 * https://gitlab.gnome.org/GNOME/vala/-/issues/1084
+		 */
+		long uniarg;
+		Lexp *arglist;
+		if (maybe_uniarg == null) {
+			uniarg = 1;
+			arglist = leNIL;
+		} else {
+			uniarg = maybe_uniarg;
+			arglist = null;
+		}
+		return LispFunc.find (name).func (uniarg, arglist);
 	}
 
 	public string str_init (ref Lexp *arglist) {
