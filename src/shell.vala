@@ -21,10 +21,6 @@
 
 using Lisp;
 
-void write_shell_output (va_list ap) {
-	insert_estr (estr_new (ap.arg<Astr *> (), coding_eol_lf));
-}
-
 bool pipe_command (string cmd, Astr *instr, bool do_insert, bool do_replace) {
 	Bytes input = new Bytes.static (instr.cstr ().data);
 	Bytes output;
@@ -52,8 +48,11 @@ bool pipe_command (string cmd, Astr *instr, bool do_insert, bool do_replace) {
 		} else {
 			int eol_pos = res.cstr ().last_index_of_char ('\n');
 			bool more_than_one_line = eol_pos != -1 && eol_pos != res.len () - 1;
-			write_temp_buffer ("*Shell Command Output*", more_than_one_line,
-							   write_shell_output, res);
+			write_temp_buffer (
+				"*Shell Command Output*",
+				more_than_one_line,
+				() => { insert_estr (estr_new (res, coding_eol_lf)); }
+				);
 			if (!more_than_one_line)
 				Minibuf.write ("%s", res.cstr ());
 		}

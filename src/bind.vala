@@ -242,17 +242,6 @@ void walk_bindings (Binding tree, BindingsProcessor process) {
 	walk_bindings_tree (tree, new Array<string> (), process);
 }
 
-void write_bindings_list (va_list ap) {
-	bprintf ("Key translations:\n");
-	bprintf ("%-15s %s\n", "key", "binding");
-	bprintf ("%-15s %s\n", "---", "-------");
-
-	BindingsProcessor print_binding = (key, p) => {
-		bprintf ("%-15s %s\n", key, p.func.name);
-	};
-	walk_bindings (root_bindings, print_binding);
-}
-
 
 public void bind_init () {
 	new LispFunc (
@@ -312,14 +301,13 @@ Whichever character you type to run this command is inserted."""
 				LispFunc? f = LispFunc.find (name);
 				if (f != null) {
 					string bindings = "";
-					BindingsProcessor gather_bindings = (key, p) => {
-						if (p.func == f) {
-							if (bindings.length > 0)
-								bindings += ", ";
-							bindings += key;
-						}
-					};
-					walk_bindings (root_bindings, gather_bindings);
+					walk_bindings (root_bindings, (key, p) => {
+							if (p.func == f) {
+								if (bindings.length > 0)
+									bindings += ", ";
+								bindings += key;
+							}
+						});
 
 					if (bindings.length == 0)
 						Minibuf.write ("%s is not on any key", name);
@@ -338,7 +326,18 @@ Argument is a command name."""
 	new LispFunc (
 		"describe-bindings",
 		(uniarg, arglist) => {
-			write_temp_buffer ("*Help*", true, write_bindings_list);
+			write_temp_buffer (
+				"*Help*",
+				true,
+				() => {
+					bprintf ("Key translations:\n");
+					bprintf ("%-15s %s\n", "key", "binding");
+					bprintf ("%-15s %s\n", "---", "-------");
+
+					walk_bindings (root_bindings, (key, p) => {
+							bprintf ("%-15s %s\n", key, p.func.name);
+						});
+				});
 			return true;
 		},
 		true,

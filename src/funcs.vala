@@ -21,10 +21,9 @@
 
 using Lisp;
 
-[CCode (has_target=false)]
-public delegate void BufferWriter (va_list ap);
+public delegate void BufferWriter ();
 
-public void write_temp_buffer (string name, bool show, BufferWriter func, ...) {
+public void write_temp_buffer (string name, bool show, BufferWriter func) {
 	/* Popup a window with the buffer "name". */
 	Window old_wp = cur_wp;
 	Buffer old_bp = cur_bp;
@@ -56,7 +55,7 @@ public void write_temp_buffer (string name, bool show, BufferWriter func, ...) {
 	set_temporary_buffer (cur_bp);
 
 	/* Use the delegate. */
-	func (va_list ());
+	func ();
 
 	funcall ("beginning-of-buffer");
 	cur_bp.readonly = true;
@@ -68,36 +67,6 @@ public void write_temp_buffer (string name, bool show, BufferWriter func, ...) {
 	/* If we're not showing the new buffer, switch back to the old one. */
 	if (!show)
 		switch_to_buffer (old_bp);
-}
-
-public void write_buffers_list (va_list ap) {
-	Window old_wp = ap.arg<Window> ();
-
-	/* FIXME: Underline next line properly. */
-	bprintf ("CRM Buffer                Size  Mode             File\n");
-	bprintf ("--- ------                ----  ----             ----\n");
-
-	/* Print buffers. */
-	assert (old_wp != null);
-	Buffer? bp = old_wp.bp;
-	assert (bp != null);
-	do {
-		/* Print all buffers whose names don't start with space except
-		   this one (the *Buffer List*). */
-		if (cur_bp != bp && bp.name[0] != ' ') {
-			bprintf ("%c%c%c %-19s %6zu  %-17s",
-					 old_wp.bp == bp ? '.' : ' ',
-					 bp.readonly ? '%' : ' ',
-					 bp.modified ? '*' : ' ',
-					 bp.name, get_buffer_size (bp), "Fundamental");
-			if (bp.filename != null)
-				bprintf ("%s", compact_path (bp.filename));
-			insert_newline ();
-        }
-		bp = bp.next;
-		if (bp == null)
-			bp = head_bp;
-    } while (bp != old_wp.bp);
 }
 
 /***********************************************************************
@@ -412,7 +381,36 @@ public void funcs_init () {
 	new LispFunc (
 		"list-buffers",
 		(uniarg, arglist) => {
-			write_temp_buffer ("*Buffer List*", true, write_buffers_list, cur_wp);
+			write_temp_buffer (
+				"*Buffer List*",
+				true,
+				() => {
+					/* FIXME: Underline next line properly. */
+					bprintf ("CRM Buffer                Size  Mode             File\n");
+					bprintf ("--- ------                ----  ----             ----\n");
+
+					/* Print buffers. */
+					assert (cur_wp != null);
+					Buffer? bp = cur_wp.bp;
+					assert (bp != null);
+					do {
+						/* Print all buffers whose names don't start with space except
+						   this one (the *Buffer List*). */
+						if (cur_bp != bp && bp.name[0] != ' ') {
+							bprintf ("%c%c%c %-19s %6zu  %-17s",
+									 cur_wp.bp == bp ? '.' : ' ',
+									 bp.readonly ? '%' : ' ',
+									 bp.modified ? '*' : ' ',
+									 bp.name, get_buffer_size (bp), "Fundamental");
+							if (bp.filename != null)
+								bprintf ("%s", compact_path (bp.filename));
+							insert_newline ();
+						}
+						bp = bp.next;
+						if (bp == null)
+							bp = head_bp;
+					} while (bp != cur_wp.bp);
+				});
 			return true;
 		},
 		true,

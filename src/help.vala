@@ -21,33 +21,6 @@
 
 using Lisp;
 
-void write_function_description (va_list ap) {
-	LispFunc func = ap.arg<LispFunc> ();
-	bprintf ("%s is %s built-in function in `C source code'.\n\n%s",
-			 func.name,
-			 func.interactive ? "an interactive" : "a",
-			 func.doc);
-}
-
-void write_variable_description (va_list ap) {
-	string name = ap.arg<string> ();
-	string curval = ap.arg<string> ();
-	string doc = ap.arg<string> ();
-	bprintf ("%s is a variable defined in `C source code'.\n\nIts value is %s\n\n%s",
-			 name, curval, doc);
-}
-
-void write_key_description (va_list ap) {
-	LispFunc func = ap.arg<LispFunc> ();
-	string binding = ap.arg<string> ();
-
-	bprintf ("%s runs the command %s, which is %s built-in\nfunction in `C source code'.\n\n%s",
-			 binding, func.name,
-			 func.interactive ? "an interactive" : "a",
-			 func.doc);
-}
-
-
 public void help_init () {
 	new LispFunc (
 		"describe-function",
@@ -63,8 +36,15 @@ public void help_init () {
 				if (func == null)
 					ok = false;
 				else
-					write_temp_buffer ("*Help*", true,
-									   write_function_description, func);
+					write_temp_buffer (
+						"*Help*",
+						true,
+						() => {
+							bprintf ("%s is %s built-in function in `C source code'.\n\n%s",
+									 func.name,
+									 func.interactive ? "an interactive" : "a",
+									 func.doc);
+						});
 			}
 			return ok;
 		},
@@ -87,9 +67,13 @@ public void help_init () {
 				if (doc == null)
 					ok = false;
 				else
-					write_temp_buffer ("*Help*", true,
-									   write_variable_description,
-									   name, get_variable (name), doc);
+					write_temp_buffer (
+						"*Help*",
+						true,
+						() => {
+							bprintf ("%s is a variable defined in `C source code'.\n\nIts value is %s\n\n%s",
+									 name, get_variable (name), doc);
+						});
 			}
 			return ok;
 		},
@@ -130,8 +114,15 @@ public void help_init () {
 				if (func == null)
 					ok = false;
 				else
-					write_temp_buffer ("*Help*", true,
-									   write_key_description, func, binding);
+					write_temp_buffer (
+						"*Help*",
+						true,
+						() => {
+							bprintf ("%s runs the command %s, which is %s built-in\nfunction in `C source code'.\n\n%s",
+									 binding, func.name,
+									 func.interactive ? "an interactive" : "a",
+									 func.doc);
+						});
 			}
 			return ok;
 		},

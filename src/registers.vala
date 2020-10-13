@@ -32,22 +32,6 @@ bool insert_register () {
 	return true;
 }
 
-static void write_registers_list (va_list ap) {
-	for (uint i = 0; i < NUM_REGISTERS; ++i)
-		if (regs[i] != null) {
-			string s = estr_get_as (regs[i]).cstr ().chug ();
-			int len = int.min (20, int.max (0, ((int) cur_wp.ewidth) - 6)) + 1;
-
-			bprintf ("Register %s contains ", ((char) i).isprint () ? "%c".printf ((char) i) : "\\%o".printf (i));
-			if (s.length > 0)
-				bprintf ("text starting with\n    %.*s\n", len, s);
-			else if (s != estr_get_as (regs[i]).cstr ())
-				bprintf ("whitespace\n");
-			else
-				bprintf ("the empty string\n");
-		}
-}
-
 
 public void registers_init () {
 	new LispFunc (
@@ -129,7 +113,24 @@ Puts point before and mark after the inserted text."""
 	new LispFunc (
 		"list-registers",
 		(uniarg, arglist) => {
-			write_temp_buffer ("*Registers List*", true, write_registers_list);
+			write_temp_buffer (
+				"*Registers List*",
+				true,
+				() => {
+					for (uint i = 0; i < NUM_REGISTERS; ++i)
+						if (regs[i] != null) {
+							string s = estr_get_as (regs[i]).cstr ().chug ();
+							int len = int.min (20, int.max (0, ((int) cur_wp.ewidth) - 6)) + 1;
+
+							bprintf ("Register %s contains ", ((char) i).isprint () ? "%c".printf ((char) i) : "\\%o".printf (i));
+							if (s.length > 0)
+								bprintf ("text starting with\n    %.*s\n", len, s);
+							else if (s != estr_get_as (regs[i]).cstr ())
+								bprintf ("whitespace\n");
+							else
+								bprintf ("the empty string\n");
+						}
+				});
 			return true;
 		},
 		true,

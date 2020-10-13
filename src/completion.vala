@@ -92,30 +92,28 @@ public class Completion {
 		return maxlen;
 	}
 
-	/*
-	 * Print the list of completions in a set of columns.
-	 */
-	static void write_list (va_list ap) {
-		unowned List<string> l = ap.arg<List<string>> ();
-		uint max = max_length (l) + 5;
-		uint numcols = ((uint) cur_wp.ewidth - 1) / max;
-
-		bprintf ("Possible completions are:\n");
-		for (uint i = 0, col = 0; i < l.length (); i++) {
-			bprintf ("%-*s", (int) max, l.nth_data (i));
-
-			col = (col + 1) % numcols;
-			if (col == 0)
-				insert_newline ();
-		}
-	}
-
 	void popup_completion (bool allflag) {
 		flags |= POPPEDUP;
 		if (head_wp.next == null)
 			flags |= CLOSE;
 
-		write_temp_buffer ("*Completions*", true, write_list, allflag ? completions : matches);
+		unowned List<string> l = allflag ? completions : matches;
+		write_temp_buffer (
+			"*Completions*", true,
+			() => {
+				/* Print the list of completions in a set of columns. */
+				uint max = max_length (l) + 5;
+				uint numcols = ((uint) cur_wp.ewidth - 1) / max;
+
+				bprintf ("Possible completions are:\n");
+				for (uint i = 0, col = 0; i < l.length (); i++) {
+					bprintf ("%-*s", (int) max, l.nth_data (i));
+
+					col = (col + 1) % numcols;
+					if (col == 0)
+						insert_newline ();
+				}
+			});
 
 		if (Flags.CLOSE in flags)
 			old_bp = cur_bp;
