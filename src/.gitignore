@@ -6,7 +6,6 @@ zile
 tbl_bindings.h
 tbl_funcs.h
 tbl_opts.h
-tbl_vars.h
 mkvars.stamp
 core
 gmon.out

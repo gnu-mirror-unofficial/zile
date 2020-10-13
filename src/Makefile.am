@@ -28,8 +28,7 @@ LDADD = $(builddir)/lib/libgnu.a $(LIB_ACL) $(LIB_EACCESS) $(LIBINTL) $(CURSES_L
 BUILT_SOURCES =						\
 	src/tbl_bindings.h				\
 	src/tbl_funcs.h					\
-	src/tbl_opts.h					\
-	src/tbl_vars.h
+	src/tbl_opts.h
 
 bin_PROGRAMS = src/zile
 
@@ -96,8 +95,8 @@ src/tbl_bindings.h: src/tbl_bindings.pl build-aux/mkbindings.pl build-aux/Zile.p
 src/tbl_funcs.h: $(src_zile_function_SOURCE_FILES) build-aux/mkfuncs.pl build-aux/Zile.pm
 	PACKAGE_NAME="$(PACKAGE_NAME)" $(PERL) -I$(srcdir)/build-aux $(srcdir)/build-aux/mkfuncs.pl src/tbl_bindings.pl $(srcdir) $(src_zile_function_SOURCE_FILES)
 
-src/tbl_vars.h src/dotzile.sample: src/tbl_vars.h.in build-aux/mkvars.pl build-aux/Zile.pm
-	PACKAGE="$(PACKAGE)" $(PERL) -I$(srcdir)/build-aux $(srcdir)/build-aux/mkvars.pl $(srcdir)/src/tbl_vars.h.in
+src/dotzile.sample: src/tbl_vars.h build-aux/mkvars.pl build-aux/Zile.pm
+	PACKAGE="$(PACKAGE)" $(PERL) -I$(srcdir)/build-aux $(srcdir)/build-aux/mkvars.pl $(srcdir)/src/tbl_vars.h
 
 DISTCLEANFILES +=					\
 	$(BUILT_SOURCES)
@@ -120,5 +119,4 @@ src_astr_LDADD = $(LDADD) src/memrmem.o src/gc_veneer.o
 EXTRA_DIST +=						\
 	src/dotzile.sample				\
 	src/tbl_bindings.pl				\
-	src/tbl_opts.h.in				\
-	src/tbl_vars.h.in
+	src/tbl_opts.h.in

@@ -21,20 +21,10 @@
 
 use Zile;
 
-open VARS, ">src/tbl_vars.h" or die;
-print VARS <<END;
-/*
- * Automatically generated file: DO NOT EDIT!
- * $ENV{PACKAGE_NAME} variables.
- * Generated from tbl_vars.h.in.
- */
-
-END
-
 # Don't note where the contents of this file comes from or that it's
 # auto-generated, because it's ugly in a user configuration file.
-open SAMPLE, ">src/dotzile.sample" or die;
-print SAMPLE <<EOF;
+open OUT, ">src/dotzile.sample" or die;
+print OUT <<EOF;
 ;;;; .$ENV{PACKAGE} configuration
 
 ;; Rebind keys with:
@@ -62,11 +52,7 @@ while (<IN>) {
     eval $_ or die "Error evaluating:\n$_\n";
     my ($name, $defval, $local_when_set, $doc) = @xarg;
 
-    print VARS "X (\"$name\", \"$defval\", " .
-      ($local_when_set ? "true" : "false") . ", \"" .
-      escape_for_C($doc) . "\")\n";
-
-    print SAMPLE "; " . comment_for_lisp($doc) . "\n" .
+    print OUT "; " . comment_for_lisp($doc) . "\n" .
       "; Default value is $defval.\n" .
         "(setq $name $defval)\n\n";
   }
