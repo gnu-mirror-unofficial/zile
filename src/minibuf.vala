@@ -115,7 +115,7 @@ namespace Minibuf {
 		string? p = null;
 
 		string a = value;
-		if (file == null && a.length > 0 && a.get (a.length - 1) != '/')
+		if (file == null && a.length > 0 && a[a.length - 1] != '/')
 			a += "/";
 
 		if ((a = expand_path (a)) != null) {

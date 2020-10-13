@@ -21,14 +21,13 @@
 
 doc_DATA += src/dotzile.sample
 
-AM_VALAFLAGS = $(VALA_REGEX_LARGE_OFFSETS) --no-color --pkg config --pkg gio-2.0 --pkg posix --pkg curses --pkg gnu --pkg astr --pkg estr --vapidir=$(srcdir)/src
+AM_VALAFLAGS = $(VALA_REGEX_LARGE_OFFSETS) --no-color --pkg config --pkg gio-2.0 --pkg posix --pkg curses --pkg gnu --pkg estr --vapidir=$(srcdir)/src
 AM_CFLAGS = --include config.h $(WARN_CFLAGS) $(LIBGC_CFLAGS) $(GLIB_CFLAGS)
 AM_CPPFLAGS = -I$(builddir)/src -I$(srcdir)/src $(ISYSTEM)$(builddir)/lib $(ISYSTEM)$(srcdir)/lib -DPATH_DOCDIR="\"$(docdir)\""
 LDADD = $(builddir)/lib/libgnu.a $(LIB_ACL) $(LIB_EACCESS) $(LIBINTL) $(CURSES_LIB) $(LIBGC_LIBS) $(GLIB_LIBS)
 
 VAPIS = src/gnu.vapi					\
 	src/getopt_long_fix.h				\
-	src/astr.vapi					\
 	src/estr.vapi
 
 BUILT_SOURCES =						\
@@ -47,8 +46,6 @@ src_zile_LDADD = $(LDADD) $(LIBOBJS)
 src_zile_SOURCE_FILES =					\
 	src/memrmem.h					\
 	src/memrmem.c					\
-	src/astr.c					\
-	src/astr.h					\
 	src/estr.c					\
 	src/estr.h					\
 	src/basic.vala					\
@@ -100,12 +97,12 @@ DISTCLEANFILES +=					\
 check-syntax:
 	$(COMPILE) -o /dev/null -S $(CHK_SOURCES)
 
-check_PROGRAMS = src/astr
+check_PROGRAMS = src/estr
 
 TESTS = $(check_PROGRAMS)
 
-src_astr_CPPFLAGS = -DTEST -DSRCPATH="\"$(top_srcdir)/src\"" $(AM_CPPFLAGS)
-src_astr_LDADD = $(LDADD) src/memrmem.o
+src_estr_CPPFLAGS = -DTEST -DSRCPATH="\"$(top_srcdir)/src\"" $(AM_CPPFLAGS)
+src_estr_LDADD = $(LDADD) src/memrmem.o
 
 EXTRA_DIST +=						\
 	src/dotzile.sample				\

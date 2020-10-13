@@ -181,9 +181,9 @@ bool move_sexp (long dir) {
 /***********************************************************************
                           Transpose functions
 ***********************************************************************/
-void astr_append_region (Astr *s) {
+void estr_append_region (Estr *es) {
 	activate_mark ();
-	s.cat (estr_get_as (get_buffer_region (cur_bp, Region.calculate ())));
+	estr_cat (es, get_buffer_region (cur_bp, Region.calculate ()));
 }
 
 bool transpose_subr (MovementNDelegate move_func) {
@@ -227,8 +227,8 @@ bool transpose_subr (MovementNDelegate move_func) {
 	move_func (1);
 
 	/* Save and delete 1st marked region. */
-	Astr *as1 = Astr.new_ ();
-	astr_append_region (as1);
+	Estr *es1 = estr_new (get_buffer_eol (cur_bp));
+	estr_append_region (es1);
 
 	funcall ("delete-region");
 
@@ -236,7 +236,7 @@ bool transpose_subr (MovementNDelegate move_func) {
 	move_func (1);
 
 	/* For transpose-lines. */
-	Astr *as2 = null;
+	Estr *es2 = null;
 	Marker m2;
 	if (move_func == move_line)
 		m2 = Marker.point ();
@@ -249,20 +249,20 @@ bool transpose_subr (MovementNDelegate move_func) {
 		m2 = Marker.point ();
 
 		/* Save and delete 2nd marked region. */
-		as2 = Astr.new_ ();
-		astr_append_region (as2);
+		es2 = estr_new (get_buffer_eol (cur_bp));
+		estr_append_region (es2);
 		funcall ("delete-region");
     }
 
 	/* Insert the first string. */
 	goto_offset (m2.o);
 	m2.unchain ();
-	bprintf ("%s", as1.cstr ());
+	insert_estr (es1);
 
 	/* Insert the second string. */
-	if (as2 != null) {
+	if (es2 != null) {
 		goto_offset (m1.o);
-		bprintf ("%s", as2.cstr ());
+		insert_estr (es2);
     }
 	m1.unchain ();
 
@@ -319,6 +319,33 @@ bool move_paragraph (long uniarg, MovementDelegate forward, MovementDelegate bac
 	return true;
 }
 
+public enum Case {
+	upper = 1,
+	lower,
+	capitalized,
+}
+
+string recase (string s, Case rcase) {
+	switch (rcase) {
+	case upper:
+		return s.up ();
+	case lower:
+		return s.down ();
+	case capitalized: {
+		string ret = "";
+		if (s.length > 0) {
+			ret = s[0].toupper ().to_string ();
+			if (s.length > 1)
+				ret += s.substring (1);
+		}
+		return ret;
+	}
+	}
+	/* Should never reach here. */
+	assert (false);
+	return s;
+}
+
 bool setcase_word (Case rcase) {
 	if (!iswordchar (following_char ()))
 		if (!move_word (1) || !move_word (-1))
@@ -332,10 +359,8 @@ bool setcase_word (Case rcase) {
 		 i++)
 		a += ((char) c).to_string ();
 
-	if (a.length > 0) {
-		Astr *bs = Astr.new_cstr (a).recase (rcase);
-		replace_estr (a.length, estr_new_astr (bs));
-	}
+	if (a.length > 0)
+		replace_estr (a.length, const_estr_new_nstr (recase (a, rcase), a.length, coding_eol_lf));
 
 	cur_bp.modified = true;
 

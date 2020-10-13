@@ -119,13 +119,13 @@ Puts point before and mark after the inserted text."""
 				() => {
 					for (uint i = 0; i < NUM_REGISTERS; ++i)
 						if (regs[i] != null) {
-							string s = estr_get_as (regs[i]).cstr ().chug ();
+							string s = ((string) estr_cstr (regs[i])).chug ();
 							int len = int.min (20, int.max (0, ((int) cur_wp.ewidth) - 6)) + 1;
 
 							bprintf ("Register %s contains ", ((char) i).isprint () ? "%c".printf ((char) i) : "\\%o".printf (i));
 							if (s.length > 0)
 								bprintf ("text starting with\n    %.*s\n", len, s);
-							else if (s != estr_get_as (regs[i]).cstr ())
+							else if (s != (string) estr_cstr (regs[i]))
 								bprintf ("whitespace\n");
 							else
 								bprintf ("the empty string\n");

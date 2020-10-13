@@ -40,7 +40,7 @@ bool no_upper (string s, uint len, bool regex) {
 
 unowned string? re_find_err = null;
 
-long find_substr (Astr *a, string n, size_t nsize,
+long find_substr (char *ptr, size_t len, string n, size_t nsize,
 				  bool forward, bool notbol, bool noteol, bool regex, bool icase) {
 	long ret = -1;
 	Pattern pattern = Pattern ();
@@ -57,9 +57,8 @@ long find_substr (Astr *a, string n, size_t nsize,
 	re_find_err = compile_pattern (n, (int) nsize, &pattern);
 	pattern.not_bol = notbol;
 	pattern.not_eol = noteol;
-	long len = (long) a.len ();
 	if (re_find_err == null)
-		ret = Regex.search (&pattern, a.cstr (), (Offset) len,
+		ret = Regex.search (&pattern, (string) ptr, (Offset) len,
 							(Offset) (forward ? 0 : len), (Offset) (forward ? len : -len),
 							&search_regs);
 
@@ -78,7 +77,9 @@ bool search (string s, bool forward, bool regexp) {
 	size_t o = cur_bp.pt;
 	bool notbol = forward ? o > 0 : false;
 	bool noteol = forward ? false : o < get_buffer_size (cur_bp);
-	long pos = find_substr (forward ? get_buffer_post_point (cur_bp) : get_buffer_pre_point (cur_bp),
+	char *ptr;
+	size_t len = forward ? buffer_post_point (cur_bp, out ptr) : buffer_pre_point (cur_bp, out ptr);
+	long pos = find_substr (ptr, (long) len,
 							s, ssize, forward, notbol, noteol, regexp,
 							get_variable_bool ("case-fold-search") && no_upper (s, ssize, regexp));
 	if (pos < 0)
@@ -126,12 +127,12 @@ bool isearch (bool forward, bool regexp) {
 	size_t start = cur_bp.pt, cur = start;
 	for (;;) {
 		/* Make the minibuf message. */
-		Astr *buf = Astr.fmt ("%sI-search%s: %s",
-							  (last ?
-							   (regexp ? "Regexp " : "") :
-							   (regexp ? "Failing regexp " : "Failing ")),
-							  forward ? "" : " backward",
-							  pattern);
+		string msg = "%sI-search%s: %s".printf (
+			(last ?
+			 (regexp ? "Regexp " : "") :
+			 (regexp ? "Failing regexp " : "Failing ")),
+			forward ? "" : " backward",
+			pattern);
 
 		/* Regex error. */
 		if (re_find_err != null) {
@@ -140,11 +141,11 @@ bool isearch (bool forward, bool regexp) {
 				re_find_err.has_prefix ("Invalid ")) {
 				re_find_err = "incomplete input";
 			}
-			buf.cat (Astr.fmt (" [%s]", re_find_err));
+			msg += @" [$re_find_err]";
 			re_find_err = null;
 		}
 
-		Minibuf.write ("%s", buf.cstr ());
+		Minibuf.write ("%s", msg);
 
 		uint c = (uint) getkey (GETKEY_DEFAULT);
 
@@ -170,7 +171,7 @@ bool isearch (bool forward, bool regexp) {
 			} else
 				ding ();
 		} else if ((c & KBD_CTRL) != 0 && (c & 0xff) == 'q') {
-			Minibuf.write ("%s^Q-", buf.cstr ());
+			Minibuf.write ("%s^Q-", msg);
 			pattern += ((char) getkey_unfiltered (GETKEY_DEFAULT)).to_string ();
 		} else if ((c & KBD_CTRL) != 0 && ((char) (c & 0xff) == 'r' || (char) (c & 0xff) == 's')) {
 			/* Invert direction. */
@@ -230,19 +231,17 @@ bool isearch (bool forward, bool regexp) {
 
 /*
  * Check the case of a string.
- * Returns 2 if it is all upper case, 1 if just the first letter is,
- * and 0 otherwise.
  */
-int check_case (Astr *a) {
-	size_t i;
-	for (i = 0; i < a.len () && a.get (i).isupper (); i++)
+Case check_case (string a) {
+	uint i;
+	for (i = 0; i < a.length && a[i].isupper (); i++)
 		;
-	if (i == a.len ())
-		return 2;
+	if (i == a.length)
+		return Case.upper;
 	else if (i == 1)
-		for (; i < a.len () && !a.get (i).isupper (); i++)
+		for (; i < a.length && !a[i].isupper (); i++)
 			;
-	return i == a.len () ? 1 : 0;
+	return i == a.length ? Case.capitalized : Case.lower;
 }
 
 
@@ -380,14 +379,14 @@ as a regexp.  See the command `isearch-forward-regexp` for more information."""
 					string case_repl = repl;
 					Region r = new Region (cur_bp.pt - find.length, cur_bp.pt);
 					if (find_no_upper && get_variable_bool ("case-replace")) {
-						int case_type = check_case (estr_get_as (get_buffer_region (cur_bp, r)));
-						if (case_type != 0)
-							case_repl = Astr.new_cstr (repl).recase (case_type == 1 ? Case.capitalized : Case.upper).cstr ();
+						Case case_type = check_case ((string) estr_cstr (get_buffer_region (cur_bp, r)));
+						if (case_type != Case.lower)
+							repl = recase (repl, case_type);
 					}
 
 					Marker m = Marker.point ();
 					goto_offset (r.start);
-					replace_estr (find.length, estr_new_astr (Astr.new_cstr (case_repl)));
+					replace_estr (find.length, const_estr_new_nstr (case_repl, case_repl.length, get_buffer_eol (cur_bp)));
 					goto_offset (m.o);
 					m.unchain ();
 

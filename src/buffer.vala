@@ -51,7 +51,7 @@ public class Buffer {
 	 * variable values, and insert it into the buffer list.
 	 */
 	public Buffer () {
-		text = estr_new_astr (Astr.new_ ());
+		text = estr_new (coding_eol_lf);
 		dir = Environment.get_current_dir ();
 
 		/* Insert into buffer list. */
@@ -64,23 +64,24 @@ public class Buffer {
 
 /* Buffer methods that know about the gap. */
 
-Astr *get_buffer_pre_point (Buffer bp) {
-	return Astr.new_nstr (estr_get_as (bp.text).cstr (), bp.pt);
+size_t buffer_pre_point (Buffer bp, out char *ptr) {
+	ptr = estr_cstr (bp.text);
+	return bp.pt;
 }
 
-Astr *get_buffer_post_point (Buffer bp) {
+size_t buffer_post_point (Buffer bp, out char *ptr) {
 	size_t post_gap = bp.pt + bp.gap;
-	Astr *a = estr_get_as (bp.text);
-	return Astr.new_nstr (((char *)a.cstr ()) + post_gap, a.len () - post_gap);
+	ptr = estr_cstr (bp.text) + post_gap;
+	return estr_cstr_len (bp.text) - post_gap;
 }
 
 void set_buffer_pt (Buffer bp, size_t o) {
 	if (o < bp.pt) {
-		estr_get_as (bp.text).move (o + bp.gap, o, bp.pt - o);
-		estr_get_as (bp.text).set (o, '\0', size_t.min (bp.pt - o, bp.gap));
+		estr_move (bp.text, o + bp.gap, o, bp.pt - o);
+		estr_set (bp.text, o, '\0', size_t.min (bp.pt - o, bp.gap));
 	} else if (o > bp.pt) {
-		estr_get_as (bp.text).move (bp.pt, bp.pt + bp.gap, o - bp.pt);
-		estr_get_as (bp.text).set (o + bp.gap - size_t.min (o - bp.pt, bp.gap), '\0', size_t.min (o - bp.pt, bp.gap));
+		estr_move (bp.text, bp.pt, bp.pt + bp.gap, o - bp.pt);
+		estr_set (bp.text, o + bp.gap - size_t.min (o - bp.pt, bp.gap), '\0', size_t.min (o - bp.pt, bp.gap));
 	}
 	bp.pt = o;
 }
@@ -99,7 +100,7 @@ size_t o_to_realo (Buffer bp, size_t o) {
 }
 
 size_t get_buffer_size (Buffer bp) {
-	return realo_to_o (bp, estr_get_as (bp.text).len ());
+	return realo_to_o (bp, estr_cstr_len (bp.text));
 }
 
 size_t buffer_line_len (Buffer bp, size_t o) {
@@ -112,7 +113,7 @@ size_t buffer_line_len (Buffer bp, size_t o) {
  */
 const int MIN_GAP = 1024; /* Minimum gap size after resize. */
 const int MAX_GAP = 4096; /* Maximum permitted gap size. */
-bool replace_estr (size_t del, Estr *es) {
+public bool replace_estr (size_t del, Estr *es) {
 	if (warn_if_readonly_buffer ())
 		return false;
 
@@ -124,20 +125,20 @@ bool replace_estr (size_t del, Estr *es) {
 	size_t added_gap = oldgap + del < newlen ? MIN_GAP : 0;
 	if (added_gap > 0) {
 		/* If gap would vanish, open it to MIN_GAP. */
-		estr_get_as (cur_bp.text).insert (cur_bp.pt, (newlen + MIN_GAP) - (oldgap + del));
+		estr_insert (cur_bp.text, cur_bp.pt, (newlen + MIN_GAP) - (oldgap + del));
 		cur_bp.gap = MIN_GAP;
 	} else if (oldgap + del > MAX_GAP + newlen) {
 		/* If gap would be larger than MAX_GAP, restrict it to MAX_GAP. */
-		estr_get_as (cur_bp.text).remove (cur_bp.pt + newlen + MAX_GAP, (oldgap + del) - (MAX_GAP + newlen));
+		estr_remove (cur_bp.text, cur_bp.pt + newlen + MAX_GAP, (oldgap + del) - (MAX_GAP + newlen));
 		cur_bp.gap = MAX_GAP;
 	} else
 		cur_bp.gap = oldgap + del - newlen;
 
 	/* Zero any new bit of gap not produced by Astr.insert. */
 	if (size_t.max (oldgap, newlen) + added_gap < cur_bp.gap + newlen)
-		estr_get_as (cur_bp.text).set (cur_bp.pt + size_t.max (oldgap, newlen) + added_gap,
-										'\0',
-										newlen + cur_bp.gap - size_t.max (oldgap, newlen) - added_gap);
+		estr_set (cur_bp.text, cur_bp.pt + size_t.max (oldgap, newlen) + added_gap,
+				  '\0',
+				  newlen + cur_bp.gap - size_t.max (oldgap, newlen) - added_gap);
 
 	/* Insert `newlen' chars. */
 	estr_replace_estr (cur_bp.text, cur_bp.pt, es);
@@ -159,7 +160,7 @@ bool insert_estr (Estr *es) {
 }
 
 char get_buffer_char (Buffer bp, size_t o) {
-	return estr_get_as (bp.text).get (o_to_realo (bp, o));
+	return estr_get (bp.text, o_to_realo (bp, o));
 }
 
 size_t buffer_prev_line (Buffer bp, size_t o) {
@@ -191,21 +192,26 @@ unowned string get_buffer_eol (Buffer bp) {
 
 /* Get the buffer region as an estr. */
 Estr *get_buffer_region (Buffer bp, Region r) {
-	Astr *a = Astr.new_ ();
-	if (r.start < bp.pt)
-		a.cat (get_buffer_pre_point (bp).substr (r.start, size_t.min (r.end, bp.pt) - r.start));
+	Estr *es = estr_new (get_buffer_eol (bp));
+	if (r.start < bp.pt) {
+		char *ptr;
+		buffer_pre_point (bp, out ptr);
+		estr_cat (es, const_estr_new_nstr (ptr + r.start, size_t.min (r.end, bp.pt) - r.start, get_buffer_eol (bp)));
+	}
 	if (r.end > bp.pt) {
 		size_t from = size_t.max (r.start, bp.pt);
-		a.cat (get_buffer_post_point (bp).substr (from - bp.pt, r.end - from));
+		char *ptr;
+		buffer_post_point (bp, out ptr);
+		estr_cat (es, const_estr_new_nstr (ptr + from - bp.pt, r.end - from, get_buffer_eol (bp)));
 	}
-	return estr_new (a, get_buffer_eol (bp));
+	return es;
 }
 
 /*
  * Insert the character `c' at point in the current buffer.
  */
 bool insert_char (char c) {
-	return insert_estr (estr_new (Astr.new_nstr (&c, 1), coding_eol_lf));
+	return insert_estr (const_estr_new_nstr (&c, 1, coding_eol_lf));
 }
 
 bool delete_char () {
@@ -229,10 +235,20 @@ bool delete_char () {
 	return true;
 }
 
-void insert_buffer (Buffer bp) {
+delegate size_t PreOrPostPoint (Buffer bp, out char *ptr);
+void insert_half_buffer (Buffer bp, PreOrPostPoint f) {
+	char *ptr;
+	size_t len = f (bp, out ptr);
+	Estr *es = const_estr_new_nstr (ptr, len, get_buffer_eol (bp));
 	/* Copy text to avoid problems when bp == cur_bp. */
-	insert_estr (estr_new (get_buffer_pre_point (bp), get_buffer_eol (bp)));
-	insert_estr (estr_new (get_buffer_post_point (bp), get_buffer_eol (bp)));
+	if (bp == cur_bp)
+		es = estr_cat (estr_new (get_buffer_eol (bp)), es);
+	insert_estr (es);
+}
+
+void insert_buffer (Buffer bp) {
+	insert_half_buffer (bp, buffer_pre_point);
+	insert_half_buffer (bp, buffer_post_point);
 }
 
 /*
@@ -263,11 +279,11 @@ string get_buffer_filename_or_name (Buffer bp) {
  * Set a new filename, and from it a name, for the buffer.
  */
 void set_buffer_names (Buffer bp, string filename) {
-	if (filename[0] != '/')
-		filename = Astr.fmt ("%s/%s", Environment.get_current_dir (), filename).cstr ();
 	bp.filename = filename;
+	if (filename[0] != '/')
+		bp.filename = Path.build_filename (Environment.get_current_dir (), bp.filename);
 
-	string name = Path.get_basename (filename);
+	string name = Path.get_basename (bp.filename);
 	/* Note: there can't be more than size_t.MAX buffers. */
 	for (size_t i = 2; find_buffer (name) != null; i++)
 		name += @"<$i>";

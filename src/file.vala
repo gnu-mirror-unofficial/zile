@@ -146,7 +146,7 @@ bool find_file (string filename) {
 
 			Estr *es = estr_readf (filename);
 			if (es == null)
-				es = estr_new_astr (Astr.new_ ());
+				es = estr_new (coding_eol_lf);
 			else
 				bp.readonly = !check_writable (filename);
 			bp.text = es;
@@ -172,14 +172,15 @@ ssize_t write_to_disk (Buffer bp, string filename, mode_t mode) {
 		return -1;
 
 	ssize_t ret = 0;
-	Astr *a = get_buffer_pre_point (bp);
-	ssize_t written = write (fd, a.cstr (), a.len ());
-	if (written < 0 || (size_t) written != a.len ())
+	char *ptr;
+	size_t len = buffer_pre_point (bp, out ptr);
+	ssize_t written = write (fd, ptr, len);
+	if (written < 0 || (size_t) written != len)
 		ret = written;
 	else {
-		a = get_buffer_post_point (bp);
-		written = write (fd, a.cstr (), a.len ());
-		if (written < 0 || (size_t) written != a.len ())
+		len = buffer_post_point (bp, out ptr);
+		written = write (fd, ptr, len);
+		if (written < 0 || (size_t) written != len)
 			ret = written;
 	}
 
@@ -198,7 +199,7 @@ string create_backup_filename (string filename, string? backupdir) {
 	/* Prepend the backup directory path to the filename */
 	if (backupdir != null) {
 		string buf = backupdir;
-		if (buf.get (buf.length - 1) != '/')
+		if (buf[buf.length - 1] != '/')
 			buf += "/";
 		for (uint i = 0; i < filename.length; i++)
 			if (filename[i] == '/')
@@ -329,8 +330,7 @@ public void zile_exit (bool doabort) {
 	Posix.stderr.printf ("Trying to save modified buffers (if any)...\r\n");
 	for (Buffer? bp = head_bp; bp != null; bp = bp.next)
 		if (bp.modified && !bp.nosave) {
-			string name = "%s.%sSAVE".printf (get_buffer_filename_or_name (bp),
-											  Astr.new_cstr (PACKAGE).recase (Case.upper).cstr ());
+			string name = "%s.%sSAVE".printf (get_buffer_filename_or_name (bp), PACKAGE.up ());
 			Posix.stderr.printf (@"Saving $name...\r\n");
 			write_to_disk (bp, name, S_IRUSR | S_IWUSR);
 		}

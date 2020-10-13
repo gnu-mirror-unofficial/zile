@@ -226,10 +226,13 @@ void lisp_loadstring (string a) {
 }
 
 bool lisp_loadfile (string file) {
-	Astr *a = Astr.readf (file);
-	if (a == null)
+	string s;
+	try {
+		FileUtils.get_contents (file, out s);
+	} catch {
 		return false;
-	lisp_loadstring (a.cstr ());
+	}
+	lisp_loadstring (s);
 	return true;
 }
 

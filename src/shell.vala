@@ -21,20 +21,26 @@
 
 using Lisp;
 
-bool pipe_command (string cmd, Astr *instr, bool do_insert, bool do_replace) {
-	Bytes input = new Bytes.static (instr.cstr ().data);
+bool pipe_command (string cmd, Estr *instr, bool do_insert, bool do_replace) {
+	SubprocessFlags flags = STDOUT_PIPE;
+	Bytes input = null;
+	if (instr != null) {
+		input = new Bytes.static (((string) estr_cstr (instr)).data);
+		flags |= STDIN_PIPE;
+	}
 	Bytes output;
 	try {
-		var process = new Subprocess (STDIN_PIPE | STDOUT_PIPE, "/bin/sh", "-c", cmd);
+		var process = new Subprocess (flags, "/bin/sh", "-c", cmd);
 		process.communicate (input, null, out output, null);
 	} catch (Error e) {
 		return false;
 	}
-	Astr *res = null;
-	if (output.get_data () != null)
-		res = Astr.new_cstr ((string) output.get_data ());
-
-	if (res == null || res.len () == 0)
+	Estr *res = null;
+	if (output.get_data () != null) {
+		res = const_estr_new_nstr ((string) output.get_data (), output.length, coding_eol_lf);
+		estr_set_eol (res);
+	}
+	if (res == null || estr_len (res, estr_get_eol (res)) == 0)
 		Minibuf.write ("(Shell command succeeded with no output)");
 	else {
 		if (do_insert) {
@@ -44,17 +50,17 @@ bool pipe_command (string cmd, Astr *instr, bool do_insert, bool do_replace) {
 				goto_offset (r.start);
 				del = r.size ();
 			}
-			replace_estr (del, estr_new_astr (res));
+			replace_estr (del, res);
 		} else {
-			int eol_pos = res.cstr ().last_index_of_char ('\n');
-			bool more_than_one_line = eol_pos != -1 && eol_pos != res.len () - 1;
+			int eol_pos = ((string) estr_cstr (res)).last_index_of_char ('\n');
+			bool more_than_one_line = eol_pos != -1 && eol_pos != estr_len (res, estr_get_eol (res)) - 1;
 			write_temp_buffer (
 				"*Shell Command Output*",
 				more_than_one_line,
-				() => { insert_estr (estr_new (res, coding_eol_lf)); }
+				() => { insert_estr (res); }
 				);
 			if (!more_than_one_line)
-				Minibuf.write ("%s", res.cstr ());
+				Minibuf.write ("%s", estr_cstr (res));
 		}
 	}
 
@@ -85,7 +91,7 @@ public void shell_init () {
 				insert = Flags.SET_UNIARG in lastflag;
 
 			if (cmd != null)
-				ok = pipe_command (cmd, Astr.new_ (), insert, false);
+				ok = pipe_command (cmd, null, insert, false);
 			return ok;
 		},
 		true,
@@ -121,7 +127,7 @@ says to insert the output in the current buffer."""
 				if (warn_if_no_mark ())
 					ok = false;
 				else
-					ok = pipe_command (cmd, estr_get_as (get_buffer_region (cur_bp, Region.calculate ())), insert, true);
+					ok = pipe_command (cmd, get_buffer_region (cur_bp, Region.calculate ()), insert, true);
 			}
 			return ok;
 		},

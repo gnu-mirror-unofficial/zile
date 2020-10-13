@@ -30,7 +30,7 @@ void maybe_destroy_kill_ring () {
 
 void kill_ring_push (Estr *es) {
 	if (kill_ring_text == null)
-		kill_ring_text = estr_new_astr (Astr.new_ ());
+		kill_ring_text = estr_new (estr_get_eol (es));
 	estr_cat (kill_ring_text, es);
 }
 
@@ -78,7 +78,7 @@ bool kill_line (bool whole_line) {
 		if (!funcall ("delete-char"))
 			return false;
 
-		kill_ring_push (estr_new_astr (Astr.new_cstr ("\n")));
+		kill_ring_push (const_estr_new_nstr ("\n", "\n".length, coding_eol_lf));
 		set_this_command (LispFunc.find ("kill-region"));
     }
 
