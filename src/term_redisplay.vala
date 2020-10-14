@@ -103,9 +103,9 @@ static void draw_status_line (size_t line, Window wp) {
 		term_addstr ("-");
 
 	string eol_type;
-	if (get_buffer_eol (cur_bp) == coding_eol_cr)
+	if (get_buffer_eol (cur_bp) == ImmutableEstr.eol_cr)
 		eol_type = "(Mac)";
-	else if (get_buffer_eol (cur_bp) == coding_eol_crlf)
+	else if (get_buffer_eol (cur_bp) == ImmutableEstr.eol_crlf)
 		eol_type = "(DOS)";
 	else
 		eol_type = ":";

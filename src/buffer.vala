@@ -43,7 +43,7 @@ public class Buffer {
 	public bool mark_active;	/* The mark is active. */
 	public string dir;			/* The default directory. */
 	public size_t pt;			/* The point. FIXME: have accessor methods. */
-	internal Estr *text;		/* The text. FIXME: make private */
+	internal Estr text;			/* The text. FIXME: make private */
 	internal size_t gap;		/* Size of gap after point. FIXME: make private*/
 
 	/*
@@ -51,7 +51,7 @@ public class Buffer {
 	 * variable values, and insert it into the buffer list.
 	 */
 	public Buffer () {
-		text = estr_new (coding_eol_lf);
+		text = Estr.of_empty ();
 		dir = Environment.get_current_dir ();
 
 		/* Insert into buffer list. */
@@ -65,23 +65,23 @@ public class Buffer {
 /* Buffer methods that know about the gap. */
 
 size_t buffer_pre_point (Buffer bp, out char *ptr) {
-	ptr = estr_cstr (bp.text);
+	ptr = bp.text.text;
 	return bp.pt;
 }
 
 size_t buffer_post_point (Buffer bp, out char *ptr) {
 	size_t post_gap = bp.pt + bp.gap;
-	ptr = estr_cstr (bp.text) + post_gap;
-	return estr_cstr_len (bp.text) - post_gap;
+	ptr = bp.text.text + post_gap;
+	return bp.text.length - post_gap;
 }
 
 void set_buffer_pt (Buffer bp, size_t o) {
 	if (o < bp.pt) {
-		estr_move (bp.text, o + bp.gap, o, bp.pt - o);
-		estr_set (bp.text, o, '\0', size_t.min (bp.pt - o, bp.gap));
+		bp.text.move (o + bp.gap, o, bp.pt - o);
+		bp.text.set (o, '\0', size_t.min (bp.pt - o, bp.gap));
 	} else if (o > bp.pt) {
-		estr_move (bp.text, bp.pt, bp.pt + bp.gap, o - bp.pt);
-		estr_set (bp.text, o + bp.gap - size_t.min (o - bp.pt, bp.gap), '\0', size_t.min (o - bp.pt, bp.gap));
+		bp.text.move (bp.pt, bp.pt + bp.gap, o - bp.pt);
+		bp.text.set (o + bp.gap - size_t.min (o - bp.pt, bp.gap), '\0', size_t.min (o - bp.pt, bp.gap));
 	}
 	bp.pt = o;
 }
@@ -100,12 +100,12 @@ size_t o_to_realo (Buffer bp, size_t o) {
 }
 
 size_t get_buffer_size (Buffer bp) {
-	return realo_to_o (bp, estr_cstr_len (bp.text));
+	return realo_to_o (bp, bp.text.length);
 }
 
 size_t buffer_line_len (Buffer bp, size_t o) {
-	return realo_to_o (bp, estr_end_of_line (bp.text, o_to_realo (bp, o))) -
-		realo_to_o (bp, estr_start_of_line (bp.text, o_to_realo (bp, o)));
+	return realo_to_o (bp, bp.text.end_of_line (o_to_realo (bp, o))) -
+		realo_to_o (bp, bp.text.start_of_line (o_to_realo (bp, o)));
 }
 
 /*
@@ -113,11 +113,11 @@ size_t buffer_line_len (Buffer bp, size_t o) {
  */
 const int MIN_GAP = 1024; /* Minimum gap size after resize. */
 const int MAX_GAP = 4096; /* Maximum permitted gap size. */
-public bool replace_estr (size_t del, Estr *es) {
+public bool replace_estr (size_t del, ImmutableEstr es) {
 	if (warn_if_readonly_buffer ())
 		return false;
 
-	size_t newlen = estr_len (es, get_buffer_eol (cur_bp));
+	size_t newlen = es.len_with_eol (get_buffer_eol (cur_bp));
 	undo_save_block (cur_bp.pt, del, newlen);
 
 	/* Adjust gap. */
@@ -125,23 +125,23 @@ public bool replace_estr (size_t del, Estr *es) {
 	size_t added_gap = oldgap + del < newlen ? MIN_GAP : 0;
 	if (added_gap > 0) {
 		/* If gap would vanish, open it to MIN_GAP. */
-		estr_insert (cur_bp.text, cur_bp.pt, (newlen + MIN_GAP) - (oldgap + del));
+		cur_bp.text.insert (cur_bp.pt, (newlen + MIN_GAP) - (oldgap + del));
 		cur_bp.gap = MIN_GAP;
 	} else if (oldgap + del > MAX_GAP + newlen) {
 		/* If gap would be larger than MAX_GAP, restrict it to MAX_GAP. */
-		estr_remove (cur_bp.text, cur_bp.pt + newlen + MAX_GAP, (oldgap + del) - (MAX_GAP + newlen));
+		cur_bp.text.remove (cur_bp.pt + newlen + MAX_GAP, (oldgap + del) - (MAX_GAP + newlen));
 		cur_bp.gap = MAX_GAP;
 	} else
 		cur_bp.gap = oldgap + del - newlen;
 
 	/* Zero any new bit of gap not produced by Astr.insert. */
 	if (size_t.max (oldgap, newlen) + added_gap < cur_bp.gap + newlen)
-		estr_set (cur_bp.text, cur_bp.pt + size_t.max (oldgap, newlen) + added_gap,
-				  '\0',
-				  newlen + cur_bp.gap - size_t.max (oldgap, newlen) - added_gap);
+		cur_bp.text.set (cur_bp.pt + size_t.max (oldgap, newlen) + added_gap,
+						 '\0',
+						 newlen + cur_bp.gap - size_t.max (oldgap, newlen) - added_gap);
 
 	/* Insert `newlen' chars. */
-	estr_replace_estr (cur_bp.text, cur_bp.pt, es);
+	cur_bp.text.replace (cur_bp.pt, es);
 	cur_bp.pt = cur_bp.pt + newlen;
 
 	/* Adjust markers. */
@@ -150,59 +150,59 @@ public bool replace_estr (size_t del, Estr *es) {
 			m.o = size_t.max (cur_bp.pt - newlen, m.o + newlen - del);
 
 	cur_bp.modified = true;
-	if (estr_next_line (es, 0) != size_t.MAX)
+	if (es.next_line (0) != size_t.MAX)
 		thisflag |= Flags.NEED_RESYNC;
 	return true;
 }
 
-bool insert_estr (Estr *es) {
+bool insert_estr (ImmutableEstr es) {
 	return replace_estr (0, es);
 }
 
 char get_buffer_char (Buffer bp, size_t o) {
-	return estr_get (bp.text, o_to_realo (bp, o));
+	return bp.text.text[o_to_realo (bp, o)];
 }
 
 size_t buffer_prev_line (Buffer bp, size_t o) {
-	return realo_to_o (bp, estr_prev_line (bp.text, o_to_realo (bp, o)));
+	return realo_to_o (bp, bp.text.prev_line (o_to_realo (bp, o)));
 }
 
 size_t buffer_next_line (Buffer bp, size_t o) {
-	return realo_to_o (bp, estr_next_line (bp.text, o_to_realo (bp, o)));
+	return realo_to_o (bp, bp.text.next_line (o_to_realo (bp, o)));
 }
 
 size_t buffer_start_of_line (Buffer bp, size_t o) {
-	return realo_to_o (bp, estr_start_of_line (bp.text, o_to_realo (bp, o)));
+	return realo_to_o (bp, bp.text.start_of_line (o_to_realo (bp, o)));
 }
 
 size_t buffer_end_of_line (Buffer bp, size_t o) {
-	return realo_to_o (bp, estr_end_of_line (bp.text, o_to_realo (bp, o)));
+	return realo_to_o (bp, bp.text.end_of_line (o_to_realo (bp, o)));
 }
 
 size_t get_buffer_line_o (Buffer bp) {
-	return realo_to_o (bp, estr_start_of_line (bp.text, o_to_realo (bp, bp.pt)));
+	return realo_to_o (bp, bp.text.start_of_line (o_to_realo (bp, bp.pt)));
 }
 
 
 /* Buffer methods that don't know about the gap. */
 
 unowned string get_buffer_eol (Buffer bp) {
-	return estr_get_eol (bp.text);
+	return bp.text.eol;
 }
 
-/* Get the buffer region as an estr. */
-Estr *get_buffer_region (Buffer bp, Region r) {
-	Estr *es = estr_new (get_buffer_eol (bp));
+/* Get the buffer region as an Estr. */
+Estr get_buffer_region (Buffer bp, Region r) {
+	Estr es = Estr.of_empty (get_buffer_eol (bp));
 	if (r.start < bp.pt) {
 		char *ptr;
 		buffer_pre_point (bp, out ptr);
-		estr_cat (es, const_estr_new_nstr (ptr + r.start, size_t.min (r.end, bp.pt) - r.start, get_buffer_eol (bp)));
+		es.cat (ImmutableEstr.of ((string) (ptr + r.start), size_t.min (r.end, bp.pt) - r.start, get_buffer_eol (bp)));
 	}
 	if (r.end > bp.pt) {
 		size_t from = size_t.max (r.start, bp.pt);
 		char *ptr;
 		buffer_post_point (bp, out ptr);
-		estr_cat (es, const_estr_new_nstr (ptr + from - bp.pt, r.end - from, get_buffer_eol (bp)));
+		es.cat (ImmutableEstr.of ((string) (ptr + from - bp.pt), r.end - from, get_buffer_eol (bp)));
 	}
 	return es;
 }
@@ -211,7 +211,7 @@ Estr *get_buffer_region (Buffer bp, Region r) {
  * Insert the character `c' at point in the current buffer.
  */
 bool insert_char (char c) {
-	return insert_estr (const_estr_new_nstr (&c, 1, coding_eol_lf));
+	return insert_estr (ImmutableEstr.of ((string) &c, 1));
 }
 
 bool delete_char () {
@@ -226,10 +226,10 @@ bool delete_char () {
 		return false;
 
 	if (eolp ()) {
-		replace_estr (get_buffer_eol (cur_bp).length, estr_empty);
+		replace_estr (get_buffer_eol (cur_bp).length, ImmutableEstr.empty);
 		thisflag |= Flags.NEED_RESYNC;
 	} else
-		replace_estr (1, estr_empty);
+		replace_estr (1, ImmutableEstr.empty);
 	cur_bp.modified = true;
 
 	return true;
@@ -239,11 +239,15 @@ delegate size_t PreOrPostPoint (Buffer bp, out char *ptr);
 void insert_half_buffer (Buffer bp, PreOrPostPoint f) {
 	char *ptr;
 	size_t len = f (bp, out ptr);
-	Estr *es = const_estr_new_nstr (ptr, len, get_buffer_eol (bp));
+	ImmutableEstr es = ImmutableEstr.of ((string) ptr, len, get_buffer_eol (bp));
 	/* Copy text to avoid problems when bp == cur_bp. */
-	if (bp == cur_bp)
-		es = estr_cat (estr_new (get_buffer_eol (bp)), es);
-	insert_estr (es);
+	if (bp != cur_bp)
+		insert_estr (es);
+	else {
+		Estr es_ = Estr.of_empty (get_buffer_eol (bp));
+		es_.cat (es);
+		insert_estr (es_);
+	}
 }
 
 void insert_buffer (Buffer bp) {

@@ -33,7 +33,7 @@ public class Undo {
 	public size_t o;		/* Buffer offset of the undo delta. */
 	public bool unchanged;	/* Flag indicating that reverting this undo leaves
 							   the buffer in an unchanged state. */
-	public Estr *text;		/* Old text. */
+	public Estr text;		/* Old text. */
 	public size_t size;		/* Size of replacement text. */
 }
 

@@ -21,26 +21,29 @@
 
 using Lisp;
 
-bool pipe_command (string cmd, Estr *instr, bool do_insert, bool do_replace) {
+bool pipe_command (string cmd, Estr? instr, bool do_insert, bool do_replace) {
 	SubprocessFlags flags = STDOUT_PIPE;
 	Bytes input = null;
 	if (instr != null) {
-		input = new Bytes.static (((string) estr_cstr (instr)).data);
+		input = new Bytes.static (((string) instr.text).data);
 		flags |= STDIN_PIPE;
 	}
-	Bytes output;
+	Bytes? output;
 	try {
 		var process = new Subprocess (flags, "/bin/sh", "-c", cmd);
 		process.communicate (input, null, out output, null);
+		assert (output != null);
 	} catch (Error e) {
 		return false;
 	}
-	Estr *res = null;
-	if (output.get_data () != null) {
-		res = const_estr_new_nstr ((string) output.get_data (), output.length, coding_eol_lf);
-		estr_set_eol (res);
+	Estr res = null;
+	if (output != null) {
+		ImmutableEstr es = ImmutableEstr.of ((string) output.get_data (), output.length);
+		res = Estr.of_empty ();
+		res.cat (es);
+		res.set_eol_from_text ();
 	}
-	if (res == null || estr_len (res, estr_get_eol (res)) == 0)
+	if (res == null || res.length == 0)
 		Minibuf.write ("(Shell command succeeded with no output)");
 	else {
 		if (do_insert) {
@@ -52,15 +55,15 @@ bool pipe_command (string cmd, Estr *instr, bool do_insert, bool do_replace) {
 			}
 			replace_estr (del, res);
 		} else {
-			int eol_pos = ((string) estr_cstr (res)).last_index_of_char ('\n');
-			bool more_than_one_line = eol_pos != -1 && eol_pos != estr_len (res, estr_get_eol (res)) - 1;
+			int eol_pos = ((string) res.text).last_index_of_char ('\n');
+			bool more_than_one_line = eol_pos != -1 && eol_pos != res.length - 1;
 			write_temp_buffer (
 				"*Shell Command Output*",
 				more_than_one_line,
 				() => { insert_estr (res); }
 				);
 			if (!more_than_one_line)
-				Minibuf.write ("%s", estr_cstr (res));
+				Minibuf.write ("%s", res.text);
 		}
 	}
 

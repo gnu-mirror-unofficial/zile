@@ -25,7 +25,7 @@ configure
 configure.lineno
 cyclo-zile.html
 dotzile.sample
-src_zile_vala.stamp*
+src_*_vala.stamp*
 stamp-h
 stamp-h.in
 stamp-h1

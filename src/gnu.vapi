@@ -6,10 +6,11 @@
  * This file is public domain.
  */
 
+using Posix;
+
 /* FIXME: getopt_long_fix.h works around bug https://gitlab.gnome.org/GNOME/vala/-/issues/1082 */
 [CCode (cprefix = "", lower_case_cprefix = "", cheader_filename = "getopt.h,getopt_long_fix.h")]
 namespace GetoptLong {
-	[Compact]
 	[CCode (cname = "option")]
 	public struct Option {
 		public unowned string name;
@@ -149,8 +150,7 @@ namespace Regex {
 	public const int REG_ESIZE;
 	public const int REG_ERPAREN;
 
-	[Compact]
-	[CCode (cname = "struct re_pattern_buffer")]
+	[CCode (cname = "struct re_pattern_buffer", destroy_function = "regfree")]
 	public struct Pattern {
 		void *buffer;
 		__re_long_size_t allocated;
@@ -175,8 +175,7 @@ namespace Regex {
 		FIXED
 	}
 
-	[Compact]
-	[CCode (cname = "regex_t")]
+	[CCode (cname = "regex_t", destroy_function = "regfree")]
 	public struct Regex : Pattern {}
 
 	[SimpleType]
@@ -188,18 +187,21 @@ namespace Regex {
 #endif
 	public struct Offset {}
 
-	[Compact]
 	[CCode (cname = "struct re_registers", feature_test_macro = "_GNU_SOURCE")]
 	public struct Registers {
 		public __re_size_t num_regs;
 		public Offset *start;
 		public Offset *end;
+
+		public void free () {
+			Posix.free (start);
+			Posix.free (end);
+		}
 	}
 
 	[CCode (feature_test_macro = "_GNU_SOURCE")]
 	public const int RE_NREGS;
 
-	[Compact]
 	[CCode (cname = "regmatch_t")]
 	public struct Match {
 		public Offset rm_so;  /* Byte offset from string's start to substring's start.  */
@@ -211,7 +213,7 @@ namespace Regex {
 
 	[CCode (cname = "re_compile_pattern", feature_test_macro = "_GNU_SOURCE")]
 	public unowned string? compile_pattern (string __pattern, size_t __length,
-									   Pattern *__buffer);
+											out Pattern __buffer);
 
 	[CCode (cname = "re_compile_fastmap", feature_test_macro = "_GNU_SOURCE")]
 	public int compile_fastmap (Pattern *__buffer);
@@ -269,3 +271,6 @@ namespace Regex {
 
 	public void regfree (Regex *__preg);
 }
+
+[CCode (cheader_filename = "string.h", feature_test_macro = "_GNU_SOURCE")]
+public string memmem (string haystack, size_t haystack_len, string needle, size_t needle_len);

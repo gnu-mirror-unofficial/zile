@@ -222,10 +222,10 @@ LISP_ALL_TESTS =					\
 	$(LISP_TESTS_ZILE_ONLY)				\
 	$(LISP_TESTS_ZILE_ONLY_FIXED_SCREEN)
 
-#export LSAN_OPTIONS=suppressions=$(srcdir)/build-aux/asan-suppressions.txt;
+#	export LSAN_OPTIONS=detect_leaks=0;
 LISP_TESTS_ENVIRONMENT =				\
-	export ASAN_OPTIONS=fast_unwind_on_malloc=0	\
-	export LSAN_OPTIONS=detect_leaks=0		\
+	export ASAN_OPTIONS=fast_unwind_on_malloc=0;	\
+	export LSAN_OPTIONS=suppressions=$(srcdir)/build-aux/asan-suppressions.txt; \
 	export abs_srcdir=$(abs_srcdir);		\
 	export srcdir=$(srcdir);			\
 	export TERM=$(TERM);
@@ -234,10 +234,11 @@ AM_TESTS_ENVIRONMENT =					\
 	$(LISP_TESTS_ENVIRONMENT)			\
 	export EDITOR_NAME="Zile";			\
 	export EDITOR_CMD="$(ZILE_CMD)";
+
 EMACS_TESTS_ENVIRONMENT =				\
 	$(LISP_TESTS_ENVIRONMENT)			\
 	export EDITOR_NAME="Emacs";			\
-	export EDITOR_CMD="$(EMACSPROG) --batch --quick"
+	export EDITOR_CMD="emacs --batch --quick";
 
 EXTRA_DIST +=						\
 	$(LISP_ALL_TESTS)				\

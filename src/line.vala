@@ -121,7 +121,7 @@ bool newline () {
 
 void bprintf (string fmt, ...) {
 	string s = fmt.vprintf (va_list());
-	insert_estr (const_estr_new_nstr (s, s.length, coding_eol_lf));
+	insert_estr (ImmutableEstr.of (s, s.length));
 }
 
 bool backward_delete_char () {
@@ -154,7 +154,7 @@ void previous_nonblank_goalc () {
 }
 
 bool insert_newline () {
-	return insert_estr (const_estr_new_nstr ("\n", "\n".length, coding_eol_lf));
+	return insert_estr (ImmutableEstr.of ("\n", "\n".length));
 }
 
 size_t previous_line_indent () {

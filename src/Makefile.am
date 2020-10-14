@@ -21,33 +21,51 @@
 
 doc_DATA += src/dotzile.sample
 
-AM_VALAFLAGS = $(VALA_REGEX_LARGE_OFFSETS) --no-color --pkg config --pkg gio-2.0 --pkg posix --pkg curses --pkg gnu --pkg estr --vapidir=$(srcdir)/src
-AM_CFLAGS = --include config.h $(WARN_CFLAGS) $(LIBGC_CFLAGS) $(GLIB_CFLAGS)
-AM_CPPFLAGS = -I$(builddir)/src -I$(srcdir)/src $(ISYSTEM)$(builddir)/lib $(ISYSTEM)$(srcdir)/lib -DPATH_DOCDIR="\"$(docdir)\""
-LDADD = $(builddir)/lib/libgnu.a $(LIB_ACL) $(LIB_EACCESS) $(LIBINTL) $(CURSES_LIB) $(LIBGC_LIBS) $(GLIB_LIBS)
+AM_VALAFLAGS = --debug --no-color --vapidir=$(srcdir)/src
+AM_CFLAGS = --include config.h $(WARN_CFLAGS) $(GLIB_CFLAGS)
+AM_CPPFLAGS = -I$(builddir)/src -I$(srcdir)/src -I$(builddir)/lib -I$(srcdir)/lib -DPATH_DOCDIR="\"$(docdir)\""
+LDADD = $(builddir)/lib/libgnu.a $(LIB_EACCESS) $(LIBINTL) $(CURSES_LIB) $(GLIB_LIBS)
 
-VAPIS = src/gnu.vapi					\
-	src/getopt_long_fix.h				\
-	src/estr.vapi
+VAPIS =	src/curses.vapi					\
+	src/gnu.vapi					\
+	src/memrmem.vapi				\
+	src/getopt_long_fix.h
+
+BUILT_VAPIS = src/estr.vapi
 
 BUILT_SOURCES =						\
 	src/tbl_bindings.vala				\
 	src/tbl_opts.vala				\
 	src/tbl_vars.vala				\
+	src/estr.h					\
 	src/dummy.vala
 
-src/dummy.vala: $(VAPIS)
+src/dummy.vala: $(VAPIS) $(BUILT_VAPIS)
 	touch $@
 
 bin_PROGRAMS = src/zile
 
-src_zile_LDADD = $(LDADD) $(LIBOBJS)
+noinst_LIBRARIES = src/libestr.a
+src_libestr_a_SOURCES = src/estr.vala
+src_libestr_a_VALAFLAGS = $(AM_VALAFLAGS) --pkg posix --pkg gnu --pkg memrmem --library estr --header src/estr.h --vapi=src/estr.vapi
+src_libestr_a_LIBADD = src/memrmem.o
+
+# The following rule is copied from that generated for src/estr.c, with an
+# extra mv to put the output in the right place, because passing --output to
+# valac causes it to write estr.c in a subdirectory. (It would prefer a
+# recursive build system!)
+$(srcdir)/src/estr.vapi: $(srcdir)/src_libestr_a_vala.stamp
+	@if test -f $@; then :; else rm -f $(srcdir)/src_libestr_a_vala.stamp; fi
+	@if test -f $@; then :; else \
+	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/src_libestr_a_vala.stamp; \
+	fi
+
+src_zile_VALAFLAGS = $(AM_VALAFLAGS) -D _REGEX_LARGE_OFFSETS --pkg config --pkg gio-2.0 --pkg posix --pkg curses --pkg gnu --pkg estr --pkg memrmem
+src_zile_LDADD = $(LDADD) $(LIBOBJS) src/libestr.a
 
 src_zile_SOURCE_FILES =					\
 	src/memrmem.h					\
 	src/memrmem.c					\
-	src/estr.c					\
-	src/estr.h					\
 	src/basic.vala					\
 	src/bind.vala					\
 	src/buffer.vala					\
@@ -94,17 +112,18 @@ src/dotzile.sample: src/tbl_vars.vala build-aux/mkvars.pl build-aux/Zile.pm
 DISTCLEANFILES +=					\
 	$(BUILT_SOURCES)
 
-check-syntax:
-	$(COMPILE) -o /dev/null -S $(CHK_SOURCES)
-
-check_PROGRAMS = src/estr
+check_PROGRAMS = src/estr-test
 
 TESTS = $(check_PROGRAMS)
 
-src_estr_CPPFLAGS = -DTEST -DSRCPATH="\"$(top_srcdir)/src\"" $(AM_CPPFLAGS)
-src_estr_LDADD = $(LDADD) src/memrmem.o
+src_estr_test_SOURCES = src/estr-test.vala
+src_estr_test_VALAFLAGS = $(AM_VALAFLAGS) --pkg posix --pkg estr
+src_estr_test_LDADD = src/libestr.a $(LDADD)
 
 EXTRA_DIST +=						\
 	src/dotzile.sample				\
 	src/tbl_bindings.pl				\
-	$(VAPIS)
+	src/estr-test.vala				\
+	src/estr.h					\
+	$(VAPIS)					\
+	$(BUILT_VAPIS)

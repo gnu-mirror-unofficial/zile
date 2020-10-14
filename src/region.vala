@@ -48,7 +48,7 @@ public class Region {
 
 		Marker m = Marker.point ();
 		goto_offset (this.start);
-		replace_estr (this.size (), estr_empty);
+		replace_estr (this.size (), ImmutableEstr.empty);
 		goto_offset (m.o);
 		m.unchain ();
 		return true;

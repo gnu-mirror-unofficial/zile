@@ -109,8 +109,6 @@ PACKAGE_NAME + " is Free Software--Free as in Freedom--so you can redistribute c
 "of " + PACKAGE_NAME + " and modify it; see the file COPYING.  Otherwise, a copy can be\n" +
 "downloaded from https://www.gnu.org/licenses/gpl.html.\n";
 
-	estr_init ();
-
 	/* Set up Lisp environment now so it's available to files and
 	   expressions specified on the command-line. */
 	lisp_init ();

@@ -54,7 +54,7 @@ long find_substr (char *ptr, size_t len, string n, size_t nsize,
 	set_syntax (syntax);
 	search_regs.num_regs = 1;
 
-	re_find_err = compile_pattern (n, (int) nsize, &pattern);
+	re_find_err = compile_pattern (n, (int) nsize, out pattern);
 	pattern.not_bol = notbol;
 	pattern.not_eol = noteol;
 	if (re_find_err == null)
@@ -65,6 +65,7 @@ long find_substr (char *ptr, size_t len, string n, size_t nsize,
 	if (ret >= 0)
 		ret = forward ? search_regs.end[0] : ret;
 
+	search_regs.free (); // FIXME: make this automatic
 	return ret;
 }
 
@@ -379,14 +380,14 @@ as a regexp.  See the command `isearch-forward-regexp` for more information."""
 					string case_repl = repl;
 					Region r = new Region (cur_bp.pt - find.length, cur_bp.pt);
 					if (find_no_upper && get_variable_bool ("case-replace")) {
-						Case case_type = check_case ((string) estr_cstr (get_buffer_region (cur_bp, r)));
+						Case case_type = check_case ((string) get_buffer_region (cur_bp, r).text);
 						if (case_type != Case.lower)
 							repl = recase (repl, case_type);
 					}
 
 					Marker m = Marker.point ();
 					goto_offset (r.start);
-					replace_estr (find.length, const_estr_new_nstr (case_repl, case_repl.length, get_buffer_eol (cur_bp)));
+					replace_estr (find.length, ImmutableEstr.of (case_repl, case_repl.length, get_buffer_eol (cur_bp)));
 					goto_offset (m.o);
 					m.unchain ();
 

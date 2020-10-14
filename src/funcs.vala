@@ -181,9 +181,9 @@ bool move_sexp (long dir) {
 /***********************************************************************
                           Transpose functions
 ***********************************************************************/
-void estr_append_region (Estr *es) {
+void estr_append_region (Estr es) {
 	activate_mark ();
-	estr_cat (es, get_buffer_region (cur_bp, Region.calculate ()));
+	es.cat (get_buffer_region (cur_bp, Region.calculate ()));
 }
 
 bool transpose_subr (MovementNDelegate move_func) {
@@ -227,7 +227,7 @@ bool transpose_subr (MovementNDelegate move_func) {
 	move_func (1);
 
 	/* Save and delete 1st marked region. */
-	Estr *es1 = estr_new (get_buffer_eol (cur_bp));
+	Estr es1 = Estr.of_empty (get_buffer_eol (cur_bp));
 	estr_append_region (es1);
 
 	funcall ("delete-region");
@@ -236,7 +236,7 @@ bool transpose_subr (MovementNDelegate move_func) {
 	move_func (1);
 
 	/* For transpose-lines. */
-	Estr *es2 = null;
+	Estr es2 = null;
 	Marker m2;
 	if (move_func == move_line)
 		m2 = Marker.point ();
@@ -249,7 +249,7 @@ bool transpose_subr (MovementNDelegate move_func) {
 		m2 = Marker.point ();
 
 		/* Save and delete 2nd marked region. */
-		es2 = estr_new (get_buffer_eol (cur_bp));
+		es2 = Estr.of_empty (get_buffer_eol (cur_bp));
 		estr_append_region (es2);
 		funcall ("delete-region");
     }
@@ -360,7 +360,7 @@ bool setcase_word (Case rcase) {
 		a += ((char) c).to_string ();
 
 	if (a.length > 0)
-		replace_estr (a.length, const_estr_new_nstr (recase (a, rcase), a.length, coding_eol_lf));
+		replace_estr (a.length, ImmutableEstr.of (recase (a, rcase), a.length));
 
 	cur_bp.modified = true;
 

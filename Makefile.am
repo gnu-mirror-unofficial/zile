@@ -52,7 +52,8 @@ PRODUCTIONSOURCES =					\
 	$(PERL_BUILDTIME)				\
 	doc/Makefile.am					\
 	src/Makefile.am					\
-	$(src_zile_SOURCE_FILES)
+	$(src_zile_SOURCE_FILES)			\
+	$(VAPIS)
 
 loc:
 	cd $(srcdir) &&					\

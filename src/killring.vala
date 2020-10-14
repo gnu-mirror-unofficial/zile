@@ -21,17 +21,17 @@
 
 using Lisp;
 
-Estr *kill_ring_text;
+Estr kill_ring_text;
 
 void maybe_destroy_kill_ring () {
 	if (last_command () != LispFunc.find ("kill-region"))
 		kill_ring_text = null;
 }
 
-void kill_ring_push (Estr *es) {
+void kill_ring_push (ImmutableEstr es) {
 	if (kill_ring_text == null)
-		kill_ring_text = estr_new (estr_get_eol (es));
-	estr_cat (kill_ring_text, es);
+		kill_ring_text = Estr.of_empty (es.eol);
+	kill_ring_text.cat (es);
 }
 
 bool copy_or_kill_region (bool kill, Region r) {
@@ -78,7 +78,7 @@ bool kill_line (bool whole_line) {
 		if (!funcall ("delete-char"))
 			return false;
 
-		kill_ring_push (const_estr_new_nstr ("\n", "\n".length, coding_eol_lf));
+		kill_ring_push (ImmutableEstr.of ("\n", "\n".length));
 		set_this_command (LispFunc.find ("kill-region"));
     }
 

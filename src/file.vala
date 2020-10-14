@@ -144,11 +144,13 @@ bool find_file (string filename) {
 			set_buffer_names (bp, filename);
 			bp.dir = Path.get_dirname (filename);
 
-			Estr *es = estr_readf (filename);
-			if (es == null)
-				es = estr_new (coding_eol_lf);
-			else
+			Estr es;
+			try {
+				es = Estr.from_file (filename);
 				bp.readonly = !check_writable (filename);
+			} catch {
+				es = Estr.of_empty ();
+			}
 			bp.text = es;
 
 			/* Reset undo history. */
@@ -509,14 +511,15 @@ Puts mark after the inserted text."""
 				ok = false;
 
 			if (ok) {
-				Estr *es = estr_readf (file);
-				if (es != null) {
-					insert_estr (es);
-					funcall ("set-mark-command");
-				} else {
-					ok = false;
+				Estr es;
+				try {
+					es = Estr.from_file (file);
+				} catch {
 					Minibuf.error ("%s: %s", file, Posix.strerror (errno));
+					return false;
 				}
+				insert_estr (es);
+				funcall ("set-mark-command");
 			}
 			return ok;
 		},
