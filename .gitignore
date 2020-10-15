@@ -7,7 +7,6 @@ TAGS
 /GNUmakefile
 /HACKING
 /INSTALL
-/README-release
 /lib
 /maint.mk
 /test-suite.log
