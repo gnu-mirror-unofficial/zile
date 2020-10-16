@@ -26,12 +26,10 @@ namespace GetoptLong {
 	[CCode (cname = "optional_argument")]
 	public const int optional;
 
-	[CCode (has_target = false, has_type_id = false)]
 	public int getopt_long ([CCode (array_length_pos = 0)] string[] args,
 							string shortopts,
 							[CCode (array_length = false, array_null_terminated = true)] Option[] longopts, out int longind);
 
-	[CCode (has_target = false, has_type_id = false)]
 	public int getopt_long_only ([CCode (array_length_pos = 0)] string[] args,
 							string shortopts,
 							[CCode (array_length = false, array_null_terminated = true)] Option[] longopts, out int longind);
