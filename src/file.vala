@@ -140,18 +140,16 @@ bool find_file (string filename) {
 			Minibuf.error ("File exists but could not be read");
 			return false;
         } else {
-			bp = new Buffer ();
-			set_buffer_names (bp, filename);
-			bp.dir = Path.get_dirname (filename);
-
 			Estr es;
 			try {
 				es = Estr.from_file (filename);
+				bp = new Buffer (es);
 				bp.readonly = !check_writable (filename);
 			} catch {
-				es = Estr.of_empty ();
+				bp = new Buffer ();
 			}
-			bp.text = es;
+			bp.set_names (filename);
+			bp.dir = Path.get_dirname (filename);
 
 			/* Reset undo history. */
 			bp.next_undop = null;
@@ -160,7 +158,7 @@ bool find_file (string filename) {
         }
     }
 
-	switch_to_buffer (bp);
+	bp.switch_to ();
 	thisflag |= Flags.NEED_RESYNC;
 	return true;
 }
@@ -174,15 +172,14 @@ ssize_t write_to_disk (Buffer bp, string filename, mode_t mode) {
 		return -1;
 
 	ssize_t ret = 0;
-	char *ptr;
-	size_t len = buffer_pre_point (bp, out ptr);
-	ssize_t written = write (fd, ptr, len);
-	if (written < 0 || (size_t) written != len)
+	ImmutableEstr es = bp.pre_point ();
+	ssize_t written = write (fd, es.text, es.length);
+	if (written < 0 || (size_t) written != es.length)
 		ret = written;
 	else {
-		len = buffer_post_point (bp, out ptr);
-		written = write (fd, ptr, len);
-		if (written < 0 || (size_t) written != len)
+		es = bp.post_point ();
+		written = write (fd, es.text, es.length);
+		if (written < 0 || (size_t) written != es.length)
 			ret = written;
 	}
 
@@ -299,7 +296,7 @@ bool write_buffer (Buffer bp, bool needname, bool confirm, string? name0, string
 
 	if (ans == 1) {
 		if (bp.filename == null || !(name == bp.filename))
-			set_buffer_names (bp, name);
+			bp.set_names (name);
 		bp.needname = false;
 		bp.temporary = false;
 		bp.nosave = false;
@@ -332,7 +329,7 @@ public void zile_exit (bool doabort) {
 	Posix.stderr.printf ("Trying to save modified buffers (if any)...\r\n");
 	for (Buffer? bp = head_bp; bp != null; bp = bp.next)
 		if (bp.modified && !bp.nosave) {
-			string name = "%s.%sSAVE".printf (get_buffer_filename_or_name (bp), PACKAGE.up ());
+			string name = "%s.%sSAVE".printf (bp.get_filename_or_name (), PACKAGE.up ());
 			Posix.stderr.printf (@"Saving $name...\r\n");
 			write_to_disk (bp, name, S_IRUSR | S_IWUSR);
 		}
@@ -398,8 +395,8 @@ Use M-x toggle-read-only to permit editing."""
 			bool ok = false;
 			if (ms == null)
 				ok = funcall ("keyboard-quit");
-			else if (ms.length > 0 && check_modified_buffer (cur_bp)) {
-				kill_buffer (cur_bp);
+			else if (ms.length > 0 && cur_bp.check_modified ()) {
+				cur_bp.kill ();
 				ok = find_file (ms);
 			}
 			return ok;
@@ -418,7 +415,7 @@ If the current buffer now contains an empty file that you just visited
 			bool ok = true;
 			string? buf = str_init (ref arglist);
 			if (buf == null) {
-				Completion cp = make_buffer_completion ();
+				Completion cp = Buffer.make_buffer_completion ();
 				buf = Minibuf.read_completion ("Switch to buffer (default %s): ",
 											   "", cp, null, bp.name);
 
@@ -430,7 +427,7 @@ If the current buffer now contains an empty file that you just visited
 
 			if (ok) {
 				if (buf != null && buf.length > 0) {
-					bp = find_buffer (buf);
+					bp = Buffer.find (buf);
 					if (bp == null) {
 						bp = new Buffer ();
 						bp.name = buf;
@@ -439,7 +436,7 @@ If the current buffer now contains an empty file that you just visited
 					}
 				}
 
-				switch_to_buffer (bp);
+				bp.switch_to ();
 			}
 
 			return ok;
@@ -453,13 +450,13 @@ If the current buffer now contains an empty file that you just visited
 		(uniarg, arglist) => {
 			Buffer? def_bp = ((cur_bp.next != null) ? cur_bp.next : head_bp);
 
-			if (warn_if_readonly_buffer ())
+			if (cur_bp.warn_if_readonly ())
 				return false;
 
 			bool ok = true;
 			string buf = str_init (ref arglist);
 			if (buf == null) {
-				Completion *cp = make_buffer_completion ();
+				Completion cp = Buffer.make_buffer_completion ();
 				buf = Minibuf.read_completion ("Insert buffer (default %s): ",
 											   "", cp, null, def_bp.name);
 				if (buf == null)
@@ -472,7 +469,7 @@ If the current buffer now contains an empty file that you just visited
 				Buffer? bp;
 
 				if (buf != null && buf.length > 0) {
-					bp = find_buffer (buf);
+					bp = Buffer.find (buf);
 					if (bp == null) {
 						Minibuf.error ("Buffer `%s' not found", buf);
 						ok = false;
@@ -481,7 +478,7 @@ If the current buffer now contains an empty file that you just visited
 					bp = def_bp;
 
 				if (ok) {
-					insert_buffer (bp);
+					cur_bp.insert_buffer (bp);
 					funcall ("set-mark-command");
 				}
 			}
@@ -496,7 +493,7 @@ Puts mark after the inserted text."""
 	new LispFunc (
 		"insert-file",
 		(uniarg, arglist) => {
-			if (warn_if_readonly_buffer ())
+			if (cur_bp.warn_if_readonly ())
 				return false;
 
 			bool ok = true;
@@ -518,7 +515,7 @@ Puts mark after the inserted text."""
 					Minibuf.error ("%s: %s", file, Posix.strerror (errno));
 					return false;
 				}
-				insert_estr (es);
+				cur_bp.insert_estr (es);
 				funcall ("set-mark-command");
 			}
 			return ok;
@@ -559,7 +556,7 @@ Interactively, confirmation is required unless you supply a prefix argument."""
 
 			for (Buffer? bp = head_bp; bp != null; (bp = bp.next) != null) {
 				if (bp.modified && !bp.nosave) {
-					string fname = get_buffer_filename_or_name (bp);
+					string fname = bp.get_filename_or_name ();
 					if (noask)
 						save_buffer (bp);
 					else

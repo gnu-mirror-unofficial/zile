@@ -69,7 +69,7 @@ public class Window {
 	}
 
 	public bool top_visible () {
-		return offset_to_line (bp, o ()) == topdelta;
+		return bp.offset_to_line (o ()) == topdelta;
 	}
 
 	public bool bottom_visible () {
@@ -77,7 +77,7 @@ public class Window {
 	}
 
 	public void resync () {
-		size_t n = offset_to_line (bp, bp.pt);
+		size_t n = bp.offset_to_line (bp.pt);
 		long delta = (long) (n - lastpointn);
 
 		if (delta != 0) {
@@ -108,7 +108,7 @@ public class Window {
 		/* Update the buffer point with the window's saved point
 		   marker.  */
 		if (cur_wp.saved_pt != null) {
-			goto_offset (cur_wp.saved_pt.o);
+			cur_bp.goto_offset (cur_wp.saved_pt.o);
 			cur_wp.saved_pt.unchain ();
 			cur_wp.saved_pt = null;
 		}

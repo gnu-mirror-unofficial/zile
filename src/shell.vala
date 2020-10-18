@@ -21,7 +21,7 @@
 
 using Lisp;
 
-bool pipe_command (string cmd, Estr? instr, bool do_insert, bool do_replace) {
+bool pipe_command (string cmd, ImmutableEstr? instr, bool do_insert, bool do_replace) {
 	SubprocessFlags flags = STDOUT_PIPE;
 	Bytes input = null;
 	if (instr != null) {
@@ -48,19 +48,19 @@ bool pipe_command (string cmd, Estr? instr, bool do_insert, bool do_replace) {
 	else {
 		if (do_insert) {
 			size_t del = 0;
-			if (do_replace && !warn_if_no_mark ()) {
+			if (do_replace && !cur_bp.warn_if_no_mark ()) {
 				Region r = Region.calculate ();
-				goto_offset (r.start);
+				cur_bp.goto_offset (r.start);
 				del = r.size ();
 			}
-			replace_estr (del, res);
+			cur_bp.replace_estr (del, res);
 		} else {
 			int eol_pos = ((string) res.text).last_index_of_char ('\n');
 			bool more_than_one_line = eol_pos != -1 && eol_pos != res.length - 1;
 			write_temp_buffer (
 				"*Shell Command Output*",
 				more_than_one_line,
-				() => { insert_estr (res); }
+				() => { cur_bp.insert_estr (res); }
 				);
 			if (!more_than_one_line)
 				Minibuf.write ("%s", res.text);
@@ -127,10 +127,10 @@ says to insert the output in the current buffer."""
 
 			bool ok = true;
 			if (cmd != null) {
-				if (warn_if_no_mark ())
+				if (cur_bp.warn_if_no_mark ())
 					ok = false;
 				else
-					ok = pipe_command (cmd, get_buffer_region (cur_bp, Region.calculate ()), insert, true);
+					ok = pipe_command (cmd, cur_bp.get_region (Region.calculate ()), insert, true);
 			}
 			return ok;
 		},

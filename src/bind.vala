@@ -143,11 +143,11 @@ bool self_insert_command () {
 	bool ret = true;
 	/* Mask out ~KBD_CTRL to allow control sequences to be themselves. */
 	int key = (int) (lastkey () & ~KBD_CTRL);
-	deactivate_mark ();
+	cur_bp.mark_active = false;
 	if (key <= 0xff) {
 		if (((char) key).isspace () && cur_bp.autofill)
 			ret = fill_break_line () != -1;
-		insert_char ((char) key);
+		cur_bp.insert_char ((char) key);
 	} else {
 		ding ();
 		ret = false;

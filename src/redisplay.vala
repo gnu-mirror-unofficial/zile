@@ -69,7 +69,7 @@ public void resize_windows () {
 }
 
 public void recenter (Window wp) {
-	size_t n = offset_to_line (wp.bp, wp.o ());
+	size_t n = wp.bp.offset_to_line (wp.o ());
 
 	if (n > wp.eheight / 2)
 		wp.topdelta = wp.eheight / 2;

@@ -33,7 +33,7 @@ public class Undo {
 	public size_t o;		/* Buffer offset of the undo delta. */
 	public bool unchanged;	/* Flag indicating that reverting this undo leaves
 							   the buffer in an unchanged state. */
-	public Estr text;		/* Old text. */
+	public ImmutableEstr text; /* Old text. */
 	public size_t size;		/* Size of replacement text. */
 }
 
@@ -50,7 +50,7 @@ void undo_save (UndoType type, size_t o, size_t osize, size_t size) {
 
 	if (type == SAVE_BLOCK) {
 		u.size = size;
-		u.text = get_buffer_region (cur_bp, new Region (o, o + osize));
+		u.text = cur_bp.get_region (new Region (o, o + osize));
 		u.unchanged = !cur_bp.modified;
 	}
 
@@ -91,9 +91,9 @@ List<Undo> *revert_action (List<Undo> *l) {
 			;
 
 	if (l->data.type != END_SEQUENCE)
-		goto_offset (l->data.o);
+		cur_bp.goto_offset (l->data.o);
 	if (l->data.type == SAVE_BLOCK)
-		replace_estr (l->data.size, l->data.text);
+		cur_bp.replace_estr (l->data.size, l->data.text);
 	if (l->data.unchanged)
 		cur_bp.modified = false;
 
@@ -119,7 +119,7 @@ public void undo_init () {
 				return false;
 			}
 
-			if (warn_if_readonly_buffer ())
+			if (cur_bp.warn_if_readonly ())
 				return false;
 
 			if (cur_bp.next_undop == null) {

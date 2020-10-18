@@ -21,9 +21,8 @@
 
 using Lisp;
 
-[CCode (has_target=false)]
 public delegate bool MovementDelegate ();
-[CCode (has_target=false)]
+[CCode (instance_pos=0)]
 public delegate bool MovementNDelegate (long uniarg);
 
 /*

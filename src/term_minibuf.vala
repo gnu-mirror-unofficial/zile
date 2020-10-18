@@ -64,7 +64,7 @@ namespace TermMinibuf {
 			if ((cp.flags & Completion.Flags.CLOSE) != 0)
 				funcall ("delete-window");
 			else if (cp.old_bp != null)
-				switch_to_buffer (cp.old_bp);
+				cp.old_bp.switch_to ();
 			old_wp.set_current ();
 			term_redisplay ();
 		}

@@ -31,20 +31,20 @@ public void write_temp_buffer (string name, bool show, BufferWriter func) {
 	if (show && wp != null)
 		wp.set_current ();
 	else {
-		Buffer? bp = find_buffer (name);
+		Buffer? bp = Buffer.find (name);
 		if (show)
 			popup_window ().set_current ();
 		if (bp == null) {
 			bp = new Buffer ();
 			bp.name = name;
         }
-		switch_to_buffer (bp);
+		bp.switch_to ();
     }
 
 	/* Remove the contents of that buffer. */
 	Buffer new_bp = new Buffer ();
 	new_bp.name = cur_bp.name;
-	kill_buffer (cur_bp);
+	cur_bp.kill ();
 	cur_bp = new_bp;
 	cur_wp.bp = cur_bp;
 
@@ -52,7 +52,7 @@ public void write_temp_buffer (string name, bool show, BufferWriter func) {
 	cur_bp.needname = true;
 	cur_bp.noundo = true;
 	cur_bp.nosave = true;
-	set_temporary_buffer (cur_bp);
+	cur_bp.set_temporary ();
 
 	/* Use the delegate. */
 	func ();
@@ -66,7 +66,7 @@ public void write_temp_buffer (string name, bool show, BufferWriter func) {
 
 	/* If we're not showing the new buffer, switch back to the old one. */
 	if (!show)
-		switch_to_buffer (old_bp);
+		old_bp.switch_to ();
 }
 
 /***********************************************************************
@@ -74,19 +74,6 @@ public void write_temp_buffer (string name, bool show, BufferWriter func) {
 ***********************************************************************/
 bool iswordchar (char c) {
 	return c.isalnum () || c == '$';
-}
-
-bool move_word (long dir) {
-	bool gotword = false;
-	do {
-		for (; !(dir > 0 ? eolp () : bolp ()); move_char (dir)) {
-			if (iswordchar (get_buffer_char (cur_bp, cur_bp.pt - ((dir < 0) ? 1 : 0))))
-				gotword = true;
-			else if (gotword)
-				break;
-        }
-    } while (!gotword && move_char (dir));
-	return gotword;
 }
 
 /***********************************************************************
@@ -104,95 +91,21 @@ bool isclosebracketchar (char c, bool single_quote, bool double_quote) {
 			((c == '\'') && single_quote));
 }
 
-bool move_sexp (long dir) {
-	bool gotsexp = false;
-	bool single_quote = dir < 0, double_quote = single_quote;
-	int level = 0;
-
-	for (;;) {
-		while (dir > 0 ? !eolp () : !bolp ()) {
-			size_t o = cur_bp.pt - (dir < 0 ? 1 : 0);
-			char c = get_buffer_char (cur_bp, o);
-
-			/* Skip escaped quotes. */
-			if ((c == '\"' || c == '\'') && o > get_buffer_line_o (cur_bp) &&
-				get_buffer_char (cur_bp, o - 1) == '\\') {
-				move_char (dir);
-				/* Treat escaped ' and " like word chars. */
-				c = 'a';
-            }
-
-			if ((dir > 0 && isopenbracketchar (c, single_quote, double_quote)) ||
-				(dir <= 0 && isclosebracketchar (c, single_quote, double_quote))) {
-				if (level == 0 && gotsexp)
-					return true;
-
-				level++;
-				gotsexp = true;
-				if (c == '\"')
-					double_quote = !double_quote;
-				if (c == '\'')
-					single_quote = !double_quote;
-            } else if ((dir > 0 && isclosebracketchar (c, single_quote, double_quote)) ||
-					   (dir <= 0 && isopenbracketchar (c, single_quote, double_quote))) {
-				if (level == 0 && gotsexp)
-					return true;
-
-				level--;
-				gotsexp = true;
-				if (c == '\"')
-					double_quote = !double_quote;
-				if (c == '\'')
-					single_quote = !single_quote;
-
-				if (level < 0) {
-					Minibuf.error ("Scan error: \"Containing expression ends prematurely\"");
-					return false;
-                }
-            }
-
-			move_char (dir);
-
-			if (!(c.isalnum () || c == '$' || c == '_')) {
-				if (gotsexp && level == 0) {
-					if (!(isopenbracketchar (c, single_quote, double_quote) ||
-						  isclosebracketchar (c, single_quote, double_quote)))
-						move_char (-dir);
-					return true;
-                }
-            } else
-				gotsexp = true;
-        }
-		if (gotsexp && level == 0)
-			return true;
-		if (dir > 0 ? !next_line () : !previous_line ()) {
-			if (level != 0)
-				Minibuf.error ("Scan error: \"Unbalanced parentheses\"");
-			break;
-        }
-		if (dir > 0)
-			funcall ("beginning-of-line");
-		else
-			funcall ("end-of-line");
-    }
-	return false;
-}
-
 /***********************************************************************
                           Transpose functions
 ***********************************************************************/
 void estr_append_region (Estr es) {
-	activate_mark ();
-	es.cat (get_buffer_region (cur_bp, Region.calculate ()));
+	cur_bp.mark_active = true;
+	es.cat (cur_bp.get_region (Region.calculate ()));
 }
 
 bool transpose_subr (MovementNDelegate move_func) {
 	/* For transpose-chars. */
-	if (move_func == move_char && eolp ())
+	if (move_func == (MovementNDelegate) cur_bp.move_char && cur_bp.eolp ())
 		move_func (-1);
 
 	/* For transpose-lines. */
-	if (move_func == move_line && get_buffer_line_o (cur_bp) == 0)
+	if (move_func == (MovementNDelegate) cur_bp.move_line && cur_bp.line_o () == 0)
 		move_func (1);
 
 	/* Backward. */
@@ -207,13 +120,13 @@ bool transpose_subr (MovementNDelegate move_func) {
 
 	/* Check to make sure we can go forwards twice. */
 	if (!move_func (1) || !move_func (1)) {
-		if (move_func == move_line) {
+		if (move_func == (MovementNDelegate) cur_bp.move_line) {
 			/* Add an empty line. */
 			funcall ("end-of-line");
 			funcall ("newline");
         } else {
 			pop_mark ();
-			goto_offset (m1.o);
+			cur_bp.goto_offset (m1.o);
 			Minibuf.error ("End of buffer");
 
 			m1.unchain ();
@@ -221,13 +134,13 @@ bool transpose_subr (MovementNDelegate move_func) {
         }
     }
 
-	goto_offset (m1.o);
+	cur_bp.goto_offset (m1.o);
 
 	/* Forward. */
 	move_func (1);
 
 	/* Save and delete 1st marked region. */
-	Estr es1 = Estr.of_empty (get_buffer_eol (cur_bp));
+	Estr es1 = Estr.of_empty (cur_bp.eol);
 	estr_append_region (es1);
 
 	funcall ("delete-region");
@@ -238,7 +151,7 @@ bool transpose_subr (MovementNDelegate move_func) {
 	/* For transpose-lines. */
 	Estr es2 = null;
 	Marker m2;
-	if (move_func == move_line)
+	if (move_func == (MovementNDelegate) cur_bp.move_line)
 		m2 = Marker.point ();
 	else {
 		/* Mark the end of second string. */
@@ -249,36 +162,36 @@ bool transpose_subr (MovementNDelegate move_func) {
 		m2 = Marker.point ();
 
 		/* Save and delete 2nd marked region. */
-		es2 = Estr.of_empty (get_buffer_eol (cur_bp));
+		es2 = Estr.of_empty (cur_bp.eol);
 		estr_append_region (es2);
 		funcall ("delete-region");
     }
 
 	/* Insert the first string. */
-	goto_offset (m2.o);
+	cur_bp.goto_offset (m2.o);
 	m2.unchain ();
-	insert_estr (es1);
+	cur_bp.insert_estr (es1);
 
 	/* Insert the second string. */
 	if (es2 != null) {
-		goto_offset (m1.o);
-		insert_estr (es2);
+		cur_bp.goto_offset (m1.o);
+		cur_bp.insert_estr (es2);
     }
 	m1.unchain ();
 
 	/* Restore mark. */
 	pop_mark ();
-	deactivate_mark ();
+	cur_bp.mark_active = false;
 
 	/* Move forward if necessary. */
-	if (move_func != move_line)
+	if (move_func != (MovementNDelegate) cur_bp.move_line)
 		move_func (1);
 
 	return true;
 }
 
 bool transpose (long uniarg, MovementNDelegate move) {
-	if (warn_if_readonly_buffer ())
+	if (cur_bp.warn_if_readonly ())
 		return false;
 
 	bool ret = true;
@@ -305,13 +218,13 @@ bool move_paragraph (long uniarg, MovementDelegate forward, MovementDelegate bac
     }
 
 	while (uniarg-- > 0) {
-		while (is_empty_line () && forward ())
+		while (cur_bp.is_empty_line () && forward ())
 			;
-		while (!is_empty_line () && forward ())
+		while (!cur_bp.is_empty_line () && forward ())
 			;
     }
 
-	if (is_empty_line ())
+	if (cur_bp.is_empty_line ())
 		funcall ("beginning-of-line");
 	else
 		line_extremum (1, leNIL);
@@ -347,20 +260,20 @@ string recase (string s, Case rcase) {
 }
 
 bool setcase_word (Case rcase) {
-	if (!iswordchar (following_char ()))
-		if (!move_word (1) || !move_word (-1))
+	if (!iswordchar (cur_bp.following_char ()))
+		if (!cur_bp.move_word (1) || !cur_bp.move_word (-1))
 			return false;
 
 	string a = "";
 	char c = 0;
-	for (size_t i = cur_bp.pt - get_buffer_line_o (cur_bp);
-		 i < buffer_line_len (cur_bp, cur_bp.pt) &&
-			 iswordchar ((c = get_buffer_char (cur_bp, get_buffer_line_o (cur_bp) + i)));
+	for (size_t i = cur_bp.pt - cur_bp.line_o ();
+		 i < cur_bp.line_len (cur_bp.pt) &&
+			 iswordchar ((c = cur_bp.get_char (cur_bp.line_o () + i)));
 		 i++)
 		a += ((char) c).to_string ();
 
 	if (a.length > 0)
-		replace_estr (a.length, ImmutableEstr.of (recase (a, rcase), a.length));
+		cur_bp.replace_estr (a.length, ImmutableEstr.of (recase (a, rcase), a.length));
 
 	cur_bp.modified = true;
 
@@ -384,18 +297,18 @@ bool setcase_word_capitalize () {
  */
 delegate char CharTransform (char c);
 bool setcase_region (CharTransform func) {
-	if (warn_if_readonly_buffer () || warn_if_no_mark ())
+	if (cur_bp.warn_if_readonly () || cur_bp.warn_if_no_mark ())
 		return false;
 
 	Region r = Region.calculate ();
 	Marker m = Marker.point ();
-	goto_offset (r.start);
+	cur_bp.goto_offset (r.start);
 	for (size_t n = r.size (); n > 0; n--) {
-		char c = func (following_char ());
-		delete_char ();
-		insert_char (c);
+		char c = func (cur_bp.following_char ());
+		cur_bp.delete_char ();
+		cur_bp.insert_char (c);
     }
-	goto_offset (m.o);
+	cur_bp.goto_offset (m.o);
 	m.unchain ();
 
 	return true;
@@ -426,7 +339,7 @@ public void funcs_init () {
 									 cur_wp.bp == bp ? '.' : ' ',
 									 bp.readonly ? '%' : ' ',
 									 bp.modified ? '*' : ' ',
-									 bp.name, get_buffer_size (bp), "Fundamental");
+									 bp.name, bp.length, "Fundamental");
 							if (bp.filename != null)
 								bprintf ("%s", compact_path (bp.filename));
 							insert_newline ();
@@ -473,7 +386,7 @@ automatically breaks the line at a previous space."""
 		"set-fill-column",
 		(uniarg, arglist) => {
 			bool ok = true;
-			size_t o = cur_bp.pt - get_buffer_line_o (cur_bp);
+			size_t o = cur_bp.pt - cur_bp.line_o ();
 			long fill_col = Flags.UNIARG_EMPTY in lastflag ? (long) o : uniarg;
 			string buf = null;
 
@@ -513,7 +426,7 @@ Just C-u as argument means to use the current column."""
 		"set-mark",
 		(uniarg, arglist) => {
 			set_mark ();
-			activate_mark ();
+			cur_bp.mark_active = true;
 			return true;
 		},
 		false,
@@ -540,9 +453,9 @@ Just C-u as argument means to use the current column."""
 			}
 
 			size_t o = cur_bp.pt;
-			goto_offset (cur_bp.mark.o);
+			cur_bp.goto_offset (cur_bp.mark.o);
 			cur_bp.mark.o = o;
-			activate_mark ();
+			cur_bp.mark_active = true;
 			thisflag |= Flags.NEED_RESYNC;
 			return true;
 		},
@@ -566,7 +479,7 @@ Just C-u as argument means to use the current column."""
 		"quoted-insert",
 		(uniarg, arglist) => {
 			Minibuf.write ("C-q-");
-			insert_char ((char) getkey_unfiltered (GETKEY_DEFAULT));
+			cur_bp.insert_char ((char) getkey_unfiltered (GETKEY_DEFAULT));
 			Minibuf.clear ();
 			return true;
 		},
@@ -653,9 +566,9 @@ Repeating \\[universal-argument] without digits or minus sign
 	new LispFunc (
 		"back-to-indentation",
 		(uniarg, arglist) => {
-			goto_offset (get_buffer_line_o (cur_bp));
-			while (!eolp () && following_char ().isspace ())
-				move_char (1);
+			cur_bp.goto_offset (cur_bp.line_o ());
+			while (!cur_bp.eolp () && cur_bp.following_char ().isspace ())
+				cur_bp.move_char (1);
 			return true;
 		},
 		true,
@@ -675,7 +588,7 @@ Repeating \\[universal-argument] without digits or minus sign
 	new LispFunc (
 		"keyboard-quit",
 		(uniarg, arglist) => {
-			deactivate_mark ();
+			cur_bp.mark_active = false;
 			Minibuf.error ("Quit");
 			return false;
 		},
@@ -686,7 +599,7 @@ Repeating \\[universal-argument] without digits or minus sign
 	new LispFunc (
 		"forward-word",
 		(uniarg, arglist) => {
-			return move_with_uniarg (uniarg, move_word);
+			return move_with_uniarg (uniarg, (MovementNDelegate) cur_bp.move_word);
 		},
 		true,
 		"""Move point forward one word (backward if the argument is negative).
@@ -696,7 +609,7 @@ With argument, do this that many times."""
 	new LispFunc (
 		"backward-word",
 		(uniarg, arglist) => {
-			return move_with_uniarg (-uniarg, move_word);
+			return move_with_uniarg (-uniarg, (MovementNDelegate) cur_bp.move_word);
 		},
 		true,
 		"""Move backward until encountering the end of a word (forward if the
@@ -707,7 +620,7 @@ With argument, do this that many times."""
 	new LispFunc (
 		"forward-sexp",
 		(uniarg, arglist) => {
-			return move_with_uniarg (uniarg, move_sexp);
+			return move_with_uniarg (uniarg, (MovementNDelegate) cur_bp.move_sexp);
 		},
 		true,
 		"""Move forward across one balanced expression (sexp).
@@ -718,7 +631,7 @@ move backward across N balanced expressions."""
 	new LispFunc (
 		"backward-sexp",
 		(uniarg, arglist) => {
-			return move_with_uniarg (-uniarg, move_sexp);
+			return move_with_uniarg (-uniarg, (MovementNDelegate) cur_bp.move_sexp);
 		},
 		true,
 		"""Move backward across one balanced expression (sexp).
@@ -729,7 +642,7 @@ move forward across N balanced expressions."""
 	new LispFunc (
 		"transpose-chars",
 		(uniarg, arglist) => {
-			return transpose (uniarg, (MovementNDelegate) (void *) move_char);
+			return transpose (uniarg, (MovementNDelegate) cur_bp.move_char);
 		},
 		true,
 		"""Interchange characters around point, moving forward one character.
@@ -741,7 +654,7 @@ If no argument and at end of line, the previous two chars are exchanged."""
 	new LispFunc (
 		"transpose-words",
 		(uniarg, arglist) => {
-			return transpose (uniarg, (MovementNDelegate) (void *) move_word);
+			return transpose (uniarg, (MovementNDelegate) cur_bp.move_word);
 		},
 		true,
 		"""Interchange words around point, leaving point at end of them.
@@ -754,7 +667,7 @@ are interchanged."""
 	new LispFunc (
 		"transpose-sexps",
 		(uniarg, arglist) => {
-			return transpose (uniarg, (MovementNDelegate) (void *) move_sexp);
+			return transpose (uniarg, (MovementNDelegate) cur_bp.move_sexp);
 		},
 		true,
 		"""Like `transpose-words', but applies to sexps."""
@@ -763,7 +676,7 @@ are interchanged."""
 	new LispFunc (
 		"transpose-lines",
 		(uniarg, arglist) => {
-			return transpose (uniarg, (MovementNDelegate) (void *) move_line);
+			return transpose (uniarg, (MovementNDelegate) cur_bp.move_line);
 		},
 		true,
 		"""Exchange current line and previous line, leaving point after both.
@@ -801,7 +714,7 @@ move to with the same argument."""
 				ok = false;
 			if (ok) {
 				funcall ("beginning-of-line");
-				ok = move_line (n);
+				ok = cur_bp.move_line (n);
 			}
 			return ok;
 		},
@@ -854,18 +767,18 @@ The paragraph marked is the one that contains point or follows point."""
 			Marker m = Marker.point ();
 
 			funcall ("forward-paragraph");
-			if (is_empty_line ())
+			if (cur_bp.is_empty_line ())
 				previous_line ();
 			Marker m_end = Marker.point ();
 
 			funcall ("backward-paragraph");
-			if (is_empty_line ())
+			if (cur_bp.is_empty_line ())
 				/* Move to next line if between two paragraphs. */
 				next_line ();
 
-			while (buffer_end_of_line (cur_bp, cur_bp.pt) < m_end.o) {
+			while (cur_bp.end_of_line (cur_bp.pt) < m_end.o) {
 				funcall ("end-of-line");
-				delete_char ();
+				cur_bp.delete_char ();
 				funcall ("just-one-space");
 			}
 			m_end.unchain ();
@@ -877,7 +790,7 @@ The paragraph marked is the one that contains point or follows point."""
 			if (ret == -1)
 				ok = false;
 
-			goto_offset (m.o);
+			cur_bp.goto_offset (m.o);
 			m.unchain ();
 
 			return ok;
@@ -958,10 +871,10 @@ and the rest lower case."""
 		"delete-region",
 		(uniarg, arglist) => {
 			bool ok = true;
-			if (warn_if_no_mark () || !Region.calculate ().delete ())
+			if (cur_bp.warn_if_no_mark () || !Region.calculate ().delete ())
 				ok = false;
 			else
-				deactivate_mark ();
+				cur_bp.mark_active = false;
 			return ok;
 		},
 		true,
@@ -972,36 +885,36 @@ and the rest lower case."""
 		"delete-blank-lines",
 		(uniarg, arglist) => {
 			Marker m = Marker.point ();
-			Region r = new Region (get_buffer_line_o (cur_bp), get_buffer_line_o (cur_bp));
+			Region r = new Region (cur_bp.line_o (), cur_bp.line_o ());
 
 			/* Find following blank lines.  */
-			if (funcall ("forward-line") && is_blank_line ()) {
+			if (funcall ("forward-line") && cur_bp.is_blank_line ()) {
 				r.start = cur_bp.pt;
 				do
-					r.end = buffer_next_line (cur_bp, cur_bp.pt);
-				while (funcall ("forward-line") && is_blank_line ());
-				r.end = size_t.min (r.end, get_buffer_size (cur_bp));
+					r.end = cur_bp.next_line (cur_bp.pt);
+				while (funcall ("forward-line") && cur_bp.is_blank_line ());
+				r.end = size_t.min (r.end, cur_bp.length);
 			}
-			goto_offset (m.o);
+			cur_bp.goto_offset (m.o);
 
 			/* If this line is blank, find any preceding blank lines.  */
 			bool singleblank = true;
-			if (is_blank_line ()) {
-				r.end = size_t.max (r.end, buffer_next_line (cur_bp, cur_bp.pt));
+			if (cur_bp.is_blank_line ()) {
+				r.end = size_t.max (r.end, cur_bp.next_line (cur_bp.pt));
 				do
-					r.start = get_buffer_line_o (cur_bp);
-				while (funcall ("forward-line", -1) && is_blank_line ());
-				goto_offset (m.o);
-				if (r.start != get_buffer_line_o (cur_bp) ||
-					r.end > buffer_next_line (cur_bp, cur_bp.pt))
+					r.start = cur_bp.line_o ();
+				while (funcall ("forward-line", -1) && cur_bp.is_blank_line ());
+				cur_bp.goto_offset (m.o);
+				if (r.start != cur_bp.line_o () ||
+					r.end > cur_bp.next_line (cur_bp.pt))
 					singleblank = false;
-				r.end = size_t.min (r.end, get_buffer_size (cur_bp));
+				r.end = size_t.min (r.end, cur_bp.length);
 			}
 
 			/* If we are deleting to EOB, need to fudge extra line. */
-			bool at_eob = r.end == get_buffer_size (cur_bp) && r.start > 0;
+			bool at_eob = r.end == cur_bp.length && r.start > 0;
 			if (at_eob)
-				r.start = r.start - get_buffer_eol (cur_bp).length;
+				r.start = r.start - cur_bp.eol.length;
 
 			/* Delete any blank lines found. */
 			if (r.start < r.end)
@@ -1016,7 +929,7 @@ and the rest lower case."""
 			}
 
 			m.unchain ();
-			deactivate_mark ();
+			cur_bp.mark_active = false;
 
 			return true;
 		},

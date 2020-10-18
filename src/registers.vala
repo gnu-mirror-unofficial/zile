@@ -22,13 +22,13 @@
 using Lisp;
 
 int NUM_REGISTERS = 256;
-
-Estr regs[256 /* FIXME: NUM_REGISTERS */];
+/* FIXME: https://gitlab.gnome.org/GNOME/vala/-/issues/440 */
+ImmutableEstr regs[256 /* NUM_REGISTERS */];
 
 long regnum;
 
 bool insert_register () {
-	insert_estr (regs[regnum]);
+	cur_bp.insert_estr (regs[regnum]);
 	return true;
 }
 
@@ -55,12 +55,10 @@ public void registers_init () {
 					reg %= NUM_REGISTERS; /* Nice numbering relies on NUM_REGISTERS
 											 being a power of 2. */
 
-					if (warn_if_no_mark ())
+					if (cur_bp.warn_if_no_mark ())
 						ok = false;
-					else {
-						long index = reg;
-						regs[index] = get_buffer_region (cur_bp, Region.calculate ());
-					}
+					else
+						regs[reg] = cur_bp.get_region (Region.calculate ());
 				}
 			}
 			return ok;
@@ -73,7 +71,7 @@ public void registers_init () {
 		"insert-register",
 		(uniarg, arglist) => {
 			bool ok = true;
-			if (warn_if_readonly_buffer ())
+			if (cur_bp.warn_if_readonly ())
 				return false;
 
 			long reg = 1;
@@ -99,7 +97,7 @@ public void registers_init () {
 						regnum = reg;
 						execute_with_uniarg (uniarg, insert_register, null);
 						funcall ("exchange-point-and-mark");
-						deactivate_mark ();
+						cur_bp.mark_active = false;
 					}
 				}
 			}

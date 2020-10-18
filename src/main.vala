@@ -114,7 +114,7 @@ PACKAGE_NAME + " is Free Software--Free as in Freedom--so you can redistribute c
 	lisp_init ();
 	init_variables ();
 	basic_init ();
-	buffer_init ();
+	buffer_init_lisp ();
 	bind_init ();
 	eval_init ();
 	file_init ();
@@ -260,7 +260,7 @@ PACKAGE_NAME + " is Free Software--Free as in Freedom--so you can redistribute c
 	if (arg_arg.length () == 0 && Minibuf.no_error () &&
 		!get_variable_bool ("inhibit-splash-screen")) {
 		Buffer bp = create_auto_buffer ("*GNU " + PACKAGE_NAME + "*");
-		switch_to_buffer (bp);
+		bp.switch_to ();
 		bprintf ("%s", splash_str);
 		bp.readonly = true;
 		funcall ("beginning-of-buffer");
@@ -311,13 +311,13 @@ PACKAGE_NAME + " is Free Software--Free as in Freedom--so you can redistribute c
     }
 	if (files == 3) { /* *scratch* and two files. */
 		funcall ("split-window");
-		switch_to_buffer (last_bp);
+		last_bp.switch_to ();
 		funcall ("other-window");
     } else if (files > 3) /* More than two files. */
 		funcall ("list-buffers");
 
 	/* Reinitialise the scratch buffer to catch settings */
-	init_buffer (scratch_bp);
+	scratch_bp.init ();
 
 	/* Refresh minibuffer in case there was an error that couldn't be
 	   written during startup */

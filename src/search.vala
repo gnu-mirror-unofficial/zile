@@ -77,16 +77,15 @@ bool search (string s, bool forward, bool regexp) {
 	/* Attempt match. */
 	size_t o = cur_bp.pt;
 	bool notbol = forward ? o > 0 : false;
-	bool noteol = forward ? false : o < get_buffer_size (cur_bp);
-	char *ptr;
-	size_t len = forward ? buffer_post_point (cur_bp, out ptr) : buffer_pre_point (cur_bp, out ptr);
-	long pos = find_substr (ptr, (long) len,
+	bool noteol = forward ? false : o < cur_bp.length;
+	ImmutableEstr es = forward ? cur_bp.post_point () : cur_bp.pre_point ();
+	long pos = find_substr (es.text, (long) es.length,
 							s, ssize, forward, notbol, noteol, regexp,
 							get_variable_bool ("case-fold-search") && no_upper (s, ssize, regexp));
 	if (pos < 0)
 		return false;
 
-	goto_offset (pos + (forward ? cur_bp.pt : 0));
+	cur_bp.goto_offset (pos + (forward ? cur_bp.pt : 0));
 	thisflag |= Flags.NEED_RESYNC;
 	return true;
 }
@@ -151,7 +150,7 @@ bool isearch (bool forward, bool regexp) {
 		uint c = (uint) getkey (GETKEY_DEFAULT);
 
 		if (c == KBD_CANCEL) {
-			goto_offset (start);
+			cur_bp.goto_offset (start);
 			thisflag |= Flags.NEED_RESYNC;
 
 			/* Quit. */
@@ -167,7 +166,7 @@ bool isearch (bool forward, bool regexp) {
 			if (pattern.length > 0) {
 				pattern = pattern.slice (0, -1);
 				cur = start;
-				goto_offset (start);
+				cur_bp.goto_offset (start);
 				thisflag |= Flags.NEED_RESYNC;
 			} else
 				ding ();
@@ -210,7 +209,7 @@ bool isearch (bool forward, bool regexp) {
 			pattern += ((char) c).to_string ();
 
 		if (pattern.length > 0) {
-			goto_offset (cur);
+			cur_bp.goto_offset (cur);
 			last = search (pattern, forward, regexp);
 		} else
 			last = true;
@@ -233,6 +232,7 @@ bool isearch (bool forward, bool regexp) {
 /*
  * Check the case of a string.
  */
+// FIXME: Needs to take an ImmutableEstr
 Case check_case (string a) {
 	uint i;
 	for (i = 0; i < a.length && a[i].isupper (); i++)
@@ -380,15 +380,15 @@ as a regexp.  See the command `isearch-forward-regexp` for more information."""
 					string case_repl = repl;
 					Region r = new Region (cur_bp.pt - find.length, cur_bp.pt);
 					if (find_no_upper && get_variable_bool ("case-replace")) {
-						Case case_type = check_case ((string) get_buffer_region (cur_bp, r).text);
+						Case case_type = check_case ((string) cur_bp.get_region (r).text);
 						if (case_type != Case.lower)
 							repl = recase (repl, case_type);
 					}
 
 					Marker m = Marker.point ();
-					goto_offset (r.start);
-					replace_estr (find.length, ImmutableEstr.of (case_repl, case_repl.length, get_buffer_eol (cur_bp)));
-					goto_offset (m.o);
+					cur_bp.goto_offset (r.start);
+					cur_bp.replace_estr (find.length, ImmutableEstr.of (case_repl, case_repl.length, cur_bp.eol));
+					cur_bp.goto_offset (m.o);
 					m.unchain ();
 
 					if (c == '.')		/* Replace and quit. */

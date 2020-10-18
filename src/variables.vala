@@ -90,13 +90,9 @@ public unowned string? get_variable_doc (string name, out unowned string defval)
 	return v.doc;
 }
 
-unowned string? get_variable_bp (Buffer? bp, string name) {
-	VarEntry v = get_variable_entry (bp, name);
-	return v != null ? v.val : null;
-}
-
 unowned string? get_variable (string name) {
-	return get_variable_bp (cur_bp, name);
+	VarEntry v = get_variable_entry (cur_bp, name);
+	return v != null ? v.val : null;
 }
 
 bool get_variable_bool (string name) {

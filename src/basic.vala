@@ -21,35 +21,21 @@
 
 using Lisp;
 
-/*
- * Get the goal column.  Take care of expanding tabulations.
- */
-public size_t get_goalc_bp (Buffer bp, size_t o) {
-	size_t col = 0, t = tab_width (bp);
-	size_t start = buffer_start_of_line (bp, o), end = o - start;
-
-	for (size_t i = 0; i < end; i++, col++)
-		if (get_buffer_char (bp, start + i) == '\t')
-			col |= t - 1;
-
-	return col;
-}
-
 public size_t get_goalc () {
-	return get_goalc_bp (cur_bp, cur_bp.pt);
+	return cur_bp.get_goalc (cur_bp.pt);
 }
 
 public bool previous_line () {
-	return move_line (-1);
+	return cur_bp.move_line (-1);
 }
 
 public bool next_line () {
-	return move_line (1);
+	return cur_bp.move_line (1);
 }
 
 bool scroll_down () {
 	if (!cur_wp.top_visible ())
-		return move_line (-(long) cur_wp.eheight);
+		return cur_bp.move_line (-(long) cur_wp.eheight);
 
 	Minibuf.error ("Beginning of buffer");
 	return false;
@@ -57,10 +43,19 @@ bool scroll_down () {
 
 bool scroll_up () {
 	if (!cur_wp.bottom_visible ())
-		return move_line ((long) cur_wp.eheight);
+		return cur_bp.move_line ((long) cur_wp.eheight);
 
 	Minibuf.error ("End of buffer");
 	return false;
+}
+
+/* Signal an error, and abort any ongoing macro definition. */
+public void ding () {
+	if (Flags.DEFINING_MACRO in thisflag)
+		cancel_kbd_macro ();
+
+	if (get_variable_bool ("ring-bell"))
+		term_beep ();
 }
 
 
@@ -68,7 +63,7 @@ public void basic_init () {
 	new LispFunc (
 		"beginning-of-line",
 		(uniarg, arglist) => {
-			goto_offset (get_buffer_line_o (cur_bp));
+			cur_bp.goto_offset (cur_bp.line_o ());
 			cur_bp.goalc = 0;
 			return true;
 		},
@@ -79,7 +74,7 @@ public void basic_init () {
 	new LispFunc (
 		"end-of-line",
 		(uniarg, arglist) => {
-			goto_offset (get_buffer_line_o (cur_bp) + buffer_line_len (cur_bp, cur_bp.pt));
+			cur_bp.goto_offset (cur_bp.line_o () + cur_bp.line_len (cur_bp.pt));
 			cur_bp.goalc = size_t.MAX;
 			return true;
 		},
@@ -90,7 +85,7 @@ public void basic_init () {
 	new LispFunc (
 		"previous-line",
 		(uniarg, arglist) => {
-			return move_line (-uniarg);
+			return cur_bp.move_line (-uniarg);
 		},
 		true,
 		"""Move cursor vertically up one line.
@@ -102,7 +97,7 @@ column, or at the end of the line if it is not long enough."""
 	new LispFunc (
 		"next-line",
 		(uniarg, arglist) => {
-			return move_line (uniarg);
+			return cur_bp.move_line (uniarg);
 		},
 		true,
 		"""Move cursor vertically down one line.
@@ -124,7 +119,7 @@ column, or at the end of the line if it is not long enough."""
 			if (ok == false || n >= long.MAX - 1)
 				return false;
 
-			goto_offset (size_t.min (get_buffer_size (cur_bp), (size_t) long.max (n, 1) - 1));
+			cur_bp.goto_offset (size_t.min (cur_bp.length, (size_t) long.max (n, 1) - 1));
 			return ok;
 		},
 		true,
@@ -145,7 +140,7 @@ Beginning of buffer is position 1."""
 			if (!ok || n >= long.MAX - 1)
 				return false;
 
-			move_line ((long.max (n, 1) - 1) - (long) offset_to_line (cur_bp, cur_bp.pt));
+			cur_bp.move_line ((long.max (n, 1) - 1) - (long) cur_bp.offset_to_line (cur_bp.pt));
 			funcall ("beginning-of-line");
 			return ok;
 		},
@@ -156,7 +151,7 @@ Beginning of buffer is position 1."""
 	new LispFunc (
 		"beginning-of-buffer",
 		(uniarg, arglist) => {
-			goto_offset (0);
+			cur_bp.goto_offset (0);
 			return true;
 		},
 		true,
@@ -166,7 +161,7 @@ Beginning of buffer is position 1."""
 	new LispFunc (
 		"end-of-buffer",
 		(uniarg, arglist) => {
-			goto_offset (get_buffer_size (cur_bp));
+			cur_bp.goto_offset (cur_bp.length);
 			return true;
 		},
 		true,
@@ -176,7 +171,7 @@ Beginning of buffer is position 1."""
 	new LispFunc (
 		"backward-char",
 		(uniarg, arglist) => {
-			bool ok = move_char (-uniarg);
+			bool ok = cur_bp.move_char (-uniarg);
 			if (!ok)
 				Minibuf.error ("Beginning of buffer");
 			return ok;
@@ -189,7 +184,7 @@ On attempt to pass beginning or end of buffer, stop and signal error."""
 	new LispFunc (
 		"forward-char",
 		(uniarg, arglist) => {
-			bool ok = move_char (uniarg);
+			bool ok = cur_bp.move_char (uniarg);
 			if (!ok)
 				Minibuf.error ("End of buffer");
 			return ok;

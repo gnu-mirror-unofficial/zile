@@ -22,16 +22,16 @@
 using Lisp;
 
 void insert_expanded_tab () {
-	size_t t = tab_width (cur_bp);
+	size_t t = cur_bp.tab_width ();
 	bprintf ("%*s", (int) (t - get_goalc () % t), "");
 }
 
 bool insert_tab () {
-	if (warn_if_readonly_buffer ())
+	if (cur_bp.warn_if_readonly ())
 		return false;
 
 	if (get_variable_bool ("indent-tabs-mode"))
-		insert_char ('\t');
+		cur_bp.insert_char ('\t');
 	else
 		insert_expanded_tab ();
 
@@ -43,7 +43,7 @@ bool insert_tab () {
  */
 bool intercalate_newline ()
 {
-	return insert_newline () && move_char (-1);
+	return insert_newline () && cur_bp.move_char (-1);
 }
 
 /*
@@ -56,7 +56,7 @@ bool intercalate_newline ()
  */
 int fill_break_line () {
 	long n;
-	if (!lisp_to_number (get_variable_bp (cur_bp, "fill-column"), out n) || n < 0) {
+	if (!lisp_to_number (cur_bp.get_variable ("fill-column"), out n) || n < 0) {
 		Minibuf.error ("Wrong type argument: number-or-markerp, nil");
 		return -1;
     }
@@ -72,13 +72,13 @@ int fill_break_line () {
 		Marker m = Marker.point ();
 
 		/* Move cursor back to fill column */
-		size_t old_col = cur_bp.pt - get_buffer_line_o (cur_bp);
-		while (get_goalc () > fillcol + 1)
-			move_char (-1);
+		size_t old_col = cur_bp.pt - cur_bp.line_o ();
+		while (cur_bp.get_goalc (cur_bp.pt) > fillcol + 1)
+			cur_bp.move_char (-1);
 
 		/* Find break point moving left from fill-column. */
-		for (size_t i = cur_bp.pt - get_buffer_line_o (cur_bp); i > 0; i--) {
-			if (get_buffer_char (cur_bp, get_buffer_line_o (cur_bp) + i - 1).isspace ()) {
+		for (size_t i = cur_bp.pt - cur_bp.line_o (); i > 0; i--) {
+			if (cur_bp.get_char (cur_bp.line_o () + i - 1).isspace ()) {
 				break_col = i;
 				break;
             }
@@ -88,23 +88,23 @@ int fill_break_line () {
 		   possible moving right. */
 		if (break_col == 0)
 			for (size_t i = cur_bp.pt + 1;
-				 i < buffer_end_of_line (cur_bp, get_buffer_line_o (cur_bp));
+				 i < cur_bp.end_of_line (cur_bp.line_o ());
 				 i++)
-				if (get_buffer_char (cur_bp, i - 1).isspace ()) {
-					break_col = i - get_buffer_line_o (cur_bp);
+				if (cur_bp.get_char (i - 1).isspace ()) {
+					break_col = i - cur_bp.line_o ();
 					break;
 				}
 
 		if (break_col >= 1) {
 			/* Break line. */
-			goto_offset (get_buffer_line_o (cur_bp) + break_col);
+			cur_bp.goto_offset (cur_bp.line_o () + break_col);
 			funcall ("delete-horizontal-space");
 			insert_newline ();
-			goto_offset (m.o);
+			cur_bp.goto_offset (m.o);
 			break_made = 1;
         } else
 			/* Undo fiddling with point. */
-			goto_offset (get_buffer_line_o (cur_bp) + old_col);
+			cur_bp.goto_offset (cur_bp.line_o () + old_col);
 
 		m.unchain ();
     }
@@ -121,19 +121,7 @@ bool newline () {
 
 void bprintf (string fmt, ...) {
 	string s = fmt.vprintf (va_list());
-	insert_estr (ImmutableEstr.of (s, s.length));
-}
-
-bool backward_delete_char () {
-	deactivate_mark ();
-
-	if (!move_char (-1)) {
-		Minibuf.error ("Beginning of buffer");
-		return false;
-    }
-
-	delete_char ();
-	return true;
+	cur_bp.insert_estr (ImmutableEstr.of (s, s.length));
 }
 
 /***********************************************************************
@@ -146,15 +134,15 @@ void previous_nonblank_goalc () {
 	size_t cur_goalc = get_goalc ();
 
 	/* Find previous non-blank line. */
-	while (funcall ("forward-line", -1) && is_blank_line ());
+	while (funcall ("forward-line", -1) && cur_bp.is_blank_line ());
 
 	/* Go to `cur_goalc' in that non-blank line. */
-	while (!eolp () && get_goalc () < cur_goalc)
-		move_char (1);
+	while (!cur_bp.eolp () && get_goalc () < cur_goalc)
+		cur_bp.move_char (1);
 }
 
 bool insert_newline () {
-	return insert_estr (ImmutableEstr.of ("\n", "\n".length));
+	return cur_bp.insert_estr (ImmutableEstr.of ("\n", "\n".length));
 }
 
 size_t previous_line_indent () {
@@ -165,13 +153,13 @@ size_t previous_line_indent () {
 	funcall ("beginning-of-line");
 
 	/* Find first non-blank char. */
-	while (!eolp () && (following_char ().isspace ()))
-		move_char (1);
+	while (!cur_bp.eolp () && (cur_bp.following_char ().isspace ()))
+		cur_bp.move_char (1);
 
 	cur_indent = get_goalc ();
 
 	/* Restore point. */
-	goto_offset (m.o);
+	cur_bp.goto_offset (m.o);
 	m.unchain ();
 
 	return cur_indent;
@@ -225,7 +213,7 @@ the current buffer."""
 		(uniarg, arglist) => {
 			long n = 1;
 			int_or_uniarg_init (ref arglist, ref n, uniarg);
-			return execute_with_uniarg (n, delete_char, backward_delete_char);
+			return execute_with_uniarg (n, cur_bp.delete_char, cur_bp.backward_delete_char);
 		},
 		true,
 		"""Delete the following N characters (previous if N is negative)."""
@@ -236,7 +224,7 @@ the current buffer."""
 		(uniarg, arglist) => {
 			long n = 1;
 			int_or_uniarg_init (ref arglist, ref n, uniarg);
-			return execute_with_uniarg (n, backward_delete_char, delete_char);
+			return execute_with_uniarg (n, cur_bp.backward_delete_char, cur_bp.delete_char);
 		},
 		true,
 		"""Delete the previous N characters (following if N is negative)."""
@@ -245,11 +233,11 @@ the current buffer."""
 	new LispFunc (
 		"delete-horizontal-space",
 		(uniarg, arglist) => {
-			while (!eolp () && following_char ().isspace ())
-				delete_char ();
+			while (!cur_bp.eolp () && cur_bp.following_char ().isspace ())
+				cur_bp.delete_char ();
 
-			while (!bolp () && preceding_char ().isspace ())
-				backward_delete_char ();
+			while (!cur_bp.bolp () && cur_bp.preceding_char ().isspace ())
+				cur_bp.backward_delete_char ();
 
 			return true;
 		},
@@ -261,7 +249,7 @@ the current buffer."""
 		"just-one-space",
 		(uniarg, arglist) => {
 			funcall ("delete-horizontal-space");
-			insert_char (' ');
+			cur_bp.insert_char (' ');
 			return true;
 		},
 		true,
@@ -272,17 +260,17 @@ the current buffer."""
 		"indent-relative",
 		(uniarg, arglist) => {
 			size_t target_goalc = 0, cur_goalc = get_goalc ();
-			size_t t = tab_width (cur_bp);
+			size_t t = cur_bp.tab_width ();
 
 			bool ok = false;
 
-			if (warn_if_readonly_buffer ())
+			if (cur_bp.warn_if_readonly ())
 				return false;
 
-			deactivate_mark ();
+			cur_bp.mark_active = false;
 
 			/* If we're on the first line, set target to 0. */
-			if (get_buffer_line_o (cur_bp) == 0)
+			if (cur_bp.line_o () == 0)
 				target_goalc = 0;
 			else {
 				/* Find goalc in previous non-blank line. */
@@ -291,19 +279,19 @@ the current buffer."""
 				previous_nonblank_goalc ();
 
 				/* Now find the next blank char. */
-				if (!(preceding_char () == '\t' && get_goalc () > cur_goalc))
-					while (!eolp () && (!following_char ().isspace ()))
-						move_char (1);
+				if (!(cur_bp.preceding_char () == '\t' && get_goalc () > cur_goalc))
+					while (!cur_bp.eolp () && (!cur_bp.following_char ().isspace ()))
+						cur_bp.move_char (1);
 
 				/* Find next non-blank char. */
-				while (!eolp () && (following_char ().isspace ()))
-					move_char (1);
+				while (!cur_bp.eolp () && cur_bp.following_char ().isspace ())
+					cur_bp.move_char (1);
 
 				/* Target column. */
-				if (!eolp ())
+				if (!cur_bp.eolp ())
 					target_goalc = get_goalc ();
 
-				goto_offset (m.o);
+				cur_bp.goto_offset (m.o);
 				m.unchain ();
 			}
 
@@ -317,7 +305,7 @@ the current buffer."""
 						if (cur_goalc % t == 0 && cur_goalc + t <= target_goalc)
 							ok = insert_tab ();
 						else
-							ok = insert_char (' ');
+							ok = cur_bp.insert_char (' ');
 					} while (ok && (cur_goalc = get_goalc ()) < target_goalc);
 				} else
 					ok = insert_tab ();
@@ -357,10 +345,10 @@ the indentation.  Else stay at same point in text."""
 		(uniarg, arglist) => {
 			bool ok = false;
 
-			if (warn_if_readonly_buffer ())
+			if (cur_bp.warn_if_readonly ())
 				return false;
 
-			deactivate_mark ();
+			cur_bp.mark_active = false;
 
 			if (insert_newline ()) {
 				Marker m = Marker.point ();
@@ -368,8 +356,8 @@ the indentation.  Else stay at same point in text."""
 				/* Check where last non-blank goalc is. */
 				previous_nonblank_goalc ();
 				size_t pos = get_goalc ();
-				bool indent = pos > 0 || (!eolp () && following_char ().isspace ());
-				goto_offset (m.o);
+				bool indent = pos > 0 || (!cur_bp.eolp () && cur_bp.following_char ().isspace ());
+				cur_bp.goto_offset (m.o);
 				m.unchain ();
 				/* Only indent if we're in column > 0 or we're in column 0 and
 				   there is a space character there in the last non-blank line. */

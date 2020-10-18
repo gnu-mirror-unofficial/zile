@@ -33,12 +33,12 @@ void draw_line (size_t line, size_t startcol, Window wp,
 	term_move (line, 0);
 
 	/* Draw body of line. */
-	size_t x, i, line_len = buffer_line_len (wp.bp, o);
+	size_t x, i, line_len = wp.bp.line_len (o);
 	for (x = 0, i = startcol;; i++) {
 		term_attrset (highlight && r.contains (o + i) ? FONT_REVERSE : FONT_NORMAL);
 		if (i >= line_len || x >= wp.ewidth)
 			break;
-		char c = get_buffer_char (wp.bp, o + i);
+		char c = wp.bp.get_char (o + i);
 		if (c.isprint ()) {
 			term_addch (c);
 			x++;
@@ -92,7 +92,7 @@ string make_screen_pos (Window wp) {
 	else if (bv)
 		return "Bot";
 	else
-		return "%2d%%".printf((int) ((float) 100.0 * wp.o () / get_buffer_size (wp.bp)));
+		return "%2d%%".printf((int) ((float) 100.0 * wp.o () / wp.bp.length));
 }
 
 static void draw_status_line (size_t line, Window wp) {
@@ -103,19 +103,19 @@ static void draw_status_line (size_t line, Window wp) {
 		term_addstr ("-");
 
 	string eol_type;
-	if (get_buffer_eol (cur_bp) == ImmutableEstr.eol_cr)
+	if (cur_bp.eol == ImmutableEstr.eol_cr)
 		eol_type = "(Mac)";
-	else if (get_buffer_eol (cur_bp) == ImmutableEstr.eol_crlf)
+	else if (cur_bp.eol == ImmutableEstr.eol_crlf)
 		eol_type = "(DOS)";
 	else
 		eol_type = ":";
 
 	term_move (line, 0);
-	size_t n = offset_to_line (wp.bp, wp.o ());
+	size_t n = wp.bp.offset_to_line (wp.o ());
 	string a = "--%s%2s  %-15s   %s %-9s (Fundamental".printf (
 		eol_type, make_mode_line_flags (wp), wp.bp.name,
 		make_screen_pos (wp), "(%zu,%zu)".printf (
-			n + 1, get_goalc_bp (wp.bp, wp.o ())
+			n + 1, wp.bp.get_goalc (wp.o ())
 			)
 		);
 
@@ -138,13 +138,13 @@ void draw_window (size_t topline, Window wp) {
 	bool highlight = calculate_highlight_region (wp, out r);
 
 	/* Find the first line to display on the first screen line. */
-	for (o = buffer_start_of_line (wp.bp, wp.o ()), i = wp.topdelta;
+	for (o = wp.bp.start_of_line (wp.o ()), i = wp.topdelta;
 		 i > 0 && o > 0;
-		 assert ((o = buffer_prev_line (wp.bp, o)) != size_t.MAX), --i)
+		 assert ((o = wp.bp.prev_line (o)) != size_t.MAX), --i)
 		;
 
 	/* Draw the window lines. */
-	size_t cur_tab_width = tab_width (wp.bp);
+	size_t cur_tab_width = wp.bp.tab_width ();
 	for (i = topline; i < wp.eheight + topline; ++i) {
 		/* Clear the line. */
 		term_move (i, 0);
@@ -161,10 +161,10 @@ void draw_window (size_t topline, Window wp) {
 			term_addstr("$");
         }
 
-		o = buffer_next_line (wp.bp, o);
+		o = wp.bp.next_line (o);
     }
 
-	wp.all_displayed = o >= get_buffer_size (wp.bp);
+	wp.all_displayed = o >= wp.bp.length;
 
 	/* Draw the status line only if there is available space after the
 	   buffer text space. */
@@ -178,9 +178,9 @@ size_t cur_topline = 0;
 public void term_redisplay () {
 	/* Calculate the start column if the line at point has to be truncated. */
 	Buffer bp = cur_wp.bp;
-	size_t lastcol = 0, t = tab_width (bp);
+	size_t lastcol = 0, t = bp.tab_width ();
 	size_t o = cur_wp.o ();
-	size_t lineo = o - get_buffer_line_o (bp);
+	size_t lineo = o - bp.line_o ();
 
 	col = 0;
 	o -= lineo;
@@ -190,11 +190,11 @@ public void term_redisplay () {
 	for (size_t lp = lineo; lp != size_t.MAX; --lp) {
 		col = 0;
 		for (size_t p = lp; p < lineo; ++p) {
-			char c = get_buffer_char (bp, o + p);
+			char c = bp.get_char (o + p);
 			if (c.isprint ())
 				col++;
 			else
-				col += make_char_printable (get_buffer_char (bp, o + p), col, t).length;
+				col += make_char_printable (bp.get_char (o + p), col, t).length;
         }
 
 		if (col >= ew - 1 || (lp / (ew / 3)) + 2 < lineo / (ew / 3)) {

@@ -52,6 +52,14 @@ public class ImmutableEstr {
 		return es;
 	}
 
+	public ImmutableEstr substring (size_t pos, size_t length) {
+		var es = new ImmutableEstr ();
+		es.text = text + pos;
+		es.length = length;
+		es.eol = eol;
+		return es;
+	}
+
 	public size_t prev_line (size_t o) {
 		size_t so = start_of_line (o);
 		return (so == 0) ? size_t.MAX : start_of_line (so - eol.length);
@@ -110,8 +118,18 @@ public class Estr : ImmutableEstr {
 		return es;
 	}
 
+	public static Estr copy (ImmutableEstr ies) {
+		var es = of_empty ();
+		es.cat (ies);
+		return es;
+	}
+
 	~Estr () {
 		free (text);
+	}
+
+	public void set_char (size_t pos, char c) {
+		text[pos] = c;
 	}
 
 	/*
@@ -160,8 +178,7 @@ public class Estr : ImmutableEstr {
 	}
 
 	/*
-	 * Overwrite `size' characters, starting at `pos', with the argument
-	 * string.
+	 * Overwrite characters starting at `pos', with the argument string.
 	 */
 	public void replace (size_t pos, ImmutableEstr src) {
 		char *s = src.text;

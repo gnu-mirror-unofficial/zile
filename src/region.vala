@@ -43,13 +43,13 @@ public class Region {
 	}
 
 	public bool delete () {
-		if (warn_if_readonly_buffer ())
+		if (cur_bp.warn_if_readonly ())
 			return false;
 
 		Marker m = Marker.point ();
-		goto_offset (this.start);
-		replace_estr (this.size (), ImmutableEstr.empty);
-		goto_offset (m.o);
+		cur_bp.goto_offset (this.start);
+		cur_bp.replace_estr (this.size (), ImmutableEstr.empty);
+		cur_bp.goto_offset (m.o);
 		m.unchain ();
 		return true;
 	}

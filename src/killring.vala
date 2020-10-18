@@ -35,7 +35,7 @@ void kill_ring_push (ImmutableEstr es) {
 }
 
 bool copy_or_kill_region (bool kill, Region r) {
-	kill_ring_push (get_buffer_region (cur_bp, r));
+	kill_ring_push (cur_bp.get_region (r));
 
 	if (kill) {
 		if (cur_bp.readonly)
@@ -45,7 +45,7 @@ bool copy_or_kill_region (bool kill, Region r) {
     }
 
 	set_this_command (LispFunc.find ("kill-region"));
-	deactivate_mark ();
+	cur_bp.mark_active = false;
 
 	return true;
 }
@@ -53,12 +53,12 @@ bool copy_or_kill_region (bool kill, Region r) {
 bool kill_line (bool whole_line) {
 	bool ok = true;
 	bool only_blanks_to_end_of_line = false;
-	size_t cur_line_len = buffer_line_len (cur_bp, cur_bp.pt);
+	size_t cur_line_len = cur_bp.line_len (cur_bp.pt);
 
 	if (!whole_line) {
 		size_t i;
-		for (i = cur_bp.pt - get_buffer_line_o (cur_bp); i < cur_line_len; i++) {
-			char c = get_buffer_char (cur_bp, get_buffer_line_o (cur_bp) + i);
+		for (i = cur_bp.pt - cur_bp.line_o (); i < cur_line_len; i++) {
+			char c = cur_bp.get_char (cur_bp.line_o () + i);
 			if (!(c == ' ' || c == '\t'))
 				break;
         }
@@ -66,15 +66,15 @@ bool kill_line (bool whole_line) {
 		only_blanks_to_end_of_line = i == cur_line_len;
     }
 
-	if (eobp ()) {
+	if (cur_bp.eobp ()) {
 		Minibuf.error ("End of buffer");
 		return false;
     }
 
-	if (!eolp ())
-		ok = copy_or_kill_region (true, new Region (cur_bp.pt, get_buffer_line_o (cur_bp) + cur_line_len));
+	if (!cur_bp.eolp ())
+		ok = copy_or_kill_region (true, new Region (cur_bp.pt, cur_bp.line_o () + cur_line_len));
 
-	if (ok && (whole_line || only_blanks_to_end_of_line) && !eobp ()) {
+	if (ok && (whole_line || only_blanks_to_end_of_line) && !cur_bp.eobp ()) {
 		if (!funcall ("delete-char"))
 			return false;
 
@@ -96,7 +96,7 @@ bool kill_line_backward () {
 bool copy_or_kill_the_region (bool kill) {
 	bool ok = false;
 
-	if (!warn_if_no_mark ()) {
+	if (!cur_bp.warn_if_no_mark ()) {
 		Region r = Region.calculate ();
 		maybe_destroy_kill_ring ();
 		ok = copy_or_kill_region (kill, r);
@@ -108,7 +108,7 @@ bool copy_or_kill_the_region (bool kill) {
 bool kill_text (long uniarg, Function mark_func) {
 	maybe_destroy_kill_ring ();
 
-	if (warn_if_readonly_buffer ())
+	if (cur_bp.warn_if_readonly ())
 		return false;
 
 	push_mark ();
@@ -130,20 +130,20 @@ public void killring_init () {
 
 			bool ok = true;
 			if (noarg (arglist))
-				ok = kill_line (bolp () && get_variable_bool ("kill-whole-line"));
+				ok = kill_line (cur_bp.bolp () && get_variable_bool ("kill-whole-line"));
 			else {
 				long arg = 1;
 				if (!int_or_uniarg_init (ref arglist, ref arg, uniarg))
 					ok = false;
 				else {
 					if (arg <= 0)
-						ok = bolp () || copy_or_kill_region (true, new Region (get_buffer_line_o (cur_bp), cur_bp.pt));
+						ok = cur_bp.bolp () || copy_or_kill_region (true, new Region (cur_bp.line_o (), cur_bp.pt));
 					if (arg != 0 && ok)
 						ok = execute_with_uniarg (arg, kill_whole_line, kill_line_backward);
 				}
 			}
 
-			deactivate_mark ();
+			cur_bp.mark_active = false;
 			return ok;
 		},
 		true,
@@ -239,12 +239,12 @@ Negative arg -N means kill N sexps before the cursor."""
 				return false;
 			}
 
-			if (warn_if_readonly_buffer ())
+			if (cur_bp.warn_if_readonly ())
 				return false;
 
 			funcall ("set-mark-command");
-			insert_estr (kill_ring_text);
-			deactivate_mark ();
+			cur_bp.insert_estr (kill_ring_text);
+			cur_bp.mark_active = false;
 			return true;
 		},
 		true,
