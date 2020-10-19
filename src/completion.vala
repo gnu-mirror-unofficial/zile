@@ -19,16 +19,19 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
+using Gee;
+
+
 using Lisp;
 
 public class Completion {
-	public string match;		/* The match buffer. */
-	public Buffer? old_bp;		/* The buffer from which the completion was invoked. */
-	public List<string> completions;	/* The completions list. */
-	public List<string> matches;		/* The matches list. */
-	public long matchsize;	/* The match buffer size. */
-	public Flags flags;			/* Completion flags. */
-	public string? path;		/* Path for a filename completion. */
+	public string match;				/* The match buffer. */
+	public Buffer? old_bp;				/* The buffer from which the completion was invoked. */
+	public SortedSet<string> completions;	/* The completions list. */
+	public SortedSet<string> matches;	/* The matches list. */
+	public long matchsize;				/* The match buffer size. */
+	public Flags flags;					/* Completion flags. */
+	public string? path;				/* Path for a filename completion. */
 
 	public enum Code {
 		notmatched,
@@ -45,8 +48,8 @@ public class Completion {
 	}
 
 	public Completion (bool fileflag) {
-		completions = new List<string> ();
-		matches = new List<string> ();
+		completions = new TreeSet<string> ();
+		matches = new TreeSet<string> ();
 
 		if (fileflag) {
 			path = "";
@@ -82,11 +85,11 @@ public class Completion {
 		term_redisplay ();
 	}
 
-	// FIXME: Use Gee.Traversable.map
-	static uint max_length (List<string> l) {
+	// FIXME: use Gee.Traversable.fold
+	static uint max_length (SortedSet<string> l) {
 		uint maxlen = 0;
-		for (uint i = 0; i < l.length (); i++)
-			maxlen = uint.max (l.nth_data (i).length, maxlen);
+		foreach (string s in l)
+			maxlen = uint.max (s.length, maxlen);
 		return maxlen;
 	}
 
@@ -95,7 +98,7 @@ public class Completion {
 		if (head_wp.next == null)
 			flags |= CLOSE;
 
-		unowned List<string> l = allflag ? completions : matches;
+		unowned SortedSet<string> l = allflag ? completions : matches;
 		write_temp_buffer (
 			"*Completions*", true,
 			() => {
@@ -104,8 +107,9 @@ public class Completion {
 				uint numcols = ((uint) cur_wp.ewidth - 1) / max;
 
 				bprintf ("Possible completions are:\n");
-				for (uint i = 0, col = 0; i < l.length (); i++) {
-					bprintf ("%-*s", (int) max, l.nth_data (i));
+				uint col = 0;
+				foreach (string s in l) {
+					bprintf ("%-*s", (int) max, s);
 
 					col = (col + 1) % numcols;
 					if (col == 0)
@@ -124,7 +128,7 @@ public class Completion {
 	 */
 	string? readdir (string in_path) {
 		string path = in_path;
-		completions = new List<string> ();
+		completions = new TreeSet<string> ();
 
 		if ((path = expand_path (path)) == null)
 			return null;
@@ -151,10 +155,9 @@ public class Completion {
 				string s = name;
 				if (FileUtils.test (p, FileTest.IS_DIR))
 					s += "/";
-				completions.append (s);
+				completions.add (s);
 			}
 		} catch (FileError err) { /* Ignore the error. */ }
-		completions.sort (strcmp);
 
 		this.path = compact_path (pdir);
 
@@ -166,15 +169,15 @@ public class Completion {
 	 */
 	public Code try (string in_search, bool popup_when_complete) {
 		string? search = in_search;
-		matches = new List<string> ();
+		matches = new TreeSet<string> ();
 
 		if (Flags.FILENAME in flags)
 			if ((search = readdir (search)) == null)
 				return Code.notmatched;
 
 		if (search.length == 0) {
-			match = completions.first ().data;
-			if (completions.length () > 1) {
+			match = completions.first ();
+			if (completions.size > 1) {
 				matchsize = 0;
 				popup_completion (true);
 				return Code.nonunique;
@@ -185,36 +188,34 @@ public class Completion {
 		}
 
 		size_t fullmatches = 0;
-		for (uint i = 0; i < completions.length (); i++) {
-			string s = completions.nth_data (i);
+		foreach (string s in completions) {
 			if (Posix.strncmp (s, search, search.length) == 0) {
-				matches.append (s);
+				matches.add (s);
 				if (s == search)
 					++fullmatches;
 			}
 		}
-		matches.sort (strcmp);
 
-		if (matches.length () == 0)
+		if (matches.size == 0)
 			return Code.notmatched;
-		else if (matches.length () == 1) {
-			match = matches.first ().data;
+		else if (matches.size == 1) {
+			match = matches.first ();
 			matchsize = match.length;
 			return Code.matched;
-		} else if (matches.length () > 1 && fullmatches == 1) {
-			match = matches.first ().data;
+		} else if (matches.size > 1 && fullmatches == 1) {
+			match = matches.first ();
 			matchsize = match.length;
 			if (popup_when_complete)
 				popup_completion (false);
 			return Code.matchednonunique;
 		}
 
-		for (uint j = search.length;; ++j) {
-			char c = matches.first ().data[j];
-			for (uint i = 1; i < matches.length (); ++i) {
-				if (matches.nth_data (i)[j] != c) {
-					match = matches.first ().data;
-					matchsize = j;
+		for (uint i = search.length;; ++i) {
+			char c = matches.first ()[i];
+			foreach (string s in matches) {
+				if (s[i] != c) {
+					match = matches.first ();
+					matchsize = i;
 					popup_completion (false);
 					return Code.nonunique;
 				}

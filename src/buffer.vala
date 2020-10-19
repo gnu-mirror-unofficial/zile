@@ -517,8 +517,7 @@ public class Buffer {
 	public static Completion make_buffer_completion () {
 		Completion cp = new Completion (false);
 		for (Buffer? bp = head_bp; bp != null; bp = bp.next)
-			cp.completions.append (bp.name);
-		cp.completions.sort (GLib.strcmp); // FIXME
+			cp.completions.add (bp.name);
 		return cp;
 	}
 

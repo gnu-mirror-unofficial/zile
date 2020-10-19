@@ -35,7 +35,7 @@ AX_CHECK_GNU_MAKE(,[AC_MSG_WARN([GNU make is required to build from Vala sources
 
 dnl Vala
 AM_PROG_VALAC(,,[AC_MSG_WARN([valac not found: cannot compile Vala sources])])
-PKG_CHECK_MODULES(GLIB, [glib-2.0 gobject-2.0 gio-2.0])
+PKG_CHECK_MODULES(GLIB, [glib-2.0 gobject-2.0 gio-2.0 gee-0.8])
 
 dnl help2man
 dnl Set a value even if not found, so that an invocation via build-aux/missing works

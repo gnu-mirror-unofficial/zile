@@ -105,9 +105,8 @@ bool get_variable_bool (string name) {
 string? minibuf_read_variable_name (string fmt, ...) {
 	Completion cp = new Completion (false);
 	main_vars.@foreach ((key, val) => {
-			cp.completions.append (val.name); // FIXME
+			cp.completions.add (val.name);
 		});
-	cp.completions.sort (strcmp);
 
 	return Minibuf.vread_completion (fmt, "", cp, null,
 									 "No variable name given",

@@ -141,15 +141,14 @@ namespace Minibuf {
 		Completion cp = new Completion (false);
 		int ret = -1;
 
-		cp.completions.append ("no");
-		cp.completions.append ("yes");
+		cp.completions.add ("no");
+		cp.completions.add ("yes");
 
 		string? ms = vread_completion (fmt, "", cp, null, errmsg, errmsg, va_list());
 
 		if (ms != null) {
-			unowned List<string> elem = cp.completions.find_custom (ms, GLib.strcmp);
-			GLib.assert (elem != null);
-			ret = elem.data == "yes" ? 1 : 0;
+			GLib.assert (cp.completions.contains (ms));
+			ret = ms == "yes" ? 1 : 0;
 		}
 
 		return ret;
@@ -183,7 +182,7 @@ namespace Minibuf {
 				if (cp.try (ms, false) == Completion.Code.matched)
 					ms = cp.match;
 
-				if (cp.completions.find_custom (ms, GLib.strcmp) != null) {
+				if (cp.completions.contains (ms)) {
 					if (hp != null)
 						hp.add_element (ms);
 					clear ();

@@ -60,7 +60,7 @@ $(srcdir)/src/estr.vapi: $(srcdir)/src_libestr_a_vala.stamp
 	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/src_libestr_a_vala.stamp; \
 	fi
 
-src_zile_VALAFLAGS = $(AM_VALAFLAGS) -D _REGEX_LARGE_OFFSETS --pkg config --pkg gio-2.0 --pkg posix --pkg curses --pkg gnu --pkg estr --pkg memrmem
+src_zile_VALAFLAGS = $(AM_VALAFLAGS) -D _REGEX_LARGE_OFFSETS --pkg config --pkg gee-0.8 --pkg gio-2.0 --pkg posix --pkg curses --pkg gnu --pkg estr --pkg memrmem
 src_zile_LDADD = $(LDADD) $(LIBOBJS) src/libestr.a
 
 src_zile_SOURCE_FILES =					\

@@ -142,9 +142,8 @@ string? minibuf_read_function_name (string fmt, ...) {
 
 	LispFunc.table.@foreach ((name, f) => {
 			if (f.interactive)
-				cp.completions.append (name);
+				cp.completions.add (name);
 		});
-	cp.completions.sort (strcmp); // FIXME: Move this inside Completion
 
 	return Minibuf.vread_completion (fmt, "", cp, functions_history,
 									 "No function name given",
