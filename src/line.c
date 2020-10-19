@@ -82,7 +82,7 @@ int
 fill_break_line (void)
 {
   long n;
-  if (!lisp_to_number (get_variable_bp (cur_bp, "fill-column"), &n) || n < 0)
+  if (!lisp_to_number (get_variable ("fill-column"), &n) || n < 0)
     {
       minibuf_error ("Wrong type argument: number-or-markerp, nil");
       return -1;
