@@ -232,15 +232,14 @@ bool isearch (bool forward, bool regexp) {
 /*
  * Check the case of a string.
  */
-// FIXME: Needs to take an ImmutableEstr
-Case check_case (string a) {
+Case check_case (ImmutableEstr a) {
 	uint i;
-	for (i = 0; i < a.length && a[i].isupper (); i++)
+	for (i = 0; i < a.length && a.text[i].isupper (); i++)
 		;
 	if (i == a.length)
 		return Case.upper;
 	else if (i == 1)
-		for (; i < a.length && !a[i].isupper (); i++)
+		for (; i < a.length && !a.text[i].isupper (); i++)
 			;
 	return i == a.length ? Case.capitalized : Case.lower;
 }
@@ -380,7 +379,7 @@ as a regexp.  See the command `isearch-forward-regexp` for more information."""
 					string case_repl = repl;
 					Region r = new Region (cur_bp.pt - find.length, cur_bp.pt);
 					if (find_no_upper && get_variable_bool ("case-replace")) {
-						Case case_type = check_case ((string) cur_bp.get_region (r).text);
+						Case case_type = check_case (cur_bp.get_region (r));
 						if (case_type != Case.lower)
 							repl = recase (repl, case_type);
 					}
