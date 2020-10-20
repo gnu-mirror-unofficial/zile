@@ -19,16 +19,16 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
+using Gee;
+
 using Curses;
 
-// Array<int?> is a trick; see https://stackoverflow.com/questions/55185378/why-doesnt-array-from-glib-work-with-int-in-vala
-// Fix is: https://gitlab.gnome.org/GNOME/vala/-/merge_requests/52
-static Array<uint?> key_buf;
+static Gee.List<uint> key_buf;
 
 static uint backspace_code = 0177;
 
 public uint term_buf_len () {
-	return key_buf.length;
+	return key_buf.size;
 }
 
 public void term_move (size_t y, size_t x) {
@@ -84,7 +84,7 @@ public void term_init () {
 	stdscr.meta (true);
 	stdscr.intrflush (false);
 	stdscr.keypad (true);
-	key_buf = new Array<int?> ();
+	key_buf = new ArrayList<uint> ();
 	unowned string? kbs = tigetstr ("kbs");
 	if (kbs != null && kbs.length == 1)
 		backspace_code = kbs[0];
@@ -189,20 +189,19 @@ static uint codetokey (uint c) {
     }
 }
 
-static Array<uint?> keytocodes (uint key) {
-	// See key_buf for reason for Array<uint?>
-	var codevec = new Array<uint?> ();
+static Gee.List<uint> keytocodes (uint key) {
+	var codevec = new ArrayList<uint> ();
 
 	if (key == KBD_NOKEY)
 		return codevec;
 
 	if ((key & KBD_META) != 0)		/* META */
-		codevec.append_val (033);
+		codevec.add (033);
 	key &= ~KBD_META;
 
 	switch (key) {
     case KBD_CTRL | '@':			/* C-@ */
-		codevec.append_val ('\0');
+		codevec.add ('\0');
 		break;
     case KBD_CTRL | 'a':
     case KBD_CTRL | 'b':
@@ -228,89 +227,89 @@ static Array<uint?> keytocodes (uint key) {
     case KBD_CTRL | 'x':
     case KBD_CTRL | 'y':
     case KBD_CTRL | 'z':	/* C-a ... C-z */
-		codevec.append_val ((key & ~KBD_CTRL) + 1 - 'a');
+		codevec.add ((key & ~KBD_CTRL) + 1 - 'a');
 		break;
     case KBD_TAB:
-		codevec.append_val (011);
+		codevec.add (011);
 		break;
     case KBD_RET:
-		codevec.append_val (015);
+		codevec.add (015);
 		break;
     case KBD_CTRL | '_':
-		codevec.append_val (037);
+		codevec.add (037);
 		break;
     case KBD_PGUP:		/* PGUP */
-		codevec.append_val (Key.PPAGE);
+		codevec.add (Key.PPAGE);
 		break;
     case KBD_PGDN:		/* PGDN */
-		codevec.append_val (Key.NPAGE);
+		codevec.add (Key.NPAGE);
 		break;
     case KBD_HOME:
-		codevec.append_val (Key.HOME);
+		codevec.add (Key.HOME);
 		break;
     case KBD_END:
-		codevec.append_val (Key.END);
+		codevec.add (Key.END);
 		break;
     case KBD_DEL:		/* DEL */
-		codevec.append_val (Key.DC);
+		codevec.add (Key.DC);
 		break;
     case KBD_BS:		/* BS */
-		codevec.append_val (0177);
+		codevec.add (0177);
 		break;
     case KBD_INS:		/* INSERT */
-		codevec.append_val (Key.IC);
+		codevec.add (Key.IC);
 		break;
     case KBD_LEFT:
-		codevec.append_val (Key.LEFT);
+		codevec.add (Key.LEFT);
 		break;
     case KBD_RIGHT:
-		codevec.append_val (Key.RIGHT);
+		codevec.add (Key.RIGHT);
 		break;
     case KBD_UP:
-		codevec.append_val (Key.UP);
+		codevec.add (Key.UP);
 		break;
     case KBD_DOWN:
-		codevec.append_val (Key.DOWN);
+		codevec.add (Key.DOWN);
 		break;
     case KBD_F1:
-		codevec.append_val (Key.F (1));
+		codevec.add (Key.F (1));
 		break;
     case KBD_F2:
-		codevec.append_val (Key.F (2));
+		codevec.add (Key.F (2));
 		break;
     case KBD_F3:
-		codevec.append_val (Key.F (3));
+		codevec.add (Key.F (3));
 		break;
     case KBD_F4:
-		codevec.append_val (Key.F (4));
+		codevec.add (Key.F (4));
 		break;
     case KBD_F5:
-		codevec.append_val (Key.F (5));
+		codevec.add (Key.F (5));
 		break;
     case KBD_F6:
-		codevec.append_val (Key.F (6));
+		codevec.add (Key.F (6));
 		break;
     case KBD_F7:
-		codevec.append_val (Key.F (7));
+		codevec.add (Key.F (7));
 		break;
     case KBD_F8:
-		codevec.append_val (Key.F (8));
+		codevec.add (Key.F (8));
 		break;
     case KBD_F9:
-		codevec.append_val (Key.F (9));
+		codevec.add (Key.F (9));
 		break;
     case KBD_F10:
-		codevec.append_val (Key.F (10));
+		codevec.add (Key.F (10));
 		break;
     case KBD_F11:
-		codevec.append_val (Key.F (11));
+		codevec.add (Key.F (11));
 		break;
     case KBD_F12:
-		codevec.append_val (Key.F (12));
+		codevec.add (Key.F (12));
 		break;
     default:
 		if ((key & 0xff) == key)
-			codevec.append_val (key);
+			codevec.add (key);
 		break;
     }
 
@@ -322,8 +321,8 @@ static uint get_char (int delay) {
 
 	uint size = term_buf_len ();
 	if (size > 0) {
-		c = key_buf.index (size - 1);
-		key_buf.remove_index (size - 1);
+		c = key_buf[(int) size - 1];
+		key_buf.remove_at ((int) size - 1);
     } else {
 		timeout (delay);
 
@@ -353,7 +352,7 @@ public uint term_getkey_unfiltered (int delay) {
 }
 
 public void term_ungetkey (uint key) {
-	Array<uint?> codes = keytocodes (key);
-	for (uint i = codes.length; i > 0; i--)
-		key_buf.append_val (codes.index (i - 1));
+	Gee.List<uint> codes = keytocodes (key);
+	for (int i = codes.size; i > 0; i--)
+		key_buf.add (codes[i - 1]);
 }

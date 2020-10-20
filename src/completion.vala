@@ -85,12 +85,10 @@ public class Completion {
 		term_redisplay ();
 	}
 
-	// FIXME: use Gee.Traversable.fold
-	static uint max_length (SortedSet<string> l) {
-		uint maxlen = 0;
-		foreach (string s in l)
-			maxlen = uint.max (s.length, maxlen);
-		return maxlen;
+	static uint max_length (Traversable<string> l) {
+		return l.fold<uint> ((s, maxlen) => {
+				return uint.max (s.length, maxlen);
+			}, 0U);
 	}
 
 	void popup_completion (bool allflag) {

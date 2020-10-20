@@ -19,13 +19,15 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
+using Gee;
+
 using Lisp;
 
 class Macro {
-	public Array<uint?> keys;	/* List of keystrokes. */
+	public Gee.List<uint> keys;	/* List of keystrokes. */
 
 	public Macro () {
-		this.keys = new Array<uint?> ();
+		this.keys = new ArrayList<uint> ();
 	}
 }
 
@@ -34,8 +36,7 @@ static Macro? cmd_mp = null;
 
 public void add_cmd_to_macro () {
 	assert (cmd_mp != null);
-	for (uint i = 0; i < cmd_mp.keys.length; i++)
-		cur_mp.keys.append_val (cmd_mp.keys.index (i));
+	cur_mp.keys.add_all (cmd_mp.keys);
 	cmd_mp = null;
 }
 
@@ -43,12 +44,12 @@ public void add_key_to_cmd (uint key) {
 	if (cmd_mp == null)
 		cmd_mp = new Macro ();
 
-	cur_mp.keys.append_val (key);
+	cur_mp.keys.add (key);
 }
 
 public void remove_key_from_cmd () {
 	assert (cmd_mp != null);
-	cmd_mp.keys.remove_index (cmd_mp.keys.length - 1);
+	cmd_mp.keys.remove_at (cmd_mp.keys.size - 1);
 }
 
 public void cancel_kbd_macro () {
@@ -56,16 +57,16 @@ public void cancel_kbd_macro () {
 	thisflag &= ~Flags.DEFINING_MACRO;
 }
 
-void process_keys (Array<uint?> keys) {
+void process_keys (Gee.List<uint> keys) {
 	size_t cur = term_buf_len ();
-	for (uint i = 0; i < keys.length; i++)
-		pushkey (keys.index (keys.length - i - 1));
+	for (uint i = 0; i < keys.size; i++)
+		pushkey (keys.@get ((int) (keys.size - i - 1)));
 
 	while (term_buf_len () > cur)
 		get_and_run_command ();
 }
 
-static Array<uint?> macro_keys;
+static Gee.List<uint> macro_keys;
 
 // FIXME: Make this a delegate
 bool call_macro () {
@@ -139,7 +140,7 @@ public void macro_init () {
 		"execute-kbd-macro",
 		(uniarg, arglist) => {
 			string? keystr = str_init (ref arglist);
-			Array<uint?>? keys = keystrtovec (keystr);
+			Gee.List<uint>? keys = keystrtovec (keystr);
 			if (keys == null)
 				return false;
 

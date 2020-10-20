@@ -19,6 +19,8 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
+using Gee;
+
 /*
  * Convert a key chord into its ASCII representation
  */
@@ -245,14 +247,14 @@ uint strtochord (string buf, out uint len) {
  * Convert a key sequence string into a key code sequence, or null if
  * it can't be converted.
  */
-Array<uint?>? keystrtovec (string key)
+Gee.List<uint>? keystrtovec (string key)
 {
-	Array<uint?> keys = new Array<uint?> ();
+	var keys = new ArrayList<uint> ();
 	for (uint i = 0, len = 0; i < key.length; i += len) {
 		uint code = strtochord (key.substring (i), out len);
 		if (code == KBD_NOKEY)
 			return null;
-		keys.append_val (code);
+		keys.add (code);
 	}
 
 	return keys;
@@ -261,15 +263,9 @@ Array<uint?>? keystrtovec (string key)
 /*
  * Convert a key code sequence into a descriptive string.
  */
-string keyvectodesc (Array<uint?> keys) {
-	string a = "";
-
-	for (uint i = 0; i < keys.length; i++) {
-		string key = chordtodesc ((size_t) keys.index (i));
-		a += key;
-		if (i < keys.length - 1)
-			a += " ";
-    }
-
-	return a;
+string keyvectodesc (Gee.List<uint> keys) {
+	var key_strings = new string[0];
+	foreach (uint keycode in keys)
+		key_strings += chordtodesc ((size_t) keycode);
+	return string.joinv (" ", key_strings);
 }

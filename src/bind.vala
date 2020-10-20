@@ -19,68 +19,65 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
+using Gee;
 using Lisp;
 
 /*--------------------------------------------------------------------------
  * Key binding.
  *--------------------------------------------------------------------------*/
 
-public class Binding {
-	public size_t key; /* The key code (for every level except the root). */
-	public LispFunc? func; /* The function for this key (if a leaf node). */
+// FIXME:
+// public struct Key : size_t {};
+// public struct KeySequence : Gee.List<uint> {};
 
-	/* Branch Array. FIXME: make a hash table. */
-	public Array<Binding> vec;
+public class Binding {
+	public LispFunc? func;			/* (Leaf node): the function. */
+	public Map<uint, Binding>? map;	/* (Other node): Map of key code to Binding. */
+	/* Note: the root is always a non-leaf node. */
 
 	public Binding () {
-		this.vec = new Array<Binding> ();
+		map = new TreeMap<uint, Binding> ();
+	}
+
+	public Binding? find (Gee.List<uint> keys) {
+		if (keys.size == 0) {
+			/* No more keys: either we found a binding, or we're part-way
+			 * through a prefix. */
+			assert (func != null || map != null);
+			return this;
+		} else {
+			assert (map != null);
+			Binding p = map.@get (keys.first ());
+			return p == null ? null : p.find (keys[1 : keys.size]);
+		}
+	}
+
+	public void bind (Gee.List<uint> keys, LispFunc func) {
+		/* If we are on the last keystroke, insert the function. */
+		if (keys.size == 0) {
+			map = null; /* Erase any previous suffixes. */
+			this.func = func;
+			return;
+		}
+
+		Binding? branch = map.@get (keys.first ());
+
+		/* If this is part of a new prefix, add a new branch. */
+		if (branch == null) {
+			branch = new Binding ();
+			map.@set (keys.first (), branch);
+		} else
+			/* Erase any previous binding the current key might have had. */
+			branch.func = null;
+
+		/* We have more keystrokes: recurse. */
+		branch.bind (keys[1 : keys.size], func);
 	}
 }
 
 Binding root_bindings;
 
-Binding? search_node (Binding tree, uint key) {
-	for (uint i = 0; i < tree.vec.length; ++i)
-		if (tree.vec.index (i).key == key)
-			return tree.vec.index (i);
-
-	return null;
-}
-
-void bind_key_vec (Binding tree, Array<uint?> keys, uint from, LispFunc func) {
-	Binding? s = search_node (tree, keys.index (from));
-	uint n = keys.length - from;
-
-	if (s == null) {
-		Binding p = new Binding ();
-		p.key = keys.index (from);
-
-		/* Erase any previous binding the current key might have had in case
-		   it was non-prefix and is now being made prefix. */
-		tree.func = null;
-		tree.vec.append_val (p);
-
-		if (n == 1)
-			p.func = func;
-		else if (n > 1)
-			bind_key_vec (p, keys, from + 1, func);
-	} else if (n > 1)
-		bind_key_vec (s, keys, from + 1, func);
-	else
-		s.func = func;
-}
-
-Binding? search_key (Binding tree, Array<uint?> keys, uint from) {
-	Binding? p = search_node (tree, keys.index (from));
-	if (p == null)
-		return null;
-	else if (keys.length - from == 1)
-		return p;
-	else
-		return search_key (p, keys, from + 1);
-}
-
-public uint do_binding_completion (string a) {
+public uint binding_completion (string a) {
 	string b = "";
 
 	if (Flags.SET_UNIARG in lastflag) {
@@ -105,37 +102,35 @@ public uint do_binding_completion (string a) {
 
 /* Get a key sequence from the keyboard; the sequence returned
    has at most the last stroke unbound. */
-Array<uint?> get_key_sequence () {
-	var keys = new Array<uint?> ();
+Gee.List<uint> get_key_sequence () {
+	var keys = new Gee.ArrayList<uint> ();
 	uint key = 0;
 
 	do
 		key = (uint) getkey (GETKEY_DEFAULT);
 	while (key == KBD_NOKEY);
-	keys.append_val ((uint) key);
+	keys.add ((uint) key);
 	for (;;) {
-		Binding p = search_key (root_bindings, keys, 0);
+		Binding p = root_bindings.find (keys);
 		if (p == null || p.func != null)
 			break;
-		string a = keyvectodesc (keys);
-		keys.append_val ((uint) do_binding_completion (a));
+		keys.add (binding_completion (keyvectodesc (keys)));
 	}
 
 	return keys;
 }
 
-LispFunc get_function_by_keys (Array<uint?> keys)
-{
+public LispFunc get_function_by_keys (Gee.List<uint> keys) {
 	/* Detect Meta-digit */
-	if (keys.length == 1) {
-		uint key = keys.index (0);
+	if (keys.size == 1) {
+		uint key = keys.@get (0);
 		if ((key & KBD_META) != 0 &&
 			(((char) (key & 0xff)).isdigit () || (char) (key & 0xff) == '-'))
 			return LispFunc.find ("universal-argument");
 	}
 
 	/* See if we've got a valid key sequence */
-	Binding? p = search_key (root_bindings, keys, 0);
+	Binding? p = root_bindings.find (keys);
 	return p != null ? p.func : null;
 }
 
@@ -193,7 +188,7 @@ bool call_command (LispFunc f, long uniarg, Lexp *branch) {
 }
 
 void get_and_run_command () {
-	Array<uint?> keys = get_key_sequence ();
+	Gee.List<uint> keys = get_key_sequence ();
 	LispFunc f = get_function_by_keys (keys);
 
 	Minibuf.clear ();
@@ -208,10 +203,10 @@ public void init_default_bindings () {
 
 	/* Bind all printing keys to self_insert_command */
 	for (uint i = 0; i <= 0xff; i++) {
-		var keys = new Array<uint?> ();
 		if (((char) i).isprint ()) {
-			keys.append_val (i);
-			bind_key_vec (root_bindings, keys, 0, LispFunc.find ("self-insert-command"));
+			var keys = new Gee.ArrayList<uint> ();
+			keys.add (i);
+			root_bindings.bind (keys, LispFunc.find ("self-insert-command"));
 		}
 	}
 
@@ -221,26 +216,22 @@ public void init_default_bindings () {
 delegate void BindingsProcessor (string key, Binding p);
 delegate void BindingsWalker (Binding tree);
 void walk_bindings (BindingsProcessor process) {
-	var keys = new Array<string> ();
+	/* FIXME: Use a container rather than a primitive array to work around
+	 * https://gitlab.gnome.org/GNOME/vala/-/issues/1090 */
+	var keys = new ArrayList<string> ();
 	BindingsWalker walker = null;
 	walker = (tree) => {
-		for (uint i = 0; i < tree.vec.length; ++i) {
-			Binding p = tree.vec.index (i);
+		assert (tree.map != null);
+		foreach (uint key in tree.map.keys) {
+			Binding p = tree.map.@get (key);
 			assert (p != null);
 
-			if (p.func != null) {
-				string key = "";
-				for (uint j = 0; j < keys.length; j++)
-					key += keys.index (j) + " ";
-				key += chordtodesc (p.key);
-				process (key, p);
-			} else {
-				// FIXME: would like to pass keys as a Vala array by value,
-				// but Vala does not support this:
-				// https://gitlab.gnome.org/GNOME/vala/-/issues/931
-				keys.append_val (chordtodesc (p.key));
+			if (p.func != null)
+				process (string.joinv (" ", keys.to_array ()), p);
+			else {
+				keys.add (chordtodesc (key));
 				walker (p);
-				keys.remove_index (keys.length - 1);
+				keys.remove_at (keys.size - 1);
 			}
 		}
 	};
@@ -253,7 +244,7 @@ public void bind_init () {
 	new LispFunc (
 		"global-set-key",
 		(uniarg, arglist) => {
-			Array<uint?>? keys;
+			Gee.List<uint>? keys;
 			string keystr = str_init (ref arglist);
 			if (keystr != null) {
 				keys = keystrtovec (keystr);
@@ -278,7 +269,7 @@ public void bind_init () {
 				Minibuf.error ("No such function `%s'", name);
 				return false;
 			}
-			bind_key_vec (root_bindings, keys, 0, func);
+			root_bindings.bind (keys, func);
 			return true;
 		},
 		true,

@@ -501,7 +501,7 @@ This is useful for inserting control characters."""
 			thisflag |= Flags.UNIARG_EMPTY;
 
 			for (;;) {
-				uint key = do_binding_completion (a);
+				uint key = binding_completion (a);
 
 				/* Cancelled. */
 				if (key == KBD_CANCEL) {

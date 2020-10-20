@@ -89,7 +89,7 @@ public void help_init () {
 
 			string? keystr = str_init (ref arglist);
 			if (keystr != null) {
-				Array<uint?>? keys = keystrtovec (keystr);
+				Gee.List<uint>? keys = keystrtovec (keystr);
 				if (keys != null) {
 					name = get_function_by_keys (keys).name;
 					binding = keyvectodesc (keys);
@@ -97,7 +97,7 @@ public void help_init () {
 					ok = false;
 			} else {
 				Minibuf.write ("Describe key:");
-				Array<uint?> keys = get_key_sequence ();
+				Gee.List<uint> keys = get_key_sequence ();
 				name = get_function_by_keys (keys).name;
 				binding = keyvectodesc (keys);
 
