@@ -21,10 +21,6 @@
 
 using Lisp;
 
-public size_t get_goalc () {
-	return cur_bp.get_goalc (cur_bp.pt);
-}
-
 public bool previous_line () {
 	return cur_bp.move_line (-1);
 }
@@ -64,7 +60,6 @@ public void basic_init () {
 		"beginning-of-line",
 		(uniarg, arglist) => {
 			cur_bp.goto_offset (cur_bp.line_o ());
-			cur_bp.goalc = 0;
 			return true;
 		},
 		true,

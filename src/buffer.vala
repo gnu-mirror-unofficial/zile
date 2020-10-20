@@ -55,6 +55,7 @@ public class Buffer {
 				text.set (value + gap - size_t.min (value - _pt, gap), '\0', size_t.min (value - _pt, gap));
 			}
 			_pt = value;
+			goalc = calculate_goalc (_pt);
 		}
 	}
 	private Estr text;			/* The text. */
@@ -168,6 +169,7 @@ public class Buffer {
 		/* Insert `newlen' chars, and adjust raw point position `_pt'. */
 		text.replace (pt, es);
 		_pt += newlen;
+		goalc = calculate_goalc (_pt);
 
 		/* Adjust markers. */
 		for (Marker? m = markers; m != null; m = m.next)
@@ -566,9 +568,9 @@ public class Buffer {
 	}
 
 	/*
-	 * Get the goal column.  Take care of expanding tabulations.
+	 * Calculate the goal column.  Take care of expanding tabulations.
 	 */
-	public size_t get_goalc (size_t o) {
+	public size_t calculate_goalc (size_t o) {
 		size_t col = 0, t = tab_width ();
 		size_t start = start_of_line (o), end = o - start;
 
@@ -607,18 +609,17 @@ public class Buffer {
 			func = prev_line;
 		}
 
-		if (last_command () != LispFunc.find ("next-line") &&
-			last_command () != LispFunc.find ("previous-line"))
-			goalc = get_goalc (pt);
-
+		size_t save_goalc = goalc;
 		for (; n > 0; n--) {
 			size_t o = func (pt);
 			if (o == size_t.MAX)
 				break;
 			pt = o;
 		}
+		goalc = save_goalc;
 
 		goto_goalc ();
+		goalc = save_goalc;
 		thisflag |= Flags.NEED_RESYNC;
 
 		return n == 0;
@@ -721,10 +722,8 @@ public class Buffer {
 	public void goto_offset (size_t o) {
 		size_t old_lineo = line_o ();
 		pt = o;
-		if (line_o () != old_lineo) {
-			goalc = get_goalc (pt);
+		if (line_o () != old_lineo)
 			thisflag |= Flags.NEED_RESYNC;
-		}
 	}
 }
 

@@ -23,7 +23,7 @@ using Lisp;
 
 void insert_expanded_tab () {
 	size_t t = cur_bp.tab_width ();
-	bprintf ("%*s", (int) (t - get_goalc () % t), "");
+	bprintf ("%*s", (int) (t - cur_bp.goalc % t), "");
 }
 
 bool insert_tab () {
@@ -65,7 +65,7 @@ int fill_break_line () {
 	int break_made = 0;
 
 	/* Only break if we're beyond fill-column. */
-	if (get_goalc () > fillcol) {
+	if (cur_bp.goalc > fillcol) {
 		size_t break_col = 0;
 
 		/* Save point. */
@@ -73,7 +73,7 @@ int fill_break_line () {
 
 		/* Move cursor back to fill column */
 		size_t old_col = cur_bp.pt - cur_bp.line_o ();
-		while (cur_bp.get_goalc (cur_bp.pt) > fillcol + 1)
+		while (cur_bp.goalc > fillcol + 1)
 			cur_bp.move_char (-1);
 
 		/* Find break point moving left from fill-column. */
@@ -128,16 +128,16 @@ void bprintf (string fmt, ...) {
                          Indentation command
 ***********************************************************************/
 /*
- * Go to cur_goalc () in the previous non-blank line.
+ * Go to cur_bp.goalc in the previous non-blank line.
  */
 void previous_nonblank_goalc () {
-	size_t cur_goalc = get_goalc ();
+	size_t cur_goalc = cur_bp.goalc;
 
 	/* Find previous non-blank line. */
 	while (funcall ("forward-line", -1) && cur_bp.is_blank_line ());
 
 	/* Go to `cur_goalc' in that non-blank line. */
-	while (!cur_bp.eolp () && get_goalc () < cur_goalc)
+	while (!cur_bp.eolp () && cur_bp.goalc < cur_goalc)
 		cur_bp.move_char (1);
 }
 
@@ -156,7 +156,7 @@ size_t previous_line_indent () {
 	while (!cur_bp.eolp () && (cur_bp.following_char ().isspace ()))
 		cur_bp.move_char (1);
 
-	cur_indent = get_goalc ();
+	cur_indent = cur_bp.goalc;
 
 	/* Restore point. */
 	cur_bp.goto_offset (m.o);
@@ -259,7 +259,7 @@ the current buffer."""
 	new LispFunc (
 		"indent-relative",
 		(uniarg, arglist) => {
-			size_t target_goalc = 0, cur_goalc = get_goalc ();
+			size_t target_goalc = 0, cur_goalc = cur_bp.goalc;
 			size_t t = cur_bp.tab_width ();
 
 			bool ok = false;
@@ -270,16 +270,14 @@ the current buffer."""
 			cur_bp.mark_active = false;
 
 			/* If we're on the first line, set target to 0. */
-			if (cur_bp.line_o () == 0)
-				target_goalc = 0;
-			else {
+			if (cur_bp.line_o () != 0) {
 				/* Find goalc in previous non-blank line. */
 				Marker m = Marker.point ();
 
 				previous_nonblank_goalc ();
 
 				/* Now find the next blank char. */
-				if (!(cur_bp.preceding_char () == '\t' && get_goalc () > cur_goalc))
+				if (!(cur_bp.preceding_char () == '\t' && cur_bp.goalc > cur_goalc))
 					while (!cur_bp.eolp () && (!cur_bp.following_char ().isspace ()))
 						cur_bp.move_char (1);
 
@@ -289,7 +287,7 @@ the current buffer."""
 
 				/* Target column. */
 				if (!cur_bp.eolp ())
-					target_goalc = get_goalc ();
+					target_goalc = cur_bp.goalc;
 
 				cur_bp.goto_offset (m.o);
 				m.unchain ();
@@ -299,14 +297,13 @@ the current buffer."""
 			if (target_goalc > 0) {
 				/* If not at EOL on target line, insert spaces & tabs up to
 				   target_goalc; if already at EOL on target line, insert a tab. */
-				cur_goalc = get_goalc ();
-				if (cur_goalc < target_goalc) {
+				if (cur_bp.goalc < target_goalc) {
 					do {
-						if (cur_goalc % t == 0 && cur_goalc + t <= target_goalc)
+						if (cur_bp.goalc % t == 0 && cur_bp.goalc + t <= target_goalc)
 							ok = insert_tab ();
 						else
 							ok = cur_bp.insert_char (' ');
-					} while (ok && (cur_goalc = get_goalc ()) < target_goalc);
+					} while (ok && cur_bp.goalc < target_goalc);
 				} else
 					ok = insert_tab ();
 			} else
@@ -329,7 +326,7 @@ does nothing."""
 		(uniarg, arglist) => {
 			if (get_variable_bool ("tab-always-indent"))
 				return insert_tab ();
-			else if (get_goalc () < previous_line_indent ())
+			else if (cur_bp.goalc < previous_line_indent ())
 				return funcall ("indent-relative");
 			return true;
 		},
@@ -355,7 +352,7 @@ the indentation.  Else stay at same point in text."""
 
 				/* Check where last non-blank goalc is. */
 				previous_nonblank_goalc ();
-				size_t pos = get_goalc ();
+				size_t pos = cur_bp.goalc;
 				bool indent = pos > 0 || (!cur_bp.eolp () && cur_bp.following_char ().isspace ());
 				cur_bp.goto_offset (m.o);
 				m.unchain ();

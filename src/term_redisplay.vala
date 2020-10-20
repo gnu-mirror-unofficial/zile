@@ -115,7 +115,7 @@ static void draw_status_line (size_t line, Window wp) {
 	string a = "--%s%2s  %-15s   %s %-9s (Fundamental".printf (
 		eol_type, make_mode_line_flags (wp), wp.bp.name,
 		make_screen_pos (wp), "(%zu,%zu)".printf (
-			n + 1, wp.bp.get_goalc (wp.o ())
+			n + 1, wp.bp.calculate_goalc (wp.o ())
 			)
 		);
 
