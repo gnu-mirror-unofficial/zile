@@ -21,14 +21,6 @@
 
 using Lisp;
 
-public bool previous_line () {
-	return cur_bp.move_line (-1);
-}
-
-public bool next_line () {
-	return cur_bp.move_line (1);
-}
-
 bool scroll_down () {
 	if (!cur_wp.top_visible ())
 		return cur_bp.move_line (-(long) cur_wp.eheight);

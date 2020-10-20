@@ -726,7 +726,10 @@ Precisely, if point is on line I, move to the start of line I + N."""
 	new LispFunc (
 		"backward-paragraph",
 		(uniarg, arglist) => {
-			return move_paragraph (uniarg, previous_line, next_line, LispFunc.find ("beginning-of-line").func);
+			return move_paragraph (uniarg,
+								   () => { return cur_bp.move_line (-1); },
+								   () => { return cur_bp.move_line (1); },
+								   LispFunc.find ("beginning-of-line").func);
 		},
 		true,
 		"""Move backward to start of paragraph.  With argument N, do it N times."""
@@ -735,7 +738,10 @@ Precisely, if point is on line I, move to the start of line I + N."""
 	new LispFunc (
 		"forward-paragraph",
 		(uniarg, arglist) => {
-			return move_paragraph (uniarg, next_line, previous_line, LispFunc.find ("end-of-line").func);
+			return move_paragraph (uniarg,
+							       () => { return cur_bp.move_line (1); },
+								   () => { return cur_bp.move_line (-1); },
+								   LispFunc.find ("end-of-line").func);
 		},
 		true,
 		"""Move forward to end of paragraph.  With argument N, do it N times."""
@@ -768,13 +774,13 @@ The paragraph marked is the one that contains point or follows point."""
 
 			funcall ("forward-paragraph");
 			if (cur_bp.is_empty_line ())
-				previous_line ();
+				cur_bp.move_line (-1);
 			Marker m_end = Marker.point ();
 
 			funcall ("backward-paragraph");
 			if (cur_bp.is_empty_line ())
 				/* Move to next line if between two paragraphs. */
-				next_line ();
+				cur_bp.move_line (1);
 
 			while (cur_bp.end_of_line (cur_bp.pt) < m_end.o) {
 				funcall ("end-of-line");

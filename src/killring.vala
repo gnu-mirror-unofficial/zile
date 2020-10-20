@@ -90,7 +90,7 @@ bool kill_whole_line () {
 }
 
 bool kill_line_backward () {
-	return previous_line () && kill_whole_line ();
+	return cur_bp.move_line (-1) && kill_whole_line ();
 }
 
 bool copy_or_kill_the_region (bool kill) {
