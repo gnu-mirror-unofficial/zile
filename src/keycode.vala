@@ -21,6 +21,41 @@
 
 using Gee;
 
+/* Special value returned for invalid key codes, or when no key is pressed. */
+public const int KBD_NOKEY = int.MAX;
+
+/* Key modifiers. */
+public const int KBD_CTRL = 01000;
+public const int KBD_META = 02000;
+
+/* Common non-alphanumeric keys. */
+public const int KBD_CANCEL = (KBD_CTRL | 'g');
+public const int KBD_TAB = 00402;
+public const int KBD_RET = 00403;
+public const int KBD_PGUP = 00404;
+public const int KBD_PGDN = 00405;
+public const int KBD_HOME = 00406;
+public const int KBD_END = 00407;
+public const int KBD_DEL = 00410;
+public const int KBD_BS = 00411;
+public const int KBD_INS = 00412;
+public const int KBD_LEFT = 00413;
+public const int KBD_RIGHT = 00414;
+public const int KBD_UP = 00415;
+public const int KBD_DOWN = 00416;
+public const int KBD_F1 = 00420;
+public const int KBD_F2 = 00421;
+public const int KBD_F3 = 00422;
+public const int KBD_F4 = 00423;
+public const int KBD_F5 = 00424;
+public const int KBD_F6 = 00425;
+public const int KBD_F7 = 00426;
+public const int KBD_F8 = 00427;
+public const int KBD_F9 = 00430;
+public const int KBD_F10 = 00431;
+public const int KBD_F11 = 00432;
+public const int KBD_F12 = 00433;
+
 /*
  * Convert a key chord into its ASCII representation
  */

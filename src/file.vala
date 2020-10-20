@@ -325,6 +325,7 @@ bool save_buffer (Buffer bp) {
  * If doabort is true, aborts to allow core dump generation;
  * otherwise, exit.
  */
+const int EXIT_CRASH = 2;
 public void zile_exit (bool doabort) {
 	Posix.stderr.printf ("Trying to save modified buffers (if any)...\r\n");
 	for (Buffer? bp = head_bp; bp != null; bp = bp.next)

@@ -70,7 +70,6 @@ src_zile_SOURCE_FILES =					\
 	src/bind.vala					\
 	src/buffer.vala					\
 	src/completion.vala				\
-	src/constants.vala				\
 	src/eval.vala					\
 	src/file.vala					\
 	src/funcs.vala					\

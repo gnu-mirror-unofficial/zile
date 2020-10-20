@@ -19,6 +19,11 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
+/* Zile font codes */
+const int FONT_NORMAL = 0000;
+const int FONT_REVERSE = 0001;
+const int FONT_UNDERLINE = 0002;
+
 string make_char_printable (char c, size_t x, size_t cur_tab_width) {
 	if (c == '\t')
 		return "%*s".printf ((int) (cur_tab_width - x % cur_tab_width), "");

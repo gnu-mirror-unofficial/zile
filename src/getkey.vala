@@ -19,6 +19,10 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
+/* Standard pauses in ds */
+public const int GETKEY_DEFAULT = -1;
+public const int GETKEY_DELAYED = 2000;
+
 /* Maximum time to avoid screen updates when catching up with buffered
    input, in milliseconds. */
 const int MAX_RESYNC_MS = 500;
