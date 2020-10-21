@@ -19,8 +19,6 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
-using Lisp;
-
 public delegate bool MovementDelegate ();
 [CCode (instance_pos=0)]
 public delegate bool MovementNDelegate (long uniarg);
@@ -54,60 +52,6 @@ public class LispFunc {
 	}
 }
 
-
-public Lexp *leNIL;
-public Lexp *leT;
-
-size_t countNodes (Lexp *branch) {
-	int count;
-	for (count = 0; branch != null; branch = branch->next, count++)
-		;
-	return count;
-}
-
-Lexp *evaluateBranch (Lexp * trybranch) {
-	if (trybranch == null)
-		return null;
-
-	Lexp *keyword;
-	if (trybranch->branch != null)
-		keyword = evaluateBranch (trybranch->branch);
-	else
-		keyword = new Lexp (trybranch->data);
-
-	if (keyword->data == null)
-		return leNIL;
-
-	LispFunc? func = LispFunc.find (keyword->data);
-	if (func != null)
-		return call_command (func, 1, trybranch) ? leT : leNIL;
-
-	return null;
-}
-
-Lexp *evaluateNode (Lexp * node) {
-	Lexp *value;
-
-	if (node == null)
-		return leNIL;
-
-	if (node->branch != null) {
-		if (node->quoted != 0)
-			value = leDup (node->branch);
-		else
-			value = evaluateBranch (node->branch);
-    } else {
-		string? s = get_variable (node->data);
-		value = new Lexp (s != null ? s : node->data);
-    }
-
-	return value;
-}
-
-public void leEval (Lexp *list) {
-	for (; list != null; list = list->next)
-		evaluateBranch (list->branch);
-}
 
 public bool execute_with_uniarg (long uniarg, MovementDelegate forward, MovementDelegate? backward) {
 	if (backward != null && uniarg < 0) {
@@ -157,9 +101,9 @@ public void eval_init () {
 	new LispFunc (
 		"setq",
 		(uniarg, arglist) => {
-			if (arglist != null && countNodes (arglist) >= 2) {
+			if (arglist != null && arglist->countNodes () >= 2) {
 				for (Lexp *current = arglist->next; current != null; current = current->next->next) {
-					set_variable (current->data, evaluateNode (current->next)->data);
+					set_variable (current->data, Lexp.evaluateNode (current->next)->data);
 					if (current->next == null)
 						break; /* Cope with odd-length argument lists. */
 				}

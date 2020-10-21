@@ -19,8 +19,6 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
-using Lisp;
-
 void insert_expanded_tab () {
 	size_t t = cur_bp.tab_width ();
 	bprintf ("%*s", (int) (t - cur_bp.goalc % t), "");
@@ -55,8 +53,8 @@ bool intercalate_newline ()
  * Return flag indicating whether break was made.
  */
 int fill_break_line () {
-	long n;
-	if (!lisp_to_number (cur_bp.get_variable ("fill-column"), out n) || n < 0) {
+	long? n = parse_number (cur_bp.get_variable ("fill-column"));
+	if (n == null || n < 0) {
 		Minibuf.error ("Wrong type argument: number-or-markerp, nil");
 		return -1;
     }

@@ -24,8 +24,6 @@ using Config;
 using Posix;
 using GetoptLong;
 
-using Lisp;
-
 string program_name;
 string ZILE_VERSION_STRING;
 string ZILE_COPYRIGHT_STRING;

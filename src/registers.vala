@@ -19,8 +19,6 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
-using Lisp;
-
 int NUM_REGISTERS = 256;
 /* FIXME: https://gitlab.gnome.org/GNOME/vala/-/issues/440 */
 ImmutableEstr regs[256 /* NUM_REGISTERS */];

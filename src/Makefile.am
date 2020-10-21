@@ -80,7 +80,6 @@ src_zile_SOURCE_FILES =					\
 	src/keycode.vala				\
 	src/line.vala					\
 	src/lisp.vala					\
-	src/lists.vala					\
 	src/macro.vala					\
 	src/main.vala					\
 	src/marker.vala					\

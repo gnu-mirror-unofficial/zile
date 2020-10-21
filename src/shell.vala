@@ -19,8 +19,6 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
-using Lisp;
-
 bool pipe_command (string cmd, ImmutableEstr? instr, bool do_insert, bool do_replace) {
 	SubprocessFlags flags = STDOUT_PIPE;
 	Bytes input = null;

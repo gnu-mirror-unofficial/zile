@@ -19,8 +19,6 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
-using Lisp;
-
 bool scroll_down () {
 	if (!cur_wp.top_visible ())
 		return cur_bp.move_line (-(long) cur_wp.eheight);

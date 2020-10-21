@@ -19,8 +19,6 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
-using Lisp;
-
 public class Buffer {
 	public string name;			/* The name of the buffer. */
 	public string filename;		/* The file being edited. */
@@ -461,9 +459,8 @@ public class Buffer {
 	 * Return a safe tab width.
 	 */
 	public size_t tab_width () {
-		long res;
-		lisp_to_number (get_variable ("tab-width"), out res);
-		if (res < 1)
+		long? res = parse_number (get_variable ("tab-width"));
+		if (res == null || res < 1)
 			res = 8;
 		return res;
 	}

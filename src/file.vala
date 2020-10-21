@@ -22,7 +22,6 @@
 using Posix;
 
 using Config;
-using Lisp;
 
 /*
  * This functions does some corrections and expansions to

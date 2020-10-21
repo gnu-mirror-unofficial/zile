@@ -19,8 +19,6 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
-using Lisp;
-
 public delegate void BufferWriter ();
 
 public void write_temp_buffer (string name, bool show, BufferWriter func) {

@@ -21,8 +21,6 @@
 
 using Gee;
 
-using Lisp;
-
 class Macro {
 	public Gee.List<uint> keys;	/* List of keystrokes. */
 

@@ -19,8 +19,6 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
-using Lisp;
-
 public class Marker {
 	public Marker? next { get; set; } /* Used to chain all markers in the buffer. */
 	public size_t o { get; set; } /* Marker offset within buffer. */

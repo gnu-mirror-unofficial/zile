@@ -21,9 +21,6 @@
 
 using Gee;
 
-
-using Lisp;
-
 public class Completion {
 	public string match;				/* The match buffer. */
 	public Buffer? old_bp;				/* The buffer from which the completion was invoked. */

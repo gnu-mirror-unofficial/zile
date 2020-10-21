@@ -21,8 +21,6 @@
 
 using Regex;
 
-using Lisp;
-
 /* Return true if there are no upper-case letters in the given string.
    If `regex' is true, ignore escaped characters. */
 bool no_upper (string s, uint len, bool regex) {

@@ -21,8 +21,6 @@
 
 using Curses;
 
-using Lisp;
-
 namespace Minibuf {
 	public static History files_history;
 	public static string contents;
