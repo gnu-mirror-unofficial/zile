@@ -115,14 +115,14 @@ string? minibuf_read_variable_name (string fmt, ...) {
 public void variables_init () {
 	new LispFunc (
 		"set-variable",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
-			string? name = str_init (ref arglist);
+			string? name = args.poll ();
 			if (name == null)
 				name = minibuf_read_variable_name ("Set variable: ");
 			if (name == null)
 				return false;
-			string? val = str_init (ref arglist);
+			string? val = args.poll ();
 			if (val == null)
 				val = Minibuf.read ("Set %s to value: ", "", name);
 			if (val == null)

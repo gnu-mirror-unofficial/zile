@@ -79,7 +79,7 @@ public void recenter (Window wp) {
 public void redisplay_init () {
 	new LispFunc (
 		"recenter",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			recenter (cur_wp);
 			term_clear ();
 			term_redisplay ();

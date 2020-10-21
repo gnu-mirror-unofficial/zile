@@ -22,9 +22,9 @@
 public void help_init () {
 	new LispFunc (
 		"describe-function",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
-			string? name = str_init (ref arglist);
+			string? name = args.poll ();
 			if (name == null)
 				name = minibuf_read_function_name ("Describe function: ");
 			if (name == null)
@@ -52,9 +52,9 @@ public void help_init () {
 
 	new LispFunc (
 		"describe-variable",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
-			string? name = str_init (ref arglist);
+			string? name = args.poll ();
 			if (name == null)
 				name = minibuf_read_variable_name ("Describe variable: ");
 			if (name == null)
@@ -81,11 +81,11 @@ public void help_init () {
 
 	new LispFunc (
 		"describe-key",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			string name = null, binding = "";
 
-			string? keystr = str_init (ref arglist);
+			string? keystr = args.poll ();
 			if (keystr != null) {
 				Gee.List<uint>? keys = keystrtovec (keystr);
 				if (keys != null) {

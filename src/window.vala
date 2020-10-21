@@ -166,7 +166,7 @@ Window popup_window () {
 public void window_init () {
 	new LispFunc (
 		"split-window",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			/* Windows smaller than 4 lines cannot be split. */
 			if (cur_wp.fheight < 4) {
 				Minibuf.error ("Window height %zu too small (after splitting)",
@@ -209,7 +209,7 @@ public void window_init () {
 
 	new LispFunc (
 		"delete-window",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			if (cur_wp == head_wp && cur_wp.next == null) {
 				Minibuf.error ("Attempt to delete sole ordinary window");
 				return false;
@@ -224,7 +224,7 @@ public void window_init () {
 
 	new LispFunc (
 		"enlarge-window",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			if (cur_wp == head_wp && (cur_wp.next == null || cur_wp.next.fheight < 3))
 				return false;
 
@@ -253,7 +253,7 @@ public void window_init () {
 
 	new LispFunc (
 		"shrink-window",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			if ((cur_wp == head_wp && cur_wp.next == null) || cur_wp.fheight < 3)
 				return false;
 
@@ -279,7 +279,7 @@ public void window_init () {
 
 	new LispFunc (
 		"delete-other-windows",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			for (Window wp = head_wp, nextwp = null; wp != null; wp = nextwp) {
 				nextwp = wp.next;
 				if (wp != cur_wp)
@@ -293,7 +293,7 @@ public void window_init () {
 
 	new LispFunc (
 		"other-window",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			if (cur_wp.next != null)
 				cur_wp.next.set_current ();
 			else

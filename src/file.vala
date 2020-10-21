@@ -344,9 +344,9 @@ public void zile_exit (bool doabort) {
 public void file_init () {
 	new LispFunc (
 		"find-file",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
-			string? filename = str_init (ref arglist);
+			string? filename = args.poll ();
 			if (filename == null) {
 				filename = Minibuf.read_filename ("Find file: ", cur_bp.dir, null);
 				if (filename == null)
@@ -368,8 +368,8 @@ creating one if none already exists."""
 
 	new LispFunc (
 		"find-file-read-only",
-		(uniarg, arglist) => {
-			bool ok = LispFunc.find ("find-file").func (uniarg, arglist);
+		(uniarg, args) => {
+			bool ok = LispFunc.find ("find-file").func (uniarg, args);
 			if (ok)
 				cur_bp.readonly = true;
 			return ok;
@@ -382,7 +382,7 @@ Use M-x toggle-read-only to permit editing."""
 
 	new LispFunc (
 		"find-alternate-file",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			string buf = cur_bp.filename;
 			string basename = null;
 
@@ -409,11 +409,11 @@ If the current buffer now contains an empty file that you just visited
 
 	new LispFunc (
 		"switch-to-buffer",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			Buffer? bp = ((cur_bp.next != null) ? cur_bp.next : head_bp);
 
 			bool ok = true;
-			string? buf = str_init (ref arglist);
+			string? buf = args.poll ();
 			if (buf == null) {
 				Completion cp = Buffer.make_buffer_completion ();
 				buf = Minibuf.read_completion ("Switch to buffer (default %s): ",
@@ -447,14 +447,14 @@ If the current buffer now contains an empty file that you just visited
 
 	new LispFunc (
 		"insert-buffer",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			Buffer? def_bp = ((cur_bp.next != null) ? cur_bp.next : head_bp);
 
 			if (cur_bp.warn_if_readonly ())
 				return false;
 
 			bool ok = true;
-			string buf = str_init (ref arglist);
+			string buf = args.poll ();
 			if (buf == null) {
 				Completion cp = Buffer.make_buffer_completion ();
 				buf = Minibuf.read_completion ("Insert buffer (default %s): ",
@@ -492,12 +492,12 @@ Puts mark after the inserted text."""
 
 	new LispFunc (
 		"insert-file",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			if (cur_bp.warn_if_readonly ())
 				return false;
 
 			bool ok = true;
-			string? file = str_init (ref arglist);
+			string? file = args.poll ();
 			if (file == null) {
 				file = Minibuf.read_filename ("Insert file: ", cur_bp.dir, null);
 				if (file == null)
@@ -527,7 +527,7 @@ Set mark after the inserted text."""
 
 	new LispFunc (
 		"save-buffer",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return save_buffer (cur_bp);
 		},
 		true,
@@ -537,10 +537,8 @@ previous version into a backup file if this is the first save."""
 
 	new LispFunc (
 		"write-file",
-		(uniarg, arglist) => {
-			return write_buffer (cur_bp, true,
-								 arglist != null && !(Flags.SET_UNIARG in lastflag),
-								 null, "Write file: ");
+		(uniarg, args) => {
+			return write_buffer (cur_bp, true, noarg (args), null, "Write file: ");
 		},
 		true,
 		"""Write current buffer into file FILENAME.
@@ -551,7 +549,7 @@ Interactively, confirmation is required unless you supply a prefix argument."""
 
 	new LispFunc (
 		"save-some-buffers",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool noask = false;
 
 			for (Buffer? bp = head_bp; bp != null; (bp = bp.next) != null) {
@@ -599,7 +597,7 @@ Interactively, confirmation is required unless you supply a prefix argument."""
 
 	new LispFunc (
 		"save-buffers-kill-emacs",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			if (!funcall ("save-some-buffers"))
 				return false;
 
@@ -625,10 +623,10 @@ Interactively, confirmation is required unless you supply a prefix argument."""
 
 	new LispFunc (
 		"cd",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
-			string? dir = str_init (ref arglist);
-			if (arglist == leNIL)
+			string? dir = args.poll ();
+			if (dir == null)
 				dir = Minibuf.read_filename ("Change default directory: ", cur_bp.dir, null);
 
 			if (dir == null)

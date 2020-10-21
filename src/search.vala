@@ -246,8 +246,8 @@ Case check_case (ImmutableEstr a) {
 public void search_init () {
 	new LispFunc (
 		"search-forward",
-		(uniarg, arglist) => {
-			string? pattern = str_init (ref arglist);
+		(uniarg, args) => {
+			string? pattern = args.poll ();
 			return do_search (true, false, pattern);
 		},
 		true,
@@ -256,8 +256,8 @@ public void search_init () {
 
 	new LispFunc (
 		"search-backward",
-		(uniarg, arglist) => {
-			string? pattern = str_init (ref arglist);
+		(uniarg, args) => {
+			string? pattern = args.poll ();
 			return do_search (false, false, pattern);
 		},
 		true,
@@ -266,8 +266,8 @@ public void search_init () {
 
 	new LispFunc (
 		"search-forward-regexp",
-		(uniarg, arglist) => {
-			string? pattern = str_init (ref arglist);
+		(uniarg, args) => {
+			string? pattern = args.poll ();
 			return do_search (true, true, pattern);
 		},
 		true,
@@ -276,8 +276,8 @@ public void search_init () {
 
 	new LispFunc (
 		"search-backward-regexp",
-		(uniarg, arglist) => {
-			string pattern = str_init (ref arglist);
+		(uniarg, args) => {
+			string? pattern = args.poll ();
 			return do_search (false, true, pattern);
 		},
 		true,
@@ -286,7 +286,7 @@ public void search_init () {
 
 	new LispFunc (
 		"isearch-forward",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return isearch (true, Flags.SET_UNIARG in lastflag);
 		},
 		true,
@@ -302,7 +302,7 @@ Type \\[isearch-repeat-forward] to search again forward, \\[isearch-repeat-backw
 
 	new LispFunc (
 		"isearch-backward",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return isearch (false, Flags.SET_UNIARG in lastflag);
 		},
 		true,
@@ -313,7 +313,7 @@ See the command `isearch-forward' for more information."""
 
 	new LispFunc (
 		"isearch-forward-regexp",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return isearch (true, !(Flags.SET_UNIARG in lastflag));
 		},
 		true,
@@ -325,7 +325,7 @@ as a regexp.  See the command `isearch-forward' for more information."""
 
 	new LispFunc (
 		"isearch-backward-regexp",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return isearch (false, !(Flags.SET_UNIARG in lastflag));
 		},
 		true,
@@ -337,7 +337,7 @@ as a regexp.  See the command `isearch-forward-regexp` for more information."""
 
 	new LispFunc (
 		"query-replace",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			string? find = Minibuf.read ("Query replace string: ", "");
 			if (find == null)

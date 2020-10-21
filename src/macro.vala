@@ -76,7 +76,7 @@ bool call_macro () {
 public void macro_init () {
 	new LispFunc (
 		"start-kbd-macro",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			if (Flags.DEFINING_MACRO in thisflag) {
 				Minibuf.error ("Already defining a keyboard macro");
 				return false;
@@ -100,7 +100,7 @@ public void macro_init () {
 
 	new LispFunc (
 		"end-kbd-macro",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			if (!(Flags.DEFINING_MACRO in thisflag)) {
 				Minibuf.error ("Not defining a keyboard macro");
 				return false;
@@ -117,7 +117,7 @@ public void macro_init () {
 
 	new LispFunc (
 		"call-last-kbd-macro",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			if (cur_mp == null) {
 				Minibuf.error ("No kbd macro has been defined");
 				return false;
@@ -136,8 +136,8 @@ public void macro_init () {
 
 	new LispFunc (
 		"execute-kbd-macro",
-		(uniarg, arglist) => {
-			string? keystr = str_init (ref arglist);
+		(uniarg, args) => {
+			string? keystr = args.poll ();
 			Gee.List<uint>? keys = keystrtovec (keystr);
 			if (keys == null)
 				return false;

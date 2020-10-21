@@ -113,7 +113,7 @@ public void undo_set_unchanged (List<Undo> l) {
 public void undo_init () {
 	new LispFunc (
 		"undo",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			if (cur_bp.noundo) {
 				Minibuf.error ("Undo disabled in this buffer");
 				return false;

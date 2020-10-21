@@ -123,15 +123,15 @@ bool kill_text (long uniarg, Function mark_func) {
 public void killring_init () {
 	new LispFunc (
 		"kill-line",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			maybe_destroy_kill_ring ();
 
 			bool ok = true;
-			if (noarg (arglist))
+			if (noarg (args))
 				ok = kill_line (cur_bp.bolp () && get_variable_bool ("kill-whole-line"));
 			else {
 				long arg = 1;
-				if (!int_or_uniarg_init (ref arglist, ref arg, uniarg))
+				if (!int_or_uniarg (args, ref arg, uniarg))
 					ok = false;
 				else {
 					if (arg <= 0)
@@ -157,7 +157,7 @@ with no argument."""
 
 	new LispFunc (
 		"kill-region",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return copy_or_kill_the_region (true);
 		},
 		true,
@@ -177,7 +177,7 @@ you can use the killing commands to copy text from a read-only buffer."""
 
 	new LispFunc (
 		"copy-region-as-kill",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return copy_or_kill_the_region (false);
 		},
 		true,
@@ -186,11 +186,11 @@ you can use the killing commands to copy text from a read-only buffer."""
 
 	new LispFunc (
 		"kill-word",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			long arg = 1;
-			if (!noarg (arglist) &&
-				!int_or_uniarg_init (ref arglist, ref arg, uniarg))
+			if (!noarg (args) &&
+				!int_or_uniarg (args, ref arg, uniarg))
 				ok = false;
 			if (ok)
 				ok = kill_text (arg, LispFunc.find ("mark-word").func);
@@ -203,11 +203,11 @@ With argument ARG, do this that many times."""
 
 	new LispFunc (
 		"backward-kill-word",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			long arg = 1;
-			if (!noarg (arglist) &&
-				!int_or_uniarg_init (ref arglist, ref arg, uniarg))
+			if (!noarg (args) &&
+				!int_or_uniarg (args, ref arg, uniarg))
 				ok = false;
 			if (ok)
 				ok = kill_text (-arg, LispFunc.find ("mark-word").func);
@@ -220,7 +220,7 @@ With argument ARG, do this that many times."""
 
 	new LispFunc (
 		"kill-sexp",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return kill_text (uniarg, LispFunc.find ("mark-sexp").func);
 		},
 		true,
@@ -231,7 +231,7 @@ Negative arg -N means kill N sexps before the cursor."""
 
 	new LispFunc (
 		"yank",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			if (kill_ring_text == null) {
 				Minibuf.error ("Kill ring is empty");
 				return false;

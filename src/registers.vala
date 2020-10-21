@@ -34,13 +34,13 @@ bool insert_register () {
 public void registers_init () {
 	new LispFunc (
 		"copy-to-register",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			long reg = 1;
-			if (noarg (arglist)) {
+			if (noarg (args)) {
 				Minibuf.write ("Copy to register: ");
 				reg = (long) getkey (GETKEY_DEFAULT);
-			} else if (!int_init (ref arglist, ref reg))
+			} else if (!int_arg (args, out reg))
 				ok = false;
 
 			if (ok) {
@@ -67,16 +67,16 @@ public void registers_init () {
 
 	new LispFunc (
 		"insert-register",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			if (cur_bp.warn_if_readonly ())
 				return false;
 
 			long reg = 1;
-			if (noarg (arglist)) {
+			if (noarg (args)) {
 				Minibuf.write ("Insert register: ");
 				reg = (long) getkey (GETKEY_DEFAULT);
-			} else if (!int_init (ref arglist, ref reg))
+			} else if (!int_arg (args, out reg))
 				ok = false;
 
 			if (ok) {
@@ -108,7 +108,7 @@ Puts point before and mark after the inserted text."""
 
 	new LispFunc (
 		"list-registers",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			write_temp_buffer (
 				"*Registers List*",
 				true,

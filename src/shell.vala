@@ -82,13 +82,15 @@ string? minibuf_read_shell_command () {
 public void shell_init () {
 	new LispFunc (
 		"shell-command",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
-			string? cmd = str_init (ref arglist);
+			string? cmd = null;
+			if (args != null)
+				cmd = args.poll ();
 			if (cmd == null)
 				cmd = minibuf_read_shell_command ();
 			bool insert;
-			if (!bool_init (ref arglist, out insert))
+			if (!bool_arg (args, out insert))
 				insert = Flags.SET_UNIARG in lastflag;
 
 			if (cmd != null)
@@ -111,16 +113,18 @@ says to insert the output in the current buffer."""
 
 	new LispFunc (
 		"shell-command-on-region",
-		(uniarg, arglist) => {
-			/* Skip arguments `start' and `end' for Emacs compatibility. */
-			str_init (ref arglist);
-			str_init (ref arglist);
-
-			string? cmd = str_init (ref arglist);
+		(uniarg, args) => {
+			string? cmd = null;
+			if (args != null) {
+				/* Skip arguments `start' and `end' for Emacs compatibility. */
+				args.poll ();
+				args.poll ();
+				cmd = args.poll ();
+			}
 			if (cmd == null)
 				cmd = minibuf_read_shell_command ();
 			bool insert;
-			if (!bool_init (ref arglist, out insert))
+			if (!bool_arg (args, out insert))
 				insert = Flags.SET_UNIARG in lastflag;
 
 			bool ok = true;

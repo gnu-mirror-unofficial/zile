@@ -742,10 +742,10 @@ Buffer create_scratch_buffer () {
 public void buffer_init_lisp () {
 	new LispFunc (
 		"kill-buffer",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 
-			string? buf = str_init (ref arglist);
+			string? buf = args.poll ();
 			if (buf == null) {
 				Completion *cp = Buffer.make_buffer_completion ();
 				buf = Minibuf.read_completion ("Kill buffer (default %s): ",

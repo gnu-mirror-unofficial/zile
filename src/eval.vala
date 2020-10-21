@@ -19,6 +19,8 @@
    Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
    MA 02111-1301, USA.  */
 
+using Gee;
+
 public delegate bool MovementDelegate ();
 [CCode (instance_pos=0)]
 public delegate bool MovementNDelegate (long uniarg);
@@ -74,7 +76,7 @@ public bool move_with_uniarg (long uniarg, MovementNDelegate move) {
 
 bool execute_function (string name, long uniarg, bool is_uniarg) {
 	LispFunc func = LispFunc.find (name);
-	return func != null ? call_command (func, uniarg, is_uniarg ? null : leNIL) : false;
+	return func != null ? call_command (func, uniarg, is_uniarg ? null : new ArrayQueue<string> ()) : false;
 }
 
 /*
@@ -100,14 +102,10 @@ public void eval_init () {
 
 	new LispFunc (
 		"setq",
-		(uniarg, arglist) => {
-			if (arglist != null && arglist->countNodes () >= 2) {
-				for (Lexp *current = arglist->next; current != null; current = current->next->next) {
-					set_variable (current->data, Lexp.evaluateNode (current->next)->data);
-					if (current->next == null)
-						break; /* Cope with odd-length argument lists. */
-				}
-			}
+		(uniarg, args) => {
+			if (args != null)
+				while (!args.is_empty)
+					set_variable (args.poll (), args.poll ());
 			return true;
 		},
 		false,
@@ -120,7 +118,7 @@ public void eval_init () {
 
 	new LispFunc (
 		"execute-extended-command",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			string msg = "";
 
 			if (Flags.SET_UNIARG in lastflag) {

@@ -161,7 +161,7 @@ void set_this_command (LispFunc cmd) {
 	_this_command = cmd;
 }
 
-bool call_command (LispFunc f, long uniarg, Lexp *branch) {
+bool call_command (LispFunc f, long uniarg, Gee.Queue<string>? args) {
 	thisflag = lastflag & Flags.DEFINING_MACRO;
 	undo_start_sequence ();
 
@@ -172,7 +172,7 @@ bool call_command (LispFunc f, long uniarg, Lexp *branch) {
 
 	/* Execute the command. */
 	_this_command = f;
-	bool ok = f.func ((long) uniarg, branch);
+	bool ok = f.func (uniarg, args);
 	_last_command = _this_command;
 
 	/* Only add keystrokes if we were already in macro defining mode
@@ -192,7 +192,7 @@ void get_and_run_command () {
 
 	Minibuf.clear ();
 	if (f != null)
-		call_command (f, last_uniarg, Flags.SET_UNIARG in lastflag ? null : leNIL);
+		call_command (f, last_uniarg, Flags.SET_UNIARG in lastflag ? null : new ArrayQueue<string> ());
 	else
 		Minibuf.error ("%s is undefined", keyvectodesc (keys));
 }
@@ -242,9 +242,9 @@ void walk_bindings (BindingsProcessor process) {
 public void bind_init () {
 	new LispFunc (
 		"global-set-key",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			Gee.List<uint>? keys;
-			string keystr = str_init (ref arglist);
+			string? keystr = args.poll ();
 			if (keystr != null) {
 				keys = keystrtovec (keystr);
 				if (keys == null) {
@@ -257,7 +257,7 @@ public void bind_init () {
 				keystr = keyvectodesc (keys);
 			}
 
-			string? name = str_init (ref arglist);
+			string? name = args.poll ();
 			if (name == null)
 				name = minibuf_read_function_name ("Set key %s to command: ", keystr);
 			if (name == null)
@@ -279,7 +279,7 @@ sequence."""
 
 	new LispFunc (
 		"self-insert-command",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return execute_with_uniarg (uniarg, self_insert_command, null);
 		},
 		true,
@@ -289,7 +289,7 @@ Whichever character you type to run this command is inserted."""
 
 	new LispFunc (
 		"where-is",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			string? name = minibuf_read_function_name ("Where is command: ");
 			bool ok = false;
 
@@ -321,7 +321,7 @@ Argument is a command name."""
 
 	new LispFunc (
 		"describe-bindings",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			write_temp_buffer (
 				"*Help*",
 				true,

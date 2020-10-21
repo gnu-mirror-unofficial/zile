@@ -225,7 +225,7 @@ bool move_paragraph (long uniarg, MovementDelegate forward, MovementDelegate bac
 	if (cur_bp.is_empty_line ())
 		funcall ("beginning-of-line");
 	else
-		line_extremum (1, leNIL);
+		line_extremum (1, null);
 
 	return true;
 }
@@ -316,7 +316,7 @@ bool setcase_region (CharTransform func) {
 public void funcs_init () {
 	new LispFunc (
 		"list-buffers",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			write_temp_buffer (
 				"*Buffer List*",
 				true,
@@ -360,7 +360,7 @@ The \"M\" column has a \"*\" if it is modified."""
 
 	new LispFunc (
 		"toggle-read-only",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			cur_bp.readonly = !cur_bp.readonly;
 			return true;
 		},
@@ -370,7 +370,7 @@ The \"M\" column has a \"*\" if it is modified."""
 
 	new LispFunc (
 		"auto-fill-mode",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			cur_bp.autofill = !cur_bp.autofill;
 			return true;
 		},
@@ -382,13 +382,13 @@ automatically breaks the line at a previous space."""
 
 	new LispFunc (
 		"set-fill-column",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			size_t o = cur_bp.pt - cur_bp.line_o ();
 			long fill_col = Flags.UNIARG_EMPTY in lastflag ? (long) o : uniarg;
 			string buf = null;
 
-			if (!(Flags.SET_UNIARG in lastflag) && arglist == leNIL) {
+			if (noarg (args)) {
 				fill_col = Minibuf.read_number ("Set fill-column to (default %zu): ", o);
 				if (fill_col == long.MAX)
 					return false;
@@ -396,9 +396,9 @@ automatically breaks the line at a previous space."""
 					fill_col = (long) o;
 			}
 
-			if (arglist != null) {
-				if (arglist->next != null)
-					buf = arglist->next->data;
+			if (args != null) {
+				if (!args.is_empty)
+					buf = args.poll ();
 				else {
 					Minibuf.error ("set-fill-column requires an explicit argument");
 					ok = false;
@@ -422,7 +422,7 @@ Just C-u as argument means to use the current column."""
 
 	new LispFunc (
 		"set-mark",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			set_mark ();
 			cur_bp.mark_active = true;
 			return true;
@@ -433,7 +433,7 @@ Just C-u as argument means to use the current column."""
 
 	new LispFunc (
 		"set-mark-command",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			funcall ("set-mark");
 			Minibuf.write ("Mark set");
 			return true;
@@ -444,7 +444,7 @@ Just C-u as argument means to use the current column."""
 
 	new LispFunc (
 		"exchange-point-and-mark",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			if (cur_bp.mark == null) {
 				Minibuf.error ("No mark set in this buffer");
 				return false;
@@ -463,7 +463,7 @@ Just C-u as argument means to use the current column."""
 
 	new LispFunc (
 		"mark-whole-buffer",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			funcall ("end-of-buffer");
 			funcall ("set-mark-command");
 			funcall ("beginning-of-buffer");
@@ -475,7 +475,7 @@ Just C-u as argument means to use the current column."""
 
 	new LispFunc (
 		"quoted-insert",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			Minibuf.write ("C-q-");
 			cur_bp.insert_char ((char) getkey_unfiltered (GETKEY_DEFAULT));
 			Minibuf.clear ();
@@ -488,7 +488,7 @@ This is useful for inserting control characters."""
 
 	new LispFunc (
 		"universal-argument",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			int i = 0, arg = 1, sgn = 1;
 			string a = "";
@@ -563,7 +563,7 @@ Repeating \\[universal-argument] without digits or minus sign
 
 	new LispFunc (
 		"back-to-indentation",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			cur_bp.goto_offset (cur_bp.line_o ());
 			while (!cur_bp.eolp () && cur_bp.following_char ().isspace ())
 				cur_bp.move_char (1);
@@ -575,7 +575,7 @@ Repeating \\[universal-argument] without digits or minus sign
 
 	new LispFunc (
 		"suspend-emacs",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			Posix.raise (Posix.Signal.TSTP);
 			return true;
 		},
@@ -585,7 +585,7 @@ Repeating \\[universal-argument] without digits or minus sign
 
 	new LispFunc (
 		"keyboard-quit",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			cur_bp.mark_active = false;
 			Minibuf.error ("Quit");
 			return false;
@@ -596,7 +596,7 @@ Repeating \\[universal-argument] without digits or minus sign
 
 	new LispFunc (
 		"forward-word",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return move_with_uniarg (uniarg, (MovementNDelegate) cur_bp.move_word);
 		},
 		true,
@@ -606,7 +606,7 @@ With argument, do this that many times."""
 
 	new LispFunc (
 		"backward-word",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return move_with_uniarg (-uniarg, (MovementNDelegate) cur_bp.move_word);
 		},
 		true,
@@ -617,7 +617,7 @@ With argument, do this that many times."""
 
 	new LispFunc (
 		"forward-sexp",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return move_with_uniarg (uniarg, (MovementNDelegate) cur_bp.move_sexp);
 		},
 		true,
@@ -628,7 +628,7 @@ move backward across N balanced expressions."""
 
 	new LispFunc (
 		"backward-sexp",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return move_with_uniarg (-uniarg, (MovementNDelegate) cur_bp.move_sexp);
 		},
 		true,
@@ -639,7 +639,7 @@ move forward across N balanced expressions."""
 
 	new LispFunc (
 		"transpose-chars",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return transpose (uniarg, (MovementNDelegate) cur_bp.move_char);
 		},
 		true,
@@ -651,7 +651,7 @@ If no argument and at end of line, the previous two chars are exchanged."""
 
 	new LispFunc (
 		"transpose-words",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return transpose (uniarg, (MovementNDelegate) cur_bp.move_word);
 		},
 		true,
@@ -664,7 +664,7 @@ are interchanged."""
 
 	new LispFunc (
 		"transpose-sexps",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return transpose (uniarg, (MovementNDelegate) cur_bp.move_sexp);
 		},
 		true,
@@ -673,7 +673,7 @@ are interchanged."""
 
 	new LispFunc (
 		"transpose-lines",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return transpose (uniarg, (MovementNDelegate) cur_bp.move_line);
 		},
 		true,
@@ -684,7 +684,7 @@ With argument 0, interchanges line point is in with line mark is in."""
 
 	new LispFunc (
 		"mark-word",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return mark (uniarg, LispFunc.find ("forward-word").func);
 		},
 		true,
@@ -693,7 +693,7 @@ With argument 0, interchanges line point is in with line mark is in."""
 
 	new LispFunc (
 		"mark-sexp",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return mark (uniarg, LispFunc.find ("forward-sexp").func);
 		},
 		true,
@@ -704,11 +704,11 @@ move to with the same argument."""
 
 	new LispFunc (
 		"forward-line",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			long n = 1;
-			if (!noarg (arglist) &&
-				!int_or_uniarg_init (ref arglist, ref n, uniarg))
+			if (!noarg (args) &&
+				!int_or_uniarg (args, ref n, uniarg))
 				ok = false;
 			if (ok) {
 				funcall ("beginning-of-line");
@@ -723,7 +723,7 @@ Precisely, if point is on line I, move to the start of line I + N."""
 
 	new LispFunc (
 		"backward-paragraph",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return move_paragraph (uniarg,
 								   () => { return cur_bp.move_line (-1); },
 								   () => { return cur_bp.move_line (1); },
@@ -735,7 +735,7 @@ Precisely, if point is on line I, move to the start of line I + N."""
 
 	new LispFunc (
 		"forward-paragraph",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return move_paragraph (uniarg,
 							       () => { return cur_bp.move_line (1); },
 								   () => { return cur_bp.move_line (-1); },
@@ -747,7 +747,7 @@ Precisely, if point is on line I, move to the start of line I + N."""
 
 	new LispFunc (
 		"mark-paragraph",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			if (last_command () == LispFunc.find ("mark-paragraph")) {
 				funcall ("exchange-point-and-mark");
 				funcall ("forward-paragraph", uniarg);
@@ -766,7 +766,7 @@ The paragraph marked is the one that contains point or follows point."""
 
 	new LispFunc (
 		"fill-paragraph",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			Marker m = Marker.point ();
 
@@ -805,11 +805,11 @@ The paragraph marked is the one that contains point or follows point."""
 
 	new LispFunc (
 		"downcase-word",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			long arg = 1;
-			if (!noarg (arglist) &&
-				!int_or_uniarg_init (ref arglist, ref arg, uniarg))
+			if (!noarg (args) &&
+				!int_or_uniarg (args, ref arg, uniarg))
 				ok = false;
 			if (ok)
 				ok = execute_with_uniarg (arg, setcase_word_lowercase, null);
@@ -821,11 +821,11 @@ The paragraph marked is the one that contains point or follows point."""
 
 	new LispFunc (
 		"upcase-word",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			long arg = 1;
-			if (!noarg (arglist) &&
-				!int_or_uniarg_init (ref arglist, ref arg, uniarg))
+			if (!noarg (args) &&
+				!int_or_uniarg (args, ref arg, uniarg))
 				ok = false;
 			if (ok)
 				ok = execute_with_uniarg (arg, setcase_word_uppercase, null);
@@ -837,11 +837,11 @@ The paragraph marked is the one that contains point or follows point."""
 
 	new LispFunc (
 		"capitalize-word",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			long arg = 1;
-			if (!noarg (arglist) &&
-				!int_or_uniarg_init (ref arglist, ref arg, uniarg))
+			if (!noarg (args) &&
+				!int_or_uniarg (args, ref arg, uniarg))
 				ok = false;
 			if (ok)
 				ok = execute_with_uniarg (arg, setcase_word_capitalize, null);
@@ -855,7 +855,7 @@ and the rest lower case."""
 
 	new LispFunc (
 		"upcase-region",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return setcase_region ((c) => { return c.toupper (); });
 		},
 		true,
@@ -864,7 +864,7 @@ and the rest lower case."""
 
 	new LispFunc (
 		"downcase-region",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return setcase_region ((c) => { return c.tolower (); });
 		},
 		true,
@@ -873,7 +873,7 @@ and the rest lower case."""
 
 	new LispFunc (
 		"delete-region",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			if (cur_bp.warn_if_no_mark () || !Region.calculate ().delete ())
 				ok = false;
@@ -887,7 +887,7 @@ and the rest lower case."""
 
 	new LispFunc (
 		"delete-blank-lines",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			Marker m = Marker.point ();
 			Region r = new Region (cur_bp.line_o (), cur_bp.line_o ());
 

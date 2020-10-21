@@ -167,7 +167,7 @@ size_t previous_line_indent () {
 public void line_init () {
 	new LispFunc (
 		"tab-to-tab-stop",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return execute_with_uniarg (uniarg, insert_tab, null);
 		},
 		true,
@@ -177,7 +177,7 @@ buffer."""
 
 	new LispFunc (
 		"newline",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return execute_with_uniarg (uniarg, newline, null);
 		},
 		true,
@@ -187,7 +187,7 @@ the current buffer."""
 
 	new LispFunc (
 		"open-line",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return execute_with_uniarg (uniarg, intercalate_newline, null);
 		},
 		true,
@@ -196,8 +196,8 @@ the current buffer."""
 
 	new LispFunc (
 		"insert",
-		(uniarg, arglist) => {
-			string? arg = str_init (ref arglist);
+		(uniarg, args) => {
+			string? arg = args.poll ();
 			if (arg != null)
 				bprintf ("%s", arg);
 			return false;
@@ -208,9 +208,9 @@ the current buffer."""
 
 	new LispFunc (
 		"delete-char",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			long n = 1;
-			int_or_uniarg_init (ref arglist, ref n, uniarg);
+			int_or_uniarg (args, ref n, uniarg);
 			return execute_with_uniarg (n, cur_bp.delete_char, cur_bp.backward_delete_char);
 		},
 		true,
@@ -219,9 +219,9 @@ the current buffer."""
 
 	new LispFunc (
 		"backward-delete-char",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			long n = 1;
-			int_or_uniarg_init (ref arglist, ref n, uniarg);
+			int_or_uniarg (args, ref n, uniarg);
 			return execute_with_uniarg (n, cur_bp.backward_delete_char, cur_bp.delete_char);
 		},
 		true,
@@ -230,7 +230,7 @@ the current buffer."""
 
 	new LispFunc (
 		"delete-horizontal-space",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			while (!cur_bp.eolp () && cur_bp.following_char ().isspace ())
 				cur_bp.delete_char ();
 
@@ -245,7 +245,7 @@ the current buffer."""
 
 	new LispFunc (
 		"just-one-space",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			funcall ("delete-horizontal-space");
 			cur_bp.insert_char (' ');
 			return true;
@@ -256,7 +256,7 @@ the current buffer."""
 
 	new LispFunc (
 		"indent-relative",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			size_t target_goalc = 0, cur_goalc = cur_bp.goalc;
 			size_t t = cur_bp.tab_width ();
 
@@ -321,7 +321,7 @@ does nothing."""
 
 	new LispFunc (
 		"indent-for-tab-command",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			if (get_variable_bool ("tab-always-indent"))
 				return insert_tab ();
 			else if (cur_bp.goalc < previous_line_indent ())
@@ -337,7 +337,7 @@ the indentation.  Else stay at same point in text."""
 
 	new LispFunc (
 		"newline-and-indent",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = false;
 
 			if (cur_bp.warn_if_readonly ())

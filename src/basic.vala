@@ -48,7 +48,7 @@ public void ding () {
 public void basic_init () {
 	new LispFunc (
 		"beginning-of-line",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			cur_bp.goto_offset (cur_bp.line_o ());
 			return true;
 		},
@@ -58,7 +58,7 @@ public void basic_init () {
 
 	new LispFunc (
 		"end-of-line",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			cur_bp.goto_offset (cur_bp.line_o () + cur_bp.line_len (cur_bp.pt));
 			cur_bp.goalc = size_t.MAX;
 			return true;
@@ -69,7 +69,7 @@ public void basic_init () {
 
 	new LispFunc (
 		"previous-line",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return cur_bp.move_line (-uniarg);
 		},
 		true,
@@ -81,7 +81,7 @@ column, or at the end of the line if it is not long enough."""
 
 	new LispFunc (
 		"next-line",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return cur_bp.move_line (uniarg);
 		},
 		true,
@@ -93,12 +93,12 @@ column, or at the end of the line if it is not long enough."""
 
 	new LispFunc (
 		"goto-char",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			long n = 1;
-			if (noarg (arglist))
+			if (noarg (args))
 				n = Minibuf.read_number ("Goto char: ");
-			else if (!int_or_uniarg_init (ref arglist, ref n, uniarg))
+			else if (!int_or_uniarg (args, ref n, uniarg))
 				ok = false;
 
 			if (ok == false || n >= long.MAX - 1)
@@ -114,12 +114,12 @@ Beginning of buffer is position 1."""
 
 	new LispFunc (
 		"goto-line",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = true;
 			long n = 1;
-			if (noarg (arglist))
+			if (noarg (args))
 				n = Minibuf.read_number ("Goto line: ");
-			else if (!int_or_uniarg_init (ref arglist, ref n, uniarg))
+			else if (!int_or_uniarg (args, ref n, uniarg))
 				ok = false;
 
 			if (!ok || n >= long.MAX - 1)
@@ -135,7 +135,7 @@ Beginning of buffer is position 1."""
 
 	new LispFunc (
 		"beginning-of-buffer",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			cur_bp.goto_offset (0);
 			return true;
 		},
@@ -145,7 +145,7 @@ Beginning of buffer is position 1."""
 
 	new LispFunc (
 		"end-of-buffer",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			cur_bp.goto_offset (cur_bp.length);
 			return true;
 		},
@@ -155,7 +155,7 @@ Beginning of buffer is position 1."""
 
 	new LispFunc (
 		"backward-char",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = cur_bp.move_char (-uniarg);
 			if (!ok)
 				Minibuf.error ("Beginning of buffer");
@@ -168,7 +168,7 @@ On attempt to pass beginning or end of buffer, stop and signal error."""
 
 	new LispFunc (
 		"forward-char",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			bool ok = cur_bp.move_char (uniarg);
 			if (!ok)
 				Minibuf.error ("End of buffer");
@@ -181,7 +181,7 @@ On reaching end of buffer, stop and signal error."""
 
 	new LispFunc (
 		"scroll-down",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return execute_with_uniarg (uniarg, scroll_down, scroll_up);
 		},
 		true,
@@ -190,7 +190,7 @@ On reaching end of buffer, stop and signal error."""
 
 	new LispFunc (
 		"scroll-up",
-		(uniarg, arglist) => {
+		(uniarg, args) => {
 			return execute_with_uniarg (uniarg, scroll_up, scroll_down);
 		},
 		true,
