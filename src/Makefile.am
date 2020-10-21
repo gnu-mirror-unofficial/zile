@@ -26,8 +26,7 @@ AM_CFLAGS = --include config.h $(WARN_CFLAGS) $(GLIB_CFLAGS)
 AM_CPPFLAGS = -I$(builddir)/src -I$(srcdir)/src -I$(builddir)/lib -I$(srcdir)/lib -DPATH_DOCDIR="\"$(docdir)\""
 LDADD = $(builddir)/lib/libgnu.a $(LIB_EACCESS) $(LIBINTL) $(CURSES_LIB) $(GLIB_LIBS)
 
-VAPIS =	src/curses.vapi					\
-	src/gnu.vapi					\
+VAPIS =	src/gnu.vapi					\
 	src/memrmem.vapi				\
 	src/getopt_long_fix.h
 

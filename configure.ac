@@ -34,7 +34,7 @@ PKG_PROG_PKG_CONFIG
 AX_CHECK_GNU_MAKE(,[AC_MSG_WARN([GNU make is required to build from Vala sources])])
 
 dnl Vala
-AM_PROG_VALAC(,,[AC_MSG_WARN([valac not found: cannot compile Vala sources])])
+AM_PROG_VALAC(0.52,,[AC_MSG_WARN([valac not found or too old: cannot compile Vala sources])])
 PKG_CHECK_MODULES(GLIB, [glib-2.0 gobject-2.0 gio-2.0 gee-0.8])
 
 dnl help2man

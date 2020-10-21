@@ -85,7 +85,7 @@ public void term_init () {
 	stdscr.intrflush (false);
 	stdscr.keypad (true);
 	key_buf = new ArrayList<uint> ();
-	unowned string? kbs = tigetstr ("kbs");
+	unowned string? kbs = TermInfo.getstr ("kbs");
 	if (kbs != null && kbs.length == 1)
 		backspace_code = kbs[0];
 }
