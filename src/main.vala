@@ -69,6 +69,7 @@ void signal_init () {
 
 public int main (string[] args)
 {
+	GLib.Log.set_always_fatal (LEVEL_CRITICAL);
 	program_name = Path.get_basename (args[0]);
 	init_cmdline ();
 
