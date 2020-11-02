@@ -17,7 +17,7 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
-using Regex;
+using Posix;
 
 /* Return true if there are no upper-case letters in the given string.
    If `regex' is true, ignore escaped characters. */
@@ -36,32 +36,33 @@ bool no_upper (string s, uint len, bool regex) {
 
 unowned string? re_find_err = null;
 
+public const int REGEX_SYNTAX_PLAIN = RegexSyntax.NO_SUB << 1;
 long find_substr (char *ptr, size_t len, string n, size_t nsize,
 				  bool forward, bool notbol, bool noteol, bool regex, bool icase) {
 	long ret = -1;
-	Pattern pattern = Pattern ();
-	Registers search_regs = Registers ();
-	Syntax syntax = SyntaxType.EMACS;
+	var pattern = RegexPattern ();
+	var search_regs = RegexRegisters ();
+	RegexSyntax syntax = RegexSyntaxType.EMACS;
 
 	if (!regex)
-		syntax |= Syntax.PLAIN;
+		syntax |= REGEX_SYNTAX_PLAIN;
 	if (icase)
-		syntax |= Syntax.ICASE;
-	set_syntax (syntax);
+		syntax |= RegexSyntax.ICASE;
+	RegexSyntax.set_syntax (syntax);
 	search_regs.num_regs = 1;
 
-	re_find_err = compile_pattern (n, (int) nsize, out pattern);
+	re_find_err = pattern.compile (n, (int) nsize);
 	pattern.not_bol = notbol;
 	pattern.not_eol = noteol;
 	if (re_find_err == null)
-		ret = Regex.search (&pattern, (string) ptr, (Offset) len,
-							(Offset) (forward ? 0 : len), (Offset) (forward ? len : -len),
-							&search_regs);
+		ret = pattern.search ((string) ptr, (RegexOffset) len,
+							  (RegexOffset) (forward ? 0 : len), (RegexOffset) (forward ? len : -len),
+							  out search_regs);
 
 	if (ret >= 0)
 		ret = forward ? search_regs.end[0] : ret;
 
-	search_regs.free (); // FIXME: make this automatic
+	search_regs.destroy (); // FIXME: make this automatic
 	return ret;
 }
 
