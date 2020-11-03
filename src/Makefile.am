@@ -104,11 +104,6 @@ DISTCLEANFILES +=					\
 check-syntax:
 	$(COMPILE) -o /dev/null -S $(CHK_SOURCES)
 
-TESTS_ENVIRONMENT =					\
-	export LSAN_OPTIONS=suppressions=$(srcdir)/build-aux/asan-suppressions.txt; \
-	srcdir=$(srcdir)/src				\
-	builddir=$(builddir)src
-
 check_PROGRAMS = src/astr
 
 TESTS = $(check_PROGRAMS)

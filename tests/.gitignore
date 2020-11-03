@@ -8,3 +8,5 @@ zile.sum
 /dummy.c
 /unused-parameter.h
 /warn-on-use.h
+*.log
+*.trs
