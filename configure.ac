@@ -50,9 +50,6 @@ if test "$gl_gcc_warnings" = yes; then
   nw="$nw -Wundef"            # All compiler preprocessors support #if UNDEF
   nw="$nw -Wtraditional"      # All compilers nowadays support ANSI C
   nw="$nw -Wdeclaration-after-statement" # We require C99.
-  nw="$nw -Wstrict-overflow"  # Use a lower level (see below).
-  nw="$nw -Wconversion"       # These warnings usually don’t point to mistakes.
-  nw="$nw -Wsign-conversion"  # Likewise.
   nw="$nw -Waggregate-return" # We do this on purpose.
   nw="$nw -Wbad-function-cast" # FIXME: We do this on purpose (non-pointer list elements).
   nw="$nw -Wtraditional-conversion" # Don't care.
@@ -71,9 +68,7 @@ if test "$gl_gcc_warnings" = yes; then
   done
 
   dnl Add an extra warning
-  gl_WARN_ADD([-Wstrict-overflow=1])
-  dnl Add some more safety measures
-  gl_WARN_ADD([-D_FORTIFY_SOURCE=2])
+  gl_WARN_ADD([-Wconversion])
   dnl Remove a warning being promoted to error: we trigger this and can't turn it off with pragmas.
   gl_WARN_ADD([-Wno-error=format-security])
 
