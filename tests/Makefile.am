@@ -210,12 +210,12 @@ LISP_TESTS_ZILE_ONLY_FIXED_SCREEN =			\
 	%D%/zile-only/fixed-screen/scroll-up.el
 
 LISP_TESTS_OUTPUTS =					\
-	tests/*.output					\
-	tests/interactive/*.output			\
-	tests/regression/*.output			\
-	tests/zile-only/*.output			\
-	tests/zile-only/interactive/*.output		\
-	tests/zile-only/fixed-screen/*.output
+	$(srcdir)/tests/*.output			\
+	$(srcdir)/tests/interactive/*.output		\
+	$(srcdir)/tests/regression/*.output		\
+	$(srcdir)/tests/zile-only/*.output		\
+	$(srcdir)/tests/zile-only/interactive/*.output	\
+	$(srcdir)/tests/zile-only/fixed-screen/*.output
 
 LISP_ALL_TESTS =					\
 	$(LISP_TESTS)					\
