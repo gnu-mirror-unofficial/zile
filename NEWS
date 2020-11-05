@@ -2,6 +2,39 @@ GNU Zile NEWS                                         -*- outline -*-
 
 * Noteworthy changes in release ?.? (????-??-??) [?]
 
+** Bug fixes
+
+  Ensure term.h matches [n]curses[w].h (fix #58880).
+
+  Fix a potential crash in the Lisp “interpreter”.
+
+  query-replace no longer prints the number of replacements on error.
+
+** Build-related
+
+  Various improvements and fixes, including updates to gnulib and bootstrap,
+  improvements to the build instructions, and the removal of obsolete files.
+
+  Use automake’s parallel test harness to run the tests.
+
+  Make running the tests with Emacs optional. A lot of them do not pass any
+  more with recent Emacsen, but this is not an urgent problem.
+
+  Use ASAN instead of Valgrind for memory checking: this makes the tests run
+  much faster.
+
+  Remove the use of texinfo markup from docstrings.
+
+  tbl_vars.h no longer needs to be generated from tbl_vars.h.in, as no
+  substitutions were being made.
+
+** Miscellaneous
+
+  Some code clean-up, including a simplification to the calling convention
+  for C functions that implement editor commands.
+
+  Update some docstrings to match Emacs 27.1.
+
 
 * Noteworthy changes in release 2.4.14 (2017-10-06) [stable]
 
