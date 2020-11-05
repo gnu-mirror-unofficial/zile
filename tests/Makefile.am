@@ -205,9 +205,9 @@ LISP_TESTS_ZILE_ONLY =							\
 	%D%/zile-only/interactive/undo.el				\
 	%D%/zile-only/interactive/upcase-region.el
 
-LISP_TESTS_ZILE_ONLY_FIXED_SCREEN =		\
-	zile-only/fixed-screen/scroll-down.el	\
-	zile-only/fixed-screen/scroll-up.el
+LISP_TESTS_ZILE_ONLY_FIXED_SCREEN =			\
+	%D%/zile-only/fixed-screen/scroll-down.el	\
+	%D%/zile-only/fixed-screen/scroll-up.el
 
 LISP_TESTS_OUTPUTS =					\
 	tests/*.output					\
