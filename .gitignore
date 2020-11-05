@@ -31,3 +31,4 @@ stamp-h1
 zile*.tar.gz
 zile*.tar.gz.directive*
 zile*.tar.gz.sig
+/README-release
