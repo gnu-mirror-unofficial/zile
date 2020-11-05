@@ -15,9 +15,7 @@
    General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GNU Zile; see the file COPYING.  If not, write to the
-   Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
-   MA 02111-1301, USA.  */
+   along with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 using Posix;
 

@@ -15,9 +15,7 @@ dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 dnl General Public License for more details.
 dnl
 dnl You should have received a copy of the GNU General Public License
-dnl along with GNU Zile; see the file COPYING.  If not, write to the
-dnl Free Software Foundation, Fifth Floor, 51 Franklin Street, Boston,
-dnl MA 02111-1301, USA.
+dnl along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 AC_PREREQ([2.69])
 
