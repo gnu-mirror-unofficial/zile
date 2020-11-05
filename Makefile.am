@@ -33,7 +33,8 @@ PERL_BUILDTIME =					\
 	build-aux/Zile.pm				\
 	build-aux/mkbindings.pl				\
 	build-aux/mkfuncs.pl				\
-	build-aux/mkvars.pl
+	build-aux/mkvars.pl				\
+	build-aux/asan-suppressions.txt
 
 EXTRA_DIST =						\
 	FAQ						\
