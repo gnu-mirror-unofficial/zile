@@ -17,7 +17,7 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
-using GetoptLong;
+using Gnu;
 
 using Config;
 
@@ -63,18 +63,18 @@ HelpElement[] opts;
 
 /* Options table
  *
- * Options which take no argument have optional_argument, so that no
+ * Options which take no argument have GetoptArgument.OPTIONAL, so that no
  * arguments are signalled as extraneous, as in Emacs.
  */
 public void init_cmdline () {
 	opts = {
 		new Doc ("Initialization options:"),
 		new Doc (""),
-		new Opt ("no-init-file", 'q', optional, "", "do not load ~/." + PACKAGE),
-		new Opt ("funcall", 'f', required, "FUNC", "call " + PACKAGE_NAME + " Lisp function FUNC with no arguments"),
-		new Opt ("load", 'l', required, "FILE", "load " + PACKAGE_NAME + " Lisp FILE using the load function"),
-		new Opt ("help", '\0', optional, "", "display this help message and exit"),
-		new Opt ("version", '\0', optional, "", "display version information and exit"),
+		new Opt ("no-init-file", 'q', GetoptArgument.OPTIONAL, "", "do not load ~/." + PACKAGE),
+		new Opt ("funcall", 'f', GetoptArgument.REQUIRED, "FUNC", "call " + PACKAGE_NAME + " Lisp function FUNC with no arguments"),
+		new Opt ("load", 'l', GetoptArgument.REQUIRED, "FILE", "load " + PACKAGE_NAME + " Lisp FILE using the load function"),
+		new Opt ("help", '\0', GetoptArgument.OPTIONAL, "", "display this help message and exit"),
+		new Opt ("version", '\0', GetoptArgument.OPTIONAL, "", "display version information and exit"),
 		new Doc (""),
 		new Doc ("Action options:"),
 		new Doc (""),

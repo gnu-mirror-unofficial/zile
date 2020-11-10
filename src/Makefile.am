@@ -25,7 +25,6 @@ AM_CPPFLAGS = -I$(builddir)/src -I$(srcdir)/src -I$(builddir)/lib -I$(srcdir)/li
 LDADD = $(builddir)/lib/libgnu.a $(LIB_EACCESS) $(LIBINTL) $(CURSES_LIB) $(GLIB_LIBS)
 
 VAPIS =	src/config.vapi					\
-	src/gnu.vapi					\
 	src/memrmem.vapi				\
 	src/getopt_long_fix.h
 

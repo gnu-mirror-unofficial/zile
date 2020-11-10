@@ -74,7 +74,7 @@ public class ImmutableEstr {
 	}
 
 	public size_t end_of_line (size_t o) {
-		char *next = memmem ((string) (text + o), (ssize_t) (length - o), eol, eol.length);
+		char *next = Gnu.memmem ((string) (text + o), (ssize_t) (length - o), eol, eol.length);
 		return next != null ? (size_t) (next - text) : length;
 	}
 
@@ -83,7 +83,7 @@ public class ImmutableEstr {
 		char *next = null;
 		size_t lines = 0;
 		for (size_t len = length;
-			 (next = memmem ((string) s, (ssize_t) len, eol, eol.length)) != null;
+			 (next = Gnu.memmem ((string) s, (ssize_t) len, eol, eol.length)) != null;
 			 len -= (size_t) (next - s) + eol.length, s = next + eol.length)
 			lines++;
 		return lines;
@@ -181,7 +181,7 @@ public class Estr : ImmutableEstr {
 	public void replace (size_t pos, ImmutableEstr src) {
 		char *s = src.text;
 		for (size_t len = src.length; len > 0;) {
-			char *next = memmem ((string) s, (ssize_t) len, src.eol, src.eol.length);
+			char *next = Gnu.memmem ((string) s, (ssize_t) len, src.eol, src.eol.length);
 			size_t line_len = next != null ? (size_t) (next - s) : len;
 			Memory.move (text + pos, s, line_len);
 			pos += line_len;

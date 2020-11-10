@@ -20,7 +20,7 @@
 using Config;
 
 using Posix;
-using GetoptLong;
+using Gnu;
 
 string program_name;
 string ZILE_VERSION_STRING;
@@ -71,11 +71,11 @@ public int main (string[] args)
 	program_name = Path.get_basename (args[0]);
 	init_cmdline ();
 
-	var longopts = new Option[opts.length];
+	var longopts = new GetoptOption[opts.length];
 	for (uint i = 0, nextopt = 0; i < opts.length; i++) {
 		var opt = opts[i];
 		if (opt is Opt) {
-			longopts[nextopt++] = Option () {
+			longopts[nextopt++] = GetoptOption () {
 				name = ((Opt) opt).longname,
 				has_arg = ((Opt) opt).arg,
 				flag = null,
