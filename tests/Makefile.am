@@ -22,7 +22,7 @@
 ZILE_CMD = $(builddir)/src/zile$(EXEEXT)
 
 TEST_EXTENSIONS = .el
-EL_LOG_COMPILER = $(PERL) $(srcdir)/tests/run-lisp-tests.pl
+EL_LOG_COMPILER = $(PERL) $(srcdir)/tests/run-lisp-test.pl
 
 TESTS += $(LISP_TESTS) $(LISP_TESTS_ZILE_ONLY)
 
@@ -241,7 +241,7 @@ EXTRA_DIST +=						\
 	$(LISP_ALL_TESTS)				\
 	$(LISP_TESTS_OUTPUTS)				\
 	tests/test.input				\
-	tests/run-lisp-tests.pl
+	tests/run-lisp-test.pl
 
 # The tests pass with Emacs 24.x, and fail with 25.1 or later.
 check-emacs:
