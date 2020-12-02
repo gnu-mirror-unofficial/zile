@@ -132,10 +132,10 @@ namespace Minibuf {
 		return p;
 	}
 
-	public int read_yesno (string fmt, ...) {
+	public bool? read_yesno (string fmt, ...) {
 		string errmsg = "Please answer yes or no.";
 		Completion cp = new Completion (false);
-		int ret = -1;
+		bool? ret = null;
 
 		cp.completions.add ("no");
 		cp.completions.add ("yes");
@@ -144,7 +144,7 @@ namespace Minibuf {
 
 		if (ms != null) {
 			GLib.assert (cp.completions.contains (ms));
-			ret = ms == "yes" ? 1 : 0;
+			ret = ms == "yes";
 		}
 
 		return ret;

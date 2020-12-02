@@ -138,7 +138,7 @@ bool self_insert_command () {
 	cur_bp.mark_active = false;
 	if (key <= 0xff) {
 		if (((char) key).isspace () && cur_bp.autofill)
-			ret = fill_break_line () != -1;
+			ret = fill_break_line () != null;
 		cur_bp.insert_char ((char) key);
 	} else {
 		ding ();

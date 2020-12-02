@@ -50,15 +50,15 @@ bool intercalate_newline ()
  *
  * Return flag indicating whether break was made.
  */
-int fill_break_line () {
+bool? fill_break_line () {
 	long? n = parse_number (cur_bp.get_variable ("fill-column"));
 	if (n == null || n < 0) {
 		Minibuf.error ("Wrong type argument: number-or-markerp, nil");
-		return -1;
+		return null;
     }
 	size_t fillcol = (size_t) n;
 
-	int break_made = 0;
+	bool break_made = false;
 
 	/* Only break if we're beyond fill-column. */
 	if (cur_bp.goalc > fillcol) {
@@ -97,7 +97,7 @@ int fill_break_line () {
 			funcall ("delete-horizontal-space");
 			insert_newline ();
 			cur_bp.goto_offset (m.o);
-			break_made = 1;
+			break_made = true;
         } else
 			/* Undo fiddling with point. */
 			cur_bp.goto_offset (cur_bp.line_o () + old_col);
@@ -111,7 +111,7 @@ int fill_break_line () {
 bool newline () {
 	bool ret = true;
 	if (cur_bp.autofill)
-		ret = fill_break_line () != -1;
+		ret = fill_break_line () != null;
 	return ret ? insert_newline () : false;
 }
 

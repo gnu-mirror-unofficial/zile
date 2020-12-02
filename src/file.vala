@@ -602,10 +602,10 @@ Interactively, confirmation is required unless you supply a prefix argument."""
 			for (Buffer? bp = head_bp; bp != null; bp = bp.next)
 				if (bp.modified && !bp.needname) {
 					for (;;) {
-						int ans = Minibuf.read_yesno ("Modified buffers exist; exit anyway? (yes or no) ");
-						if (ans == -1)
+						bool? ans = Minibuf.read_yesno ("Modified buffers exist; exit anyway? (yes or no) ");
+						if (ans == null)
 							return funcall ("keyboard-quit");
-						else if (ans == 0)
+						else if (ans == false)
 							return false;
 						break;
 					}

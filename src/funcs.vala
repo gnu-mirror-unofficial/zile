@@ -786,10 +786,10 @@ The paragraph marked is the one that contains point or follows point."""
 			m_end.unchain ();
 
 			funcall ("end-of-line");
-			int ret = 0;
-			while ((ret = fill_break_line ()) == 1)
+			bool? ret = false;
+			while ((ret = fill_break_line ()) == true)
 				;
-			if (ret == -1)
+			if (ret == null)
 				ok = false;
 
 			cur_bp.goto_offset (m.o);

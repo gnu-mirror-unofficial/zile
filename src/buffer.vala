@@ -524,19 +524,14 @@ public class Buffer {
 	 * true, else false.
 	 */
 	public bool check_modified () {
-		if (modified && !nosave)
-			for (;;) {
-				int ans = Minibuf.read_yesno
-					("Buffer %s modified; kill anyway? (yes or no) ", name);
-				if (ans == -1) {
-					funcall ("keyboard-quit");
-					return false;
-				}
-				else if (ans == 0)
-					return false;
-				break;
-			}
-
+		if (modified && !nosave) {
+			bool? ans = Minibuf.read_yesno ("Buffer %s modified; kill anyway? (yes or no) ", name);
+			if (ans == null) {
+				funcall ("keyboard-quit");
+				return false;
+			} else if (ans == false)
+				return false;
+		}
 		return true;
 	}
 
