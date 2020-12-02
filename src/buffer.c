@@ -641,19 +641,17 @@ bool
 check_modified_buffer (Buffer bp)
 {
   if (get_buffer_modified (bp) && !get_buffer_nosave (bp))
-    for (;;)
-      {
-        int ans = minibuf_read_yesno
-          ("Buffer %s modified; kill anyway? (yes or no) ", get_buffer_name (bp));
-        if (ans == -1)
-          {
-            FUNCALL (keyboard_quit);
-            return false;
-          }
-        else if (!ans)
+    {
+      int ans = minibuf_read_yesno
+        ("Buffer %s modified; kill anyway? (yes or no) ", get_buffer_name (bp));
+      if (ans == -1)
+        {
+          FUNCALL (keyboard_quit);
           return false;
-        break;
-      }
+        }
+      else if (!ans)
+        return false;
+    }
 
   return true;
 }
