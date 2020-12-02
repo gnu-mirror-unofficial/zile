@@ -38,7 +38,7 @@ my @editor_cmd = split ' ', $ENV{EDITOR_CMD};
 
 # Compute test filenames
 my $test = shift;                       # Name is: ../tests/zile-only/backward_delete_char.el
-$test =~ s/\.el$//; 			# ../tests/zile-only/backward_delete_char
+$test =~ s/\.el$//;			# ../tests/zile-only/backward_delete_char
 my $name = $test;
 $name =~ s|^\Q$srcdir/tests/||;		# zile-only/backward_delete_char
 my $edit_file = "$test.input";
