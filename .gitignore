@@ -3,6 +3,7 @@
 .deps
 .sc-start*
 TAGS
+tags
 /COPYING
 /GNUmakefile
 /HACKING
