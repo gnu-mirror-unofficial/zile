@@ -23,9 +23,9 @@ using Gee;
  * Key binding.
  *--------------------------------------------------------------------------*/
 
-// FIXME:
-// public struct Key : size_t {};
-// public struct KeySequence : Gee.List<uint> {};
+// FIXME: https://gitlab.gnome.org/GNOME/libgee/-/issues/38
+// public struct Keystroke : uint {}
+// public struct KeySequence : Gee.List<Keystroke> {}
 
 public class Binding {
 	public LispFunc? func;			/* (Leaf node): the function. */
