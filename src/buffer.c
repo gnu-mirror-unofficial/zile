@@ -640,20 +640,14 @@ make_buffer_completion (void)
 bool
 check_modified_buffer (Buffer bp)
 {
-  if (get_buffer_modified (bp) && !get_buffer_nosave (bp))
-    {
-      int ans = minibuf_read_yesno
-        ("Buffer %s modified; kill anyway? (yes or no) ", get_buffer_name (bp));
-      if (ans == -1)
-        {
-          FUNCALL (keyboard_quit);
-          return false;
-        }
-      else if (!ans)
-        return false;
-    }
+  if (!get_buffer_modified (bp) || get_buffer_nosave (bp))
+    return true;
 
-  return true;
+  int ans = minibuf_read_yesno ("Buffer %s modified; kill anyway? (yes or no) ",
+                                get_buffer_name (bp));
+  if (ans == -1)
+    FUNCALL (keyboard_quit);
+  return ans == 1;
 }
 
 
