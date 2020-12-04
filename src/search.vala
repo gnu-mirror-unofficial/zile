@@ -37,8 +37,7 @@ bool no_upper (string s, uint len, bool regex) {
 unowned string? re_find_err = null;
 
 public const int REGEX_SYNTAX_PLAIN = RegexSyntax.NO_SUB << 1;
-long find_substr (char *ptr, size_t len, string n, size_t nsize,
-				  bool forward, bool notbol, bool noteol, bool regex, bool icase) {
+long find_substr (ImmutableEstr es, string n, bool forward, bool notbol, bool noteol, bool regex, bool icase) {
 	long ret = -1;
 	var pattern = RegexPattern ();
 	var search_regs = RegexRegisters ();
@@ -51,12 +50,13 @@ long find_substr (char *ptr, size_t len, string n, size_t nsize,
 	RegexSyntax.set_syntax (syntax);
 	search_regs.num_regs = 1;
 
-	re_find_err = pattern.compile (n, (int) nsize);
+	re_find_err = pattern.compile (n, (int) n.length);
 	pattern.not_bol = notbol;
 	pattern.not_eol = noteol;
 	if (re_find_err == null)
-		ret = pattern.search ((string) ptr, (RegexOffset) len,
-							  (RegexOffset) (forward ? 0 : len), (RegexOffset) (forward ? len : -len),
+		ret = pattern.search ((string) es.text, (RegexOffset) es.length,
+							  (RegexOffset) (forward ? 0 : es.length),
+							  (RegexOffset) (forward ? es.length : -es.length),
 							  out search_regs);
 
 	if (ret >= 0)
@@ -67,8 +67,7 @@ long find_substr (char *ptr, size_t len, string n, size_t nsize,
 }
 
 bool search (string s, bool forward, bool regexp) {
-	uint ssize = s.length;
-	if (ssize < 1)
+	if (s.length < 1)
 		return false;
 
 	/* Attempt match. */
@@ -76,9 +75,8 @@ bool search (string s, bool forward, bool regexp) {
 	bool notbol = forward ? o > 0 : false;
 	bool noteol = forward ? false : o < cur_bp.length;
 	ImmutableEstr es = forward ? cur_bp.post_point () : cur_bp.pre_point ();
-	long pos = find_substr (es.text, (long) es.length,
-							s, ssize, forward, notbol, noteol, regexp,
-							get_variable_bool ("case-fold-search") && no_upper (s, ssize, regexp));
+	long pos = find_substr (es, s, forward, notbol, noteol, regexp,
+							get_variable_bool ("case-fold-search") && no_upper (s, s.length, regexp));
 	if (pos < 0)
 		return false;
 
