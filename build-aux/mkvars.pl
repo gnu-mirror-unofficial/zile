@@ -1,4 +1,4 @@
-# Produce dotzile.sample, tbl_vars.h and tbl_vars.vala
+# Produce dotzile.sample
 #
 # Copyright (c) 2010-2020 Free Software Foundation, Inc.
 #
@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <https://www.gnu.org/licenses/>.
 
-use Zile;
-
 # Don't note where the contents of this file comes from or that it's
 # auto-generated, because it's ugly in a user configuration file.
 open OUT, ">src/dotzile.sample" or die;
@@ -36,7 +34,7 @@ sub comment_for_lisp {
   return $s;
 }
 
-# Parse re-usable C headers
+# Parse tbl_vars.vala
 sub false { 0; }
 sub true { 1; }
 my @varg;

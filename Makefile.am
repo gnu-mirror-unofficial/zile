@@ -28,7 +28,6 @@ DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 
 PERL_BUILDTIME =					\
-	build-aux/Zile.pm				\
 	build-aux/mkbindings.pl				\
 	build-aux/mkvars.pl				\
 	build-aux/asan-suppressions.txt

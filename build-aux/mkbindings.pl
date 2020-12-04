@@ -17,17 +17,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <https://www.gnu.org/licenses/>.
 
-use Zile;
-
 open OUT, ">src/tbl_bindings.vala" or die;
 print OUT <<END;
 /*
  * Automatically generated file: DO NOT EDIT!
  * $ENV{PACKAGE_NAME} keybindings.
- * Generated from tbl_bindings.pl.
  */
 
 END
+
+sub get_bindings {
+  my ($file) = @_;
+  open IN, "<$file";
+  my $bindings = do { local $/ = undef; <IN> };
+  return eval $bindings;
+}
 
 my %bindings = get_bindings($ARGV[0]);
 print OUT "unowned string default_bindings = \"\"\"";

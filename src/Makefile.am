@@ -92,10 +92,10 @@ src_zile_SOURCES =					\
 	$(src_zile_SOURCE_FILES)			\
 	$(BUILT_SOURCES)
 
-src/tbl_bindings.vala: src/tbl_bindings.pl build-aux/mkbindings.pl build-aux/Zile.pm
+src/tbl_bindings.vala: src/tbl_bindings.pl build-aux/mkbindings.pl
 	PACKAGE_NAME="$(PACKAGE_NAME)" $(PERL) -I$(srcdir)/build-aux $(srcdir)/build-aux/mkbindings.pl $(srcdir)/src/tbl_bindings.pl
 
-src/dotzile.sample: src/tbl_vars.vala build-aux/mkvars.pl build-aux/Zile.pm
+src/dotzile.sample: src/tbl_vars.vala build-aux/mkvars.pl
 	PACKAGE="$(PACKAGE)" $(PERL) -I$(srcdir)/build-aux $(srcdir)/build-aux/mkvars.pl $(srcdir)/src/tbl_vars.vala
 
 DISTCLEANFILES +=					\
