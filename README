@@ -176,34 +176,17 @@ Zile development sources are maintained at the GNU Savannah git server:
 
 You can fetch a read-only copy with:
 
-    git clone git://git.sv.gnu.org/zile.git
-
-If you are behind a firewall that blocks the git protocol, you can force
-git to transparently rewrite all savannah references to use http:
-
-    git config --global url.http://git.sv.gnu.org/r/.insteadof \
-	git://git.sv.gnu.org/
+    git clone https://git.savannah.gnu.org/git/zile.git
 
 Normally, you just need to run `./bootstrap`, and it will either get
 everything ready so that you can then run `./configure` as would for a
 release tarball, or else tell you if your machine is missing some
-packages that it needs in order to do that. One of the first things that
-`bootstrap` will do the first time you run it in a freshly cloned git
-tree is to clone a copy of [gnulib][] as a submodule. If you already
-have an up-to-date [gnulib][] clone on your machine, you can save the
-time and bandwidth of downloading it again by using `--gnulib-srcdir` to
-point at your existing gnulib directory:
-
-    ./bootstrap --gnulib-srcdir=/path/to/existing/gnulib/checkout/
-
-With a copy of gnulib now installed as a submodule, if you wish, you can
-continue to work off-line by passing `--skip-git` to rerun the
-`bootstrap` script, otherwise subsequent `bootstrap` runs will refresh
-the contents of the submodule:
-
-    ./bootstrap --skip-git
+packages that it needs in order to do that.
 
   [gitbrowser]: http://git.sv.gnu.org/cgit/zile.git
+
+Zile is written in Vala; to build it you need valac version 0.52 or later,
+glib 2.0 and libgee.
 
 
 REPORTING BUGS
