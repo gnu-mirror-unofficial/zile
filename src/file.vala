@@ -160,24 +160,32 @@ bool find_file (string filename) {
 	return true;
 }
 
+int write_all (int fd, char *data, size_t length)
+{
+	for (size_t tot_written = 0; tot_written < length; ) {
+		ssize_t written = write (fd, data, length);
+		if (written < 0)
+			return (int) written;
+		if (written == 0)
+			return 1;
+		tot_written += written;
+	}
+	return 0;
+}
+
 /*
  * Write buffer to given file name with given mode.
  */
-ssize_t write_to_disk (Buffer bp, string filename, mode_t mode) {
+int write_to_disk (Buffer bp, string filename, mode_t mode) {
 	int fd = creat (filename, mode);
 	if (fd < 0)
 		return -1;
 
-	ssize_t ret = 0;
 	ImmutableEstr es = bp.pre_point ();
-	ssize_t written = write (fd, es.text, es.length);
-	if (written < 0 || (size_t) written != es.length)
-		ret = written;
-	else {
+	int ret = write_all (fd, es.text, es.length);
+	if (ret == 0) {
 		es = bp.post_point ();
-		written = write (fd, es.text, es.length);
-		if (written < 0 || (size_t) written != es.length)
-			ret = written;
+		ret = write_all (fd, es.text, es.length);
 	}
 
 	if (close (fd) < 0 && ret == 0)
@@ -237,8 +245,7 @@ bool backup_and_write (Buffer bp, string filename) {
 			}
     }
 
-	ssize_t ret = write_to_disk (bp, filename, S_IRUSR | S_IWUSR |
-								 S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+	int ret = write_to_disk (bp, filename, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 	if (ret == 0)
 		return true;
 
