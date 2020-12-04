@@ -34,9 +34,7 @@ bool pipe_command (string cmd, ImmutableEstr? instr, bool do_insert, bool do_rep
 	}
 	Estr res = null;
 	if (output != null) {
-		ImmutableEstr es = ImmutableEstr.of ((string) output.get_data (), output.length);
-		res = Estr.of_empty ();
-		res.cat (es);
+		res = Estr.copy (ImmutableEstr.of ((string) output.get_data (), output.length));
 		res.set_eol_from_text ();
 	}
 	if (res == null || res.length == 0)
