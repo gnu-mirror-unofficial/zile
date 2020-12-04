@@ -25,7 +25,6 @@ AM_CPPFLAGS = -I$(builddir)/src -I$(srcdir)/src -I$(builddir)/lib -I$(srcdir)/li
 LDADD = $(builddir)/lib/libgnu.a $(LIB_EACCESS) $(LIBINTL) $(CURSES_LIB) $(GLIB_LIBS)
 
 VAPIS =	src/config.vapi					\
-	src/memrmem.vapi				\
 	src/getopt_long_fix.h
 
 BUILT_VAPIS = src/estr.vapi
@@ -44,8 +43,7 @@ bin_PROGRAMS = src/zile
 
 noinst_LIBRARIES = src/libestr.a
 src_libestr_a_SOURCES = src/estr.vala
-src_libestr_a_VALAFLAGS = $(AM_VALAFLAGS) --pkg posix --pkg gnu --pkg memrmem --library estr --header src/estr.h --vapi=src/estr.vapi
-src_libestr_a_LIBADD = src/memrmem.o
+src_libestr_a_VALAFLAGS = $(AM_VALAFLAGS) --pkg posix --pkg gnu --library estr --header src/estr.h --vapi=src/estr.vapi
 
 # The following rule is copied from that generated for src/estr.c, with an
 # extra mv to put the output in the right place, because passing --output to
@@ -57,12 +55,10 @@ $(srcdir)/src/estr.vapi: $(srcdir)/src_libestr_a_vala.stamp
 	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/src_libestr_a_vala.stamp; \
 	fi
 
-src_zile_VALAFLAGS = $(AM_VALAFLAGS) -D _REGEX_LARGE_OFFSETS --pkg config --pkg gee-0.8 --pkg gio-2.0 --pkg posix --pkg curses --pkg gnu --pkg estr --pkg memrmem
+src_zile_VALAFLAGS = $(AM_VALAFLAGS) -D _REGEX_LARGE_OFFSETS --pkg config --pkg gee-0.8 --pkg gio-2.0 --pkg posix --pkg curses --pkg gnu --pkg estr
 src_zile_LDADD = $(LDADD) $(LIBOBJS) src/libestr.a
 
 src_zile_SOURCE_FILES =					\
-	src/memrmem.h					\
-	src/memrmem.c					\
 	src/basic.vala					\
 	src/bind.vala					\
 	src/buffer.vala					\

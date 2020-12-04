@@ -67,6 +67,17 @@ public class ImmutableEstr {
 		return (eo == length) ? size_t.MAX : eo + eol.length;
 	}
 
+	char *memrmem (char *s, size_t slen, char *t, size_t tlen) {
+		if (slen >= tlen) {
+			size_t i = slen - tlen;
+			do
+				if (Posix.memcmp (s + i, t, tlen) == 0)
+					return s + i;
+			while (i-- != 0);
+		}
+		return null;
+	}
+
 	public size_t start_of_line (size_t o) {
 		char *prev = memrmem ((string) text, (ssize_t) o, eol, eol.length);
 		return prev != null ? prev - text + eol.length : 0;
