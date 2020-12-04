@@ -30,8 +30,6 @@ BUILT_VAPIS = src/estr.vapi
 
 BUILT_SOURCES =						\
 	src/tbl_bindings.vala				\
-	src/tbl_opts.vala				\
-	src/tbl_vars.vala				\
 	src/estr.h					\
 	src/dummy.vala
 
@@ -81,6 +79,8 @@ src_zile_SOURCE_FILES =					\
 	src/registers.vala				\
 	src/search.vala					\
 	src/shell.vala					\
+	src/tbl_opts.vala				\
+	src/tbl_vars.vala				\
 	src/term_curses.vala				\
 	src/term_minibuf.vala				\
 	src/term_redisplay.vala				\
