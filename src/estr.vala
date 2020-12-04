@@ -24,7 +24,6 @@ public class ImmutableEstr {
 	 * Strings may contain NULs, but always have a terminating NUL, so treating
 	 * them as NUL-terminated will not result in buffer overflows.
 	 */
-	protected const int ALLOCATION_CHUNK_SIZE = 16;
 	public char *text { public get; protected set; } /* The string buffer. */
 	public size_t length { public get; protected set; } /* The length of the string. */
 	public string eol { public get; protected set; } /* EOL type. */
@@ -99,6 +98,7 @@ public class ImmutableEstr {
 }
 
 public class Estr : ImmutableEstr {
+	protected const int ALLOCATION_CHUNK_SIZE = 16;
 	size_t buf_size;
 
 	/* Prevent constructor being called outside class. */
