@@ -2,6 +2,17 @@ GNU Zile NEWS                                         -*- outline -*-
 
 * Noteworthy changes in release ?.? (????-??-??) [?]
 
+** Bug fixes
+
+  Writing files has been made more robust, in the case where the system may
+  not write all the data requested at once.
+
+** Miscellaneous
+
+  Zile has been rewritten in Vala. This makes the code considerably shorter
+  (~6kLoC as compared with 8kLoC for the C version) and easier to
+  maintain. It now requires glib and libgee to build, but a Vala compiler is
+  not required, as the generated C sources are shipped in release tarballs.
 
 * Noteworthy changes in release 2.4.15 (2020-11-05) [stable]
 
