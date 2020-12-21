@@ -40,8 +40,8 @@ public enum Flags {
 	UNIARG_EMPTY,	/* Current universal arg is just C-u's with no number. */
 	DEFINING_MACRO, /* We are defining a macro. */
 }
-int thisflag = 0;
-int lastflag = 0;
+Flags thisflag = 0;
+Flags lastflag = 0;
 
 /* The universal argument repeat count. */
 int last_uniarg = 1;
