@@ -31,6 +31,7 @@ Buffer cur_bp;
 Buffer head_bp;
 
 /* The global editor flags, stored in `thisflag` and `lastflag`. */
+[Flags]
 public enum Flags {
 	NEED_RESYNC,	/* A resync is required. */
 	QUIT,			/* The user has asked to quit. */
