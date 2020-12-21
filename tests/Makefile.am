@@ -170,6 +170,7 @@ LISP_TESTS =						\
 	%D%/interactive/transpose-sexps.el		\
 	%D%/interactive/transpose-words.el		\
 	%D%/interactive/universal-argument.el		\
+	%D%/interactive/universal-argument-default.el	\
 	%D%/interactive/upcase-word.el			\
 	%D%/interactive/yank.el
 
