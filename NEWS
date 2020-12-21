@@ -2,6 +2,14 @@ GNU Zile NEWS                                         -*- outline -*-
 
 * Noteworthy changes in release ?.? (????-??-??) [?]
 
+** Bug fixes
+
+  Fix bug #59746, introduced in 2.6.0.90, where `universal-argument' without
+  an explicit numeric argument would cause Zile to quit immediately.
+
+  Fix a long-standing bug where `save-buffers-kill-emacs' would not cause
+  Zile to exit immediately if it was executed as part of a macro or Lisp
+  expression.
 
 * Noteworthy changes in release 2.6.0.90 (2020-12-04) [beta]
 
