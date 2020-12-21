@@ -34,7 +34,6 @@ Buffer head_bp;
 [Flags]
 public enum Flags {
 	NEED_RESYNC,	/* A resync is required. */
-	QUIT,			/* The user has asked to quit. */
 	SET_UNIARG,		/* The last command modified the
 					   universal arg variable `uniarg'. */
 	UNIARG_EMPTY,	/* Current universal arg is just C-u's with no number. */
@@ -43,18 +42,45 @@ public enum Flags {
 Flags thisflag = 0;
 Flags lastflag = 0;
 
+/*
+ * Exit Zile.
+ * If `reason' is `EXIT_SUCCESS', close the terminal; otherwise, attempt to
+ * save modified buffers.
+ * If `reason' is `EXIT_COREDUMP`, abort to allow core dump generation;
+ * otherwise, exit with given `reason' code.
+ */
+const int EXIT_SIGNAL = 2;
+const int EXIT_COREDUMP = 3;
+public void zile_exit (int reason) {
+	if (reason == EXIT_SUCCESS)
+		term_finish ();
+	else {
+		Posix.stderr.printf ("Trying to save modified buffers (if any)...\r\n");
+		for (Buffer? bp = head_bp; bp != null; bp = bp.next)
+			if (bp.modified && !bp.nosave) {
+				string name = "%s.%sSAVE".printf (bp.get_filename_or_name (), PACKAGE.up ());
+				Posix.stderr.printf (@"Saving $name...\r\n");
+				write_to_disk (bp, name, S_IRUSR | S_IWUSR);
+			}
+		if (reason == EXIT_COREDUMP)
+			abort ();
+	}
+
+	exit (reason);
+}
+
 /* The universal argument repeat count. */
 int last_uniarg = 1;
 
 void segv_sig_handler (int signo) {
 	Posix.stderr.printf (@"$program_name: $PACKAGE_NAME crashed.  Please send a bug report to " +
 						 @"<$PACKAGE_BUGREPORT>.\r\n");
-	zile_exit (true);
+	zile_exit (EXIT_COREDUMP);
 }
 
 void other_sig_handler (int signo) {
 	Posix.stderr.printf (@"$program_name: terminated with signal $signo.\r\n");
-	zile_exit (false);
+	zile_exit (EXIT_SIGNAL);
 }
 
 void signal_init () {
@@ -293,8 +319,6 @@ PACKAGE_NAME + " is Free Software--Free as in Freedom--so you can redistribute c
         default:
 			break;
         }
-		if (Flags.QUIT in thisflag)
-			break;
     }
 	lastflag |= Flags.NEED_RESYNC;
 
@@ -322,14 +346,9 @@ PACKAGE_NAME + " is Free Software--Free as in Freedom--so you can redistribute c
 	Minibuf.refresh ();
 
 	/* Run the main loop. */
-	while (!(Flags.QUIT in thisflag)) {
+	while (true) {
 		if (Flags.NEED_RESYNC in lastflag)
 			cur_wp.resync ();
 		get_and_run_command ();
     }
-
-	/* Tidy and close the terminal. */
-	term_finish ();
-
-	return EXIT_SUCCESS;
 }

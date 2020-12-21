@@ -323,28 +323,6 @@ bool save_buffer (Buffer bp) {
 	return true;
 }
 
-/*
- * Function called on unexpected error or Zile crash (SIGSEGV).
- * Attempts to save modified buffers.
- * If doabort is true, aborts to allow core dump generation;
- * otherwise, exit.
- */
-const int EXIT_CRASH = 2;
-public void zile_exit (bool doabort) {
-	Posix.stderr.printf ("Trying to save modified buffers (if any)...\r\n");
-	for (Buffer? bp = head_bp; bp != null; bp = bp.next)
-		if (bp.modified && !bp.nosave) {
-			string name = "%s.%sSAVE".printf (bp.get_filename_or_name (), PACKAGE.up ());
-			Posix.stderr.printf (@"Saving $name...\r\n");
-			write_to_disk (bp, name, S_IRUSR | S_IWUSR);
-		}
-
-	if (doabort)
-		abort ();
-	else
-		exit (EXIT_CRASH);
-}
-
 
 public void file_init () {
 	new LispFunc (
@@ -619,7 +597,7 @@ Interactively, confirmation is required unless you supply a prefix argument."""
 					break; /* We have found a modified buffer, so stop. */
 				}
 
-			thisflag |= Flags.QUIT;
+			zile_exit (EXIT_SUCCESS);
 			return true;
 		},
 		true,
