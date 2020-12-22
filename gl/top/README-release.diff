@@ -50,7 +50,7 @@
 +  to:
  
 -    ./bootstrap && ./configure
-+  CFLAGS="-g3 -fsanitize=address -fsanitize=undefined" LDFLAGS="-fsanitize=address -fsanitize=undefined"
++    CFLAGS="-g3 -fsanitize=address -fsanitize=undefined" LDFLAGS="-fsanitize=address -fsanitize=undefined"
  
 -* Pre-release testing: ensure that the following commands succeed:
 +* Check that the NixOS/Hydra autobuilder is reporting all is well:
