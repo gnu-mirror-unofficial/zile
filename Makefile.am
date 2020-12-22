@@ -92,7 +92,7 @@ distcheck-hook: syntax-check
 
 dorelease:
 	git push origin master tag v$$(cat .prev-version)
-	woger gnu upload=ftp.gnu.org package=$(PACKAGE) package_name="$(PACKAGE_NAME)" version=$(VERSION) email=~/announce-$(PACKAGE)-$(VERSION) dist_type="tar.gz"
+	woger gnu
 
 ## An empty target to depend on when a rule needs to always run
 ## whenever it is visited.
