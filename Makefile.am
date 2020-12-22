@@ -73,21 +73,6 @@ prerelease:
 ## Distribution. ##
 ## ------------- ##
 
-gitlog_to_changelog	= $(srcdir)/build-aux/gitlog-to-changelog
-git_log_fix		= $(srcdir)/build-aux/git-log-fix
-changelog		= $(srcdir)/ChangeLog
-
-# Changes before this date are from before Lua was used for any of Zile.
-changelog_start_date = 2009-03-30
-$(changelog): .FORCE
-	$(AM_V_GEN)if test -d '$(srcdir)/.git'; then \
-	  $(gitlog_to_changelog) --amend=$(git_log_fix) \
-	      --since=$(changelog_start_date) > '$@T'; \
-	  rm -f '$@'; mv '$@T' '$@'; \
-	fi
-
-dist-hook: $(changelog)
-
 distcheck-hook: syntax-check
 
 dorelease:

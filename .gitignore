@@ -11,7 +11,6 @@ tags
 /lib
 /maint.mk
 /test-suite.log
-ChangeLog
 Makefile
 Makefile.in
 aclocal.m4
