@@ -211,29 +211,25 @@ public void init_default_bindings () {
 }
 
 delegate void BindingsProcessor (string key, Binding p);
-delegate void BindingsWalker (Binding tree);
+delegate void BindingsWalker (Binding tree, string[] keys);
 void walk_bindings (BindingsProcessor process) {
-	/* FIXME: Use a container rather than a primitive array to work around
-	 * https://gitlab.gnome.org/GNOME/vala/-/issues/1090 */
-	var keys = new ArrayList<string> ();
 	BindingsWalker walker = null;
-	walker = (tree) => {
+	walker = (tree, keys) => {
 		assert (tree.map != null);
 		foreach (uint key in tree.map.keys) {
 			Binding p = tree.map.@get (key);
 			assert (p != null);
 
+			string[] keys_ = keys;
+			keys_ += chordtodesc (key);
 			if (p.func != null)
-				process (string.joinv (" ", keys.to_array ()), p);
-			else {
-				keys.add (chordtodesc (key));
-				walker (p);
-				keys.remove_at (keys.size - 1);
-			}
+				process (string.joinv (" ", keys_), p);
+			else
+				walker (p, keys_);
 		}
 	};
 
-	walker (root_bindings);
+	walker (root_bindings, new string[0]);
 }
 
 
