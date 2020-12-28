@@ -37,5 +37,5 @@ local-checks-to-skip = \
 
 # Rationale:
 #
-# sc_{bindtextdomain,unmarked_diagnostics}: Emacs isn't internationalised
+# sc_{bindtextdomain,unmarked_diagnostics}: Zile isn't internationalised
 # sc_error_message_{period,uppercase}: Emacs does these
