@@ -53,20 +53,16 @@ public void cancel_kbd_macro () {
 	thisflag &= ~Flags.DEFINING_MACRO;
 }
 
-void process_keys (Gee.List<uint> keys) {
+static Gee.List<uint> macro_keys;
+
+bool call_macro () {
 	size_t cur = term_buf_len ();
-	for (uint i = 0; i < keys.size; i++)
-		pushkey (keys.@get ((int) (keys.size - i - 1)));
+	for (uint i = 0; i < macro_keys.size; i++)
+		pushkey (macro_keys.@get ((int) (macro_keys.size - i - 1)));
 
 	while (term_buf_len () > cur)
 		get_and_run_command ();
-}
 
-static Gee.List<uint> macro_keys;
-
-// FIXME: Make this a delegate
-bool call_macro () {
-	process_keys (macro_keys);
 	return true;
 }
 
