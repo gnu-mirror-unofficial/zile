@@ -186,11 +186,16 @@ namespace TermMinibuf {
 					ding ();
 				break;
 			case KBD_CTRL | 'k':
-				/* FIXME: do kill-register save. */
-				if (pos < a.length)
+				maybe_destroy_kill_ring ();
+				if (pos < a.length) {
+					string rest = a.substring (pos);
+					kill_ring_push (ImmutableEstr.of (rest, rest.length));
 					a = a.substring (0, pos);
-				else
+				} else
 					ding ();
+				break;
+			case KBD_CTRL | 'y':
+				a += (string) kill_ring_text.text;
 				break;
 			case KBD_BS:
 				if (pos > 0) {
