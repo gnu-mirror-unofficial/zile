@@ -54,197 +54,110 @@ public const int KBD_F10 = 00431;
 public const int KBD_F11 = 00432;
 public const int KBD_F12 = 00433;
 
+struct KeyInfo {
+	int code;
+	string name;
+	string desc;
+}
+
+const KeyInfo[] keyinfo = {
+	{ KBD_BS, "\\BACKSPACE", "<backspace>" },
+	{ KBD_CTRL, "\\C-", "C-" },
+	{ KBD_DEL, "\\DELETE", "<delete>" },
+	{ KBD_DOWN, "\\DOWN", "<down>" },
+	/* FIXME: Kludge to make keystrings work in both Emacs and Zile. */
+	{ 033, "\\e", null },
+	{ KBD_END, "\\END", "<end>" },
+	{ KBD_F1, "\\F1", "<f1>" },
+	{ KBD_F10, "\\F10", "<f10>" },
+	{ KBD_F11, "\\F11", "<f11>" },
+	{ KBD_F12, "\\F12", "<f12>" },
+	{ KBD_F2, "\\F2", "<f2>" },
+	{ KBD_F3, "\\F3", "<f3>" },
+	{ KBD_F4, "\\F4", "<f4>" },
+	{ KBD_F5, "\\F5", "<f5>" },
+	{ KBD_F6, "\\F6", "<f6>" },
+	{ KBD_F7, "\\F7", "<f7>" },
+	{ KBD_F8, "\\F8", "<f8>" },
+	{ KBD_F9, "\\F9", "<f9>" },
+	{ KBD_HOME, "\\HOME", "<home>" },
+	{ KBD_INS, "\\INSERT", "<insert>" },
+	{ KBD_LEFT, "\\LEFT", "<left>" },
+	{ KBD_META, "\\M-", "M-" },
+	{ KBD_PGDN, "\\NEXT", "<next>" },
+	{ KBD_PGDN, "\\PAGEDOWN", "<pagedown>" },
+	{ KBD_PGUP, "\\PAGEUP", "<pageup>" },
+	{ KBD_PGUP, "\\PRIOR", "<prior>" },
+	{ KBD_RET, "\\RET", "<RET>" },
+	/* FIXME: Kludge to make keystrings work in both Emacs and Zile. */
+	{ KBD_RET, "\\r", null },
+	{ KBD_RIGHT, "\\RIGHT", "<right>" },
+	{ ' ', "\\SPC", "SPC" },
+	{ KBD_TAB, "\\TAB", "<TAB>" },
+	{ KBD_TAB, "\\t", null },
+	{ KBD_UP, "\\UP", "<up>" },
+	{ '\\', "\\\\", "\\" },
+};
+
 /*
- * Convert a key chord into its ASCII representation
+ * Convert a key code to its string.
  */
-string chordtodesc (size_t key) {
-	string a = "";
-
-	if ((key & KBD_CTRL) != 0)
-		a += "C-";
-	if ((key & KBD_META) != 0)
-		a += "M-";
-	key &= ~(KBD_CTRL | KBD_META);
-
-	switch (key) {
-    case KBD_PGUP:
-		a += "<prior>";
-		break;
-    case KBD_PGDN:
-		a += "<next>";
-		break;
-    case KBD_HOME:
-		a += "<home>";
-		break;
-    case KBD_END:
-		a += "<end>";
-		break;
-    case KBD_DEL:
-		a += "<delete>";
-		break;
-    case KBD_BS:
-		a += "<backspace>";
-		break;
-    case KBD_INS:
-		a += "<insert>";
-		break;
-    case KBD_LEFT:
-		a += "<left>";
-		break;
-    case KBD_RIGHT:
-		a += "<right>";
-		break;
-    case KBD_UP:
-		a += "<up>";
-		break;
-    case KBD_DOWN:
-		a += "<down>";
-		break;
-    case KBD_RET:
-		a += "<RET>";
-		break;
-    case KBD_TAB:
-		a += "<TAB>";
-		break;
-    case KBD_F1:
-		a += "<f1>";
-		break;
-    case KBD_F2:
-		a += "<f2>";
-		break;
-    case KBD_F3:
-		a += "<f3>";
-		break;
-    case KBD_F4:
-		a += "<f4>";
-		break;
-    case KBD_F5:
-		a += "<f5>";
-		break;
-    case KBD_F6:
-		a += "<f6>";
-		break;
-    case KBD_F7:
-		a += "<f7>";
-		break;
-    case KBD_F8:
-		a += "<f8>";
-		break;
-    case KBD_F9:
-		a += "<f9>";
-		break;
-    case KBD_F10:
-		a += "<f10>";
-		break;
-    case KBD_F11:
-		a += "<f11>";
-		break;
-    case KBD_F12:
-		a += "<f12>";
-		break;
-    case ' ':
-		a += "SPC";
-		break;
-    default:
-		if (key <= 0xff && ((char) key).isgraph ())
-			a += ((char) key).to_string ();
-		else
-			a += "<%zx>".printf (key);
-		break;
-    }
-
-	return a;
+string? keytostr (size_t key) {
+	for (uint i = 0; i < keyinfo.length; i++)
+		if (keyinfo[i].code == key)
+			return keyinfo[i].name;
+	if (key <= 0xff && ((char) key).isgraph ())
+		return ((char) key).to_string ();
+	return null;
 }
 
 /*
- * Array of key names
+ * Convert a key code to its description.
  */
-const string[] keyname = {
-  "\\BACKSPACE",
-  "\\C-",
-  "\\DELETE",
-  "\\DOWN",
-  "\\e", /* FIXME: Kludge to make keystrings work in both Emacs and Zile. */
-  "\\END",
-  "\\F1",
-  "\\F10",
-  "\\F11",
-  "\\F12",
-  "\\F2",
-  "\\F3",
-  "\\F4",
-  "\\F5",
-  "\\F6",
-  "\\F7",
-  "\\F8",
-  "\\F9",
-  "\\HOME",
-  "\\INSERT",
-  "\\LEFT",
-  "\\M-",
-  "\\NEXT",
-  "\\PAGEDOWN",
-  "\\PAGEUP",
-  "\\PRIOR",
-  "\\r", /* FIXME: Kludge to make keystrings work in both Emacs and Zile. */
-  "\\RET",
-  "\\RIGHT",
-  "\\SPC",
-  "\\t",
-  "\\TAB",
-  "\\UP",
-  "\\\\",
-};
+string keytodesc (size_t key) {
+	for (uint i = 0; i < keyinfo.length; i++)
+		if (keyinfo[i].code == key)
+			return keyinfo[i].desc;
+	if (key <= 0xff && ((char) key).isgraph ())
+		return ((char) key).to_string ();
+	return "<%zx>".printf (key);
+}
 
 /*
- * Array of key codes in the same order as keyname above
+ * Convert a key chord into its ASCII representation
  */
-const int[] keycode = {
-  KBD_BS,
-  KBD_CTRL,
-  KBD_DEL,
-  KBD_DOWN,
-  033,
-  KBD_END,
-  KBD_F1,
-  KBD_F10,
-  KBD_F11,
-  KBD_F12,
-  KBD_F2,
-  KBD_F3,
-  KBD_F4,
-  KBD_F5,
-  KBD_F6,
-  KBD_F7,
-  KBD_F8,
-  KBD_F9,
-  KBD_HOME,
-  KBD_INS,
-  KBD_LEFT,
-  KBD_META,
-  KBD_PGDN,
-  KBD_PGDN,
-  KBD_PGUP,
-  KBD_PGUP,
-  KBD_RET,
-  KBD_RET,
-  KBD_RIGHT,
-  ' ',
-  KBD_TAB,
-  KBD_TAB,
-  KBD_UP,
-  '\\',
-};
+delegate string? KeyStringifier (size_t key);
+string? chordtostr (size_t key, KeyStringifier func) {
+	string chord_string = "";
+
+	if ((key & KBD_CTRL) != 0)
+		chord_string += func (KBD_CTRL);
+	if ((key & KBD_META) != 0)
+		chord_string += func (KBD_META);
+	key &= ~(KBD_CTRL | KBD_META);
+
+	string? key_string = func (key);
+	if (key_string != null)
+		return chord_string + key_string;
+	return null;
+}
+
+/*
+ * Convert a key chord into its text description
+ */
+string chordtodesc (size_t key) {
+	return chordtostr (key, keytodesc);
+}
 
 /*
  * Convert a key string to its key code.
  */
 uint strtokey (string buf, out uint len) {
 	if (buf[0] == '\\') {
-		for (uint i = 0; i < keyname.length; i++)
-			if (buf.has_prefix (keyname[i])) {
-				len = keyname[i].length;
-				return keycode[i];
+		for (uint i = 0; i < keyinfo.length; i++)
+			if (buf.has_prefix (keyinfo[i].name)) {
+				len = keyinfo[i].name.length;
+				return keyinfo[i].code;
 			}
 		len = 0;
 		return KBD_NOKEY;
@@ -291,6 +204,16 @@ Gee.List<uint>? keystrtovec (string key)
 	}
 
 	return keys;
+}
+
+/*
+ * Convert a key code sequence into a string.
+ */
+string keyvectostr (Gee.List<uint> keys) {
+	string key_string = "";
+	foreach (uint keycode in keys)
+		key_string += chordtostr ((size_t) keycode, keytostr);
+	return key_string;
 }
 
 /*

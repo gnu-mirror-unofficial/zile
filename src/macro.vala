@@ -111,16 +111,15 @@ public void macro_init () {
 
 	new LispFunc (
 		"call-last-kbd-macro",
-		(uniarg, args) => {
+		(uniarg, _) => {
 			if (cur_mp == null) {
 				Minibuf.error ("No kbd macro has been defined");
 				return false;
 			}
 
-			/* FIXME: Call execute-kbd-macro (needs a way to reverse keystrtovec) */
-			/* F_execute_kbd_macro (uniarg, true, leAddDataElement (leNew (null), keyvectostr (cur_mp.keys), false)); */
-			macro_keys = cur_mp.keys;
-			execute_with_uniarg (uniarg, call_macro, null);
+			var args = new Gee.ArrayQueue<string> ();
+			args.add (keyvectostr (cur_mp.keys));
+			funcall ("execute-kbd-macro", uniarg, args);
 			return true;
 		},
 		true,

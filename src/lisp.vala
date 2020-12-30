@@ -178,20 +178,18 @@ public class Lexp {
 [CCode(has_target=false)]
 public delegate bool Function (long uniarg, Gee.Queue<string>? args);
 
-public bool funcall (string name, long? maybe_uniarg=null) {
+public bool funcall (string name, long? maybe_uniarg=null, Gee.Queue<string>? args=null) {
 	/* FIXME: This code is a bit long-winded, to work around
 	 * https://gitlab.gnome.org/GNOME/vala/-/issues/1084
 	 */
 	long uniarg;
-	Gee.Queue<string>? args;
+	Gee.Queue<string>? args_ = args;
 	if (maybe_uniarg == null) {
 		uniarg = 1;
-		args = new ArrayQueue<string> ();
-	} else {
+		args_ = new ArrayQueue<string> ();
+	} else
 		uniarg = maybe_uniarg;
-		args = null;
-	}
-	return LispFunc.find (name).func (uniarg, args);
+	return LispFunc.find (name).func (uniarg, args_);
 }
 
 public bool noarg (Gee.Queue<string>? args) {
