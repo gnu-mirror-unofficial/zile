@@ -243,7 +243,9 @@ public bool int_or_uniarg (Gee.Queue<string>? args, ref long n, long uniarg) {
 
 void lisp_loadstring (string a) {
 	uint pos = 0;
-	Lexp.eval_list (Lexp.read_list (a, ref pos));
+	var list = Lexp.read_list (a, ref pos);
+	if (list != null)
+		Lexp.eval_list (list);
 }
 
 bool lisp_loadfile (string file) {
