@@ -2,6 +2,22 @@ GNU Zile NEWS                                         -*- outline -*-
 
 * Noteworthy changes in release ?.? (????-??-??) [?]
 
+** New features
+
+  In the minibuffer, C-k now adds the cut text to the kill ring, and `yank'
+  (C-y) is added.
+
+** Bug fixes
+
+  Fix processing of key bindings. This affects where-is and
+  describe-bindings.
+
+  Fix a space leak on unterminated string and a crash on unclosed paren when
+  parsing Lisp expressions.
+
+** Miscellaneous
+
+  Some code clean-up in the area of keystroke processing.
 
 * Noteworthy changes in release 2.6.0.92 (2020-12-22) [beta]
 
