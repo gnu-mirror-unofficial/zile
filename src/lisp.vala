@@ -112,11 +112,9 @@ public class Lexp {
 					return TokenType.word;
 				}
 			} else {
-				if (c == '\n' || c == '\r') {
-					// FIXME: https://gitlab.gnome.org/GNOME/vala/-/issues/1123
-					tok = null; // Avoid leak
+				if (c == '\n' || c == '\r')
 					throw new ParseError.UNCLOSED_QUOTE ("EOL");
-				} if (c == '\"') {
+				if (c == '\"') {
 					tok = tok.slice (0, -1);
 					return TokenType.word;
 				}
