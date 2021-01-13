@@ -393,7 +393,7 @@ If the current buffer now contains an empty file that you just visited
 	new LispFunc (
 		"switch-to-buffer",
 		(uniarg, args) => {
-			Buffer? bp = ((cur_bp.next != null) ? cur_bp.next : head_bp);
+			Buffer? bp = cur_bp.next ?? head_bp;
 
 			bool ok = true;
 			string? buf = args.poll ();
@@ -431,7 +431,7 @@ If the current buffer now contains an empty file that you just visited
 	new LispFunc (
 		"insert-buffer",
 		(uniarg, args) => {
-			Buffer? def_bp = ((cur_bp.next != null) ? cur_bp.next : head_bp);
+			Buffer? def_bp = cur_bp.next ?? head_bp;
 
 			if (cur_bp.warn_if_readonly ())
 				return false;

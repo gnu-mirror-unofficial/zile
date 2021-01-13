@@ -73,7 +73,7 @@ namespace Minibuf {
 	 * Read a string from the minibuffer.
 	 */
 	public string? read (string fmt, string? value, ...) {
-		return TermMinibuf.read (fmt.vprintf (va_list ()), value != null ? value : "", long.MAX, null, null);
+		return TermMinibuf.read (fmt.vprintf (va_list ()), value ?? "", long.MAX, null, null);
 	}
 
 	/*

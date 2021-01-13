@@ -327,8 +327,7 @@ public class Buffer {
 	 * Get filename, or buffer name if null.
 	 */
 	public string get_filename_or_name () {
-		string? fname = filename;
-		return fname != null ? fname : name;
+		return filename ?? name;
 	}
 
 	/*

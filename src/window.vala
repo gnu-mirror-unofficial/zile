@@ -157,7 +157,7 @@ Window popup_window () {
 	}
 
 	/* Use the window after the current one, or first window if none. */
-	return cur_wp.next != null ? cur_wp.next : head_wp;
+	return cur_wp.next ?? head_wp;
 }
 
 
