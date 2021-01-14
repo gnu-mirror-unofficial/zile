@@ -146,7 +146,7 @@ main (int argc, char **argv)
       /* Leading `:' so as to return ':' for a missing arg, not '?' */
       c = getopt_long (argc, argv, "-:f:l:q", longopts, &longindex);
 
-      if (c == -1)
+      if (c == -1) /* No more options */
         break;
       else if (c == '\001') /* Non-option (assume file name) */
         longindex = 5;
