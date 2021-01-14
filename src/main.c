@@ -37,7 +37,7 @@
 #include "extern.h"
 
 #define ZILE_COPYRIGHT_STRING \
-  "Copyright (C) 2014 Free Software Foundation, Inc."
+  "Copyright (C) 2020 Free Software Foundation, Inc."
 
 /* The current window; the first window in list. */
 Window cur_wp = NULL, head_wp = NULL;
