@@ -1,6 +1,6 @@
 /* Macro facility functions
 
-   Copyright (c) 1997-2020 Free Software Foundation, Inc.
+   Copyright (c) 1997-2021 Free Software Foundation, Inc.
 
    This file is part of GNU Zile.
 
@@ -20,10 +20,10 @@
 using Gee;
 
 class Macro {
-	public Gee.List<uint> keys;	/* List of keystrokes. */
+	public Gee.List<Keystroke> keys;	/* List of keystrokes. */
 
 	public Macro () {
-		this.keys = new ArrayList<uint> ();
+		this.keys = new ArrayList<Keystroke> ();
 	}
 }
 
@@ -36,7 +36,7 @@ public void add_cmd_to_macro () {
 	cmd_mp = null;
 }
 
-public void add_key_to_cmd (uint key) {
+public void add_key_to_cmd (Keystroke key) {
 	if (cmd_mp == null)
 		cmd_mp = new Macro ();
 
@@ -53,7 +53,7 @@ public void cancel_kbd_macro () {
 	thisflag &= ~Flags.DEFINING_MACRO;
 }
 
-static Gee.List<uint> macro_keys;
+static Gee.List<Keystroke> macro_keys;
 
 bool call_macro () {
 	size_t cur = term_buf_len ();
@@ -131,7 +131,7 @@ public void macro_init () {
 		"execute-kbd-macro",
 		(uniarg, args) => {
 			string? keystr = args.poll ();
-			Gee.List<uint>? keys = keystrtovec (keystr);
+			Gee.List<Keystroke>? keys = keystrtovec (keystr);
 			if (keys == null)
 				return false;
 

@@ -1,6 +1,6 @@
 /* Miscellaneous Emacs functions
 
-   Copyright (c) 1997-2020 Free Software Foundation, Inc.
+   Copyright (c) 1997-2021 Free Software Foundation, Inc.
 
    This file is part of GNU Zile.
 
@@ -497,7 +497,7 @@ This is useful for inserting control characters."""
 			thisflag |= Flags.UNIARG_EMPTY;
 
 			for (;;) {
-				uint key = binding_completion (a);
+				Keystroke key = binding_completion (a);
 
 				/* Cancelled. */
 				if (key == KBD_CANCEL) {

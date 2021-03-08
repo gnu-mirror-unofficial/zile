@@ -1,6 +1,6 @@
 /* Curses terminal
 
-   Copyright (c) 1997-2020 Free Software Foundation, Inc.
+   Copyright (c) 1997-2021 Free Software Foundation, Inc.
 
    This file is part of GNU Zile.
 
@@ -21,9 +21,9 @@ using Gee;
 
 using Curses;
 
-static Gee.List<uint> key_buf;
+static Gee.List<Keystroke> key_buf;
 
-static uint backspace_code = 0177;
+static Keystroke backspace_code = 0177;
 
 public uint term_buf_len () {
 	return key_buf.size;
@@ -82,7 +82,7 @@ public void term_init () {
 	stdscr.meta (true);
 	stdscr.intrflush (false);
 	stdscr.keypad (true);
-	key_buf = new ArrayList<uint> ();
+	key_buf = new ArrayList<Keystroke> ();
 	unowned string? kbs = TermInfo.getstr ("kbs");
 	if (kbs != null && kbs.length == 1)
 		backspace_code = kbs[0];
@@ -93,7 +93,7 @@ public void term_close () {
 	endwin ();
 }
 
-static uint codetokey (uint c) {
+static Keystroke codetokey (uint c) {
 	switch (c) {
     case '\0':			/* C-@ */
 		return KBD_CTRL | '@';
@@ -187,7 +187,7 @@ static uint codetokey (uint c) {
     }
 }
 
-static Gee.List<uint> keytocodes (uint key) {
+static Gee.List<uint> keytocodes (Keystroke key) {
 	var codevec = new ArrayList<uint> ();
 
 	if (key == KBD_NOKEY)
@@ -335,8 +335,8 @@ static uint get_char (int delay) {
 	return c;
 }
 
-public uint term_getkey (int delay) {
-	uint key = codetokey (get_char (delay));
+public Keystroke term_getkey (int delay) {
+	Keystroke key = codetokey (get_char (delay));
 	while (key == KBD_META)
 		key = codetokey (get_char (GETKEY_DEFAULT)) | KBD_META;
 	return key;
@@ -349,7 +349,7 @@ public uint term_getkey_unfiltered (int delay) {
 	return key;
 }
 
-public void term_ungetkey (uint key) {
+public void term_ungetkey (Keystroke key) {
 	Gee.List<uint> codes = keytocodes (key);
 	for (int i = codes.size; i > 0; i--)
 		key_buf.add (codes[i - 1]);

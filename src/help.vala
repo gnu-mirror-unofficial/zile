@@ -1,6 +1,6 @@
 /* Self documentation facility functions
 
-   Copyright (c) 1997-2020 Free Software Foundation, Inc.
+   Copyright (c) 1997-2021 Free Software Foundation, Inc.
 
    This file is part of GNU Zile.
 
@@ -85,7 +85,7 @@ public void help_init () {
 
 			string? keystr = args.poll ();
 			if (keystr != null) {
-				Gee.List<uint>? keys = keystrtovec (keystr);
+				Gee.List<Keystroke>? keys = keystrtovec (keystr);
 				if (keys != null) {
 					name = get_function_by_keys (keys).name;
 					binding = keyvectodesc (keys);
@@ -93,7 +93,7 @@ public void help_init () {
 					ok = false;
 			} else {
 				Minibuf.write ("Describe key:");
-				Gee.List<uint> keys = get_key_sequence ();
+				Gee.List<Keystroke> keys = get_key_sequence ();
 				name = get_function_by_keys (keys).name;
 				binding = keyvectodesc (keys);
 

@@ -1,6 +1,6 @@
 /* Key bindings and extended commands
 
-   Copyright (c) 1997-2020 Free Software Foundation, Inc.
+   Copyright (c) 1997-2021 Free Software Foundation, Inc.
 
    This file is part of GNU Zile.
 
@@ -23,20 +23,19 @@ using Gee;
  * Key binding.
  *--------------------------------------------------------------------------*/
 
-// FIXME: https://gitlab.gnome.org/GNOME/libgee/-/issues/38
-// public struct Keystroke : uint {}
-// public struct KeySequence : Gee.List<Keystroke> {}
+public struct Keystroke : uint {}
+// FIXME: public class KeySequence : ArrayList<Keystroke> {}
 
 public class Binding {
 	public LispFunc? func;			/* (Leaf node): the function. */
-	public Map<uint, Binding>? map;	/* (Other node): Map of key code to Binding. */
+	public Map<Keystroke, Binding>? map;	/* (Other node): Map of key code to Binding. */
 	/* Note: the root is always a non-leaf node. */
 
 	public Binding () {
-		map = new TreeMap<uint, Binding> ();
+		map = new TreeMap<Keystroke, Binding> ();
 	}
 
-	public Binding? find (Gee.List<uint> keys) {
+	public Binding? find (Gee.List<Keystroke> keys) {
 		if (keys.size == 0) {
 			/* No more keys: either we found a binding, or we're part-way
 			 * through a prefix. */
@@ -49,7 +48,7 @@ public class Binding {
 		}
 	}
 
-	public void bind (Gee.List<uint> keys, LispFunc func) {
+	public void bind (Gee.List<Keystroke> keys, LispFunc func) {
 		/* If we are on the last keystroke, insert the function. */
 		if (keys.size == 0) {
 			map = null; /* Erase any previous suffixes. */
@@ -74,7 +73,7 @@ public class Binding {
 
 Binding root_bindings;
 
-public uint binding_completion (string a) {
+public Keystroke binding_completion (string a) {
 	string b = "";
 
 	if (Flags.SET_UNIARG in lastflag) {
@@ -91,7 +90,7 @@ public uint binding_completion (string a) {
 	Minibuf.write ("%s%s%s-",
 				   (Flags.SET_UNIARG | Flags.UNIARG_EMPTY) in lastflag ? "C-u " : "",
 				   b, a);
-	uint key = (uint) getkey (GETKEY_DEFAULT);
+	Keystroke key = getkey (GETKEY_DEFAULT);
 	Minibuf.clear ();
 
 	return key;
@@ -99,14 +98,14 @@ public uint binding_completion (string a) {
 
 /* Get a key sequence from the keyboard; the sequence returned
    has at most the last stroke unbound. */
-Gee.List<uint> get_key_sequence () {
-	var keys = new Gee.ArrayList<uint> ();
-	uint key = 0;
+Gee.List<Keystroke> get_key_sequence () {
+	var keys = new ArrayList<Keystroke> ();
+	Keystroke key = 0;
 
 	do
-		key = (uint) getkey (GETKEY_DEFAULT);
+		key = getkey (GETKEY_DEFAULT);
 	while (key == KBD_NOKEY);
-	keys.add ((uint) key);
+	keys.add (key);
 	for (;;) {
 		Binding p = root_bindings.find (keys);
 		if (p == null || p.func != null)
@@ -117,10 +116,10 @@ Gee.List<uint> get_key_sequence () {
 	return keys;
 }
 
-public LispFunc get_function_by_keys (Gee.List<uint> keys) {
+public LispFunc get_function_by_keys (Gee.List<Keystroke> keys) {
 	/* Detect Meta-digit */
 	if (keys.size == 1) {
-		uint key = keys.@get (0);
+		Keystroke key = keys.@get (0);
 		if ((key & KBD_META) != 0 &&
 			(((char) (key & 0xff)).isdigit () || (char) (key & 0xff) == '-'))
 			return LispFunc.find ("universal-argument");
@@ -185,7 +184,7 @@ bool call_command (LispFunc f, long uniarg, Gee.Queue<string>? args) {
 }
 
 void get_and_run_command () {
-	Gee.List<uint> keys = get_key_sequence ();
+	Gee.List<Keystroke> keys = get_key_sequence ();
 	LispFunc f = get_function_by_keys (keys);
 
 	Minibuf.clear ();
@@ -201,7 +200,7 @@ public void init_default_bindings () {
 	/* Bind all printing keys to self_insert_command */
 	for (uint i = 0; i <= 0xff; i++) {
 		if (((char) i).isprint ()) {
-			var keys = new Gee.ArrayList<uint> ();
+			var keys = new ArrayList<Keystroke> ();
 			keys.add (i);
 			root_bindings.bind (keys, LispFunc.find ("self-insert-command"));
 		}
@@ -216,7 +215,7 @@ void walk_bindings (BindingsProcessor process) {
 	BindingsWalker walker = null;
 	walker = (tree, keys) => {
 		assert (tree.map != null);
-		foreach (uint key in tree.map.keys) {
+		foreach (Keystroke key in tree.map.keys) {
 			Binding p = tree.map.@get (key);
 			assert (p != null);
 
@@ -237,7 +236,7 @@ public void bind_init () {
 	new LispFunc (
 		"global-set-key",
 		(uniarg, args) => {
-			Gee.List<uint>? keys;
+			Gee.List<Keystroke>? keys;
 			string? keystr = args.poll ();
 			if (keystr != null) {
 				keys = keystrtovec (keystr);

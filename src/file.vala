@@ -1,6 +1,6 @@
 /* Disk file handling
 
-   Copyright (c) 1997-2020 Free Software Foundation, Inc.
+   Copyright (c) 1997-2021 Free Software Foundation, Inc.
 
    This file is part of GNU Zile.
 
@@ -279,7 +279,7 @@ bool write_buffer (Buffer bp, bool needname, bool confirm, string? name0, string
 
 		for (ans = -2; ans == -2;) {
 			Minibuf.write ("%s%s", errmsg, buf);
-			uint key = getkeystroke (GETKEY_DEFAULT);
+			Keystroke key = getkeystroke (GETKEY_DEFAULT);
 			if (key == 'y' || key == 'Y' || key == ' ' || key == KBD_RET)
 				ans = 1;
 			else if (key == 'N' || key == 'n' || key == KBD_DEL)
@@ -543,7 +543,7 @@ Interactively, confirmation is required unless you supply a prefix argument."""
 					else
 						for (;;) {
 							Minibuf.write ("Save file %s? (y, n, !, ., q) ", fname);
-							uint c = getkey (GETKEY_DEFAULT);
+							Keystroke c = getkey (GETKEY_DEFAULT);
 							Minibuf.clear ();
 
 							if (c == KBD_CANCEL) {	/* C-g */

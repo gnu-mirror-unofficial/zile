@@ -1,6 +1,6 @@
 /* Getting and ungetting key strokes
 
-   Copyright (c) 1997-2020 Free Software Foundation, Inc.
+   Copyright (c) 1997-2021 Free Software Foundation, Inc.
 
    This file is part of GNU Zile.
 
@@ -25,10 +25,10 @@ public const int GETKEY_DELAYED = 2000;
    input, in milliseconds. */
 const int MAX_RESYNC_MS = 500;
 
-uint _last_key;
+Keystroke _last_key;
 
 /* Return last key pressed */
-uint lastkey () {
+Keystroke lastkey () {
 	return _last_key;
 }
 
@@ -36,7 +36,7 @@ uint lastkey () {
  * Get a keystroke, waiting for up to delay ms, and translate it into
  * a keycode.
  */
-uint getkeystroke (int delay) {
+Keystroke getkeystroke (int delay) {
 	_last_key = term_getkey (delay);
 
 	if (_last_key != KBD_NOKEY && Flags.DEFINING_MACRO in thisflag)
@@ -54,8 +54,8 @@ int64 next_refresh = 0;
 const int64 refresh_wait = MAX_RESYNC_MS * 1000;
 int64 now;
 
-uint getkey (int delay) {
-	uint keycode = getkeystroke (0);
+Keystroke getkey (int delay) {
+	Keystroke keycode = getkeystroke (0);
 
 	now = get_monotonic_time ();
 
@@ -71,8 +71,8 @@ uint getkey (int delay) {
 	return keycode;
 }
 
-uint getkey_unfiltered (int mode) {
-	uint key = term_getkey_unfiltered (mode);
+Keystroke getkey_unfiltered (int mode) {
+	Keystroke key = term_getkey_unfiltered (mode);
 
 	_last_key = key;
 	if (Flags.DEFINING_MACRO in thisflag)
@@ -92,14 +92,14 @@ void waitkey () {
 /*
  * Push a key into the input buffer.
  */
-void pushkey (uint key) {
+void pushkey (Keystroke key) {
 	term_ungetkey (key);
 }
 
 /*
  * Unget a key as if it had not been fetched.
  */
-void ungetkey (uint key) {
+void ungetkey (Keystroke key) {
 	pushkey (key);
 
 	if (Flags.DEFINING_MACRO in thisflag)

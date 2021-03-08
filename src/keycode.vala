@@ -1,6 +1,6 @@
 /* Key encoding and decoding functions
 
-   Copyright (c) 1997-2020 Free Software Foundation, Inc.
+   Copyright (c) 1997-2021 Free Software Foundation, Inc.
 
    This file is part of GNU Zile.
 
@@ -20,42 +20,42 @@
 using Gee;
 
 /* Special value returned for invalid key codes, or when no key is pressed. */
-public const int KBD_NOKEY = int.MAX;
+public const Keystroke KBD_NOKEY = uint.MAX;
 
 /* Key modifiers. */
-public const int KBD_CTRL = 01000;
-public const int KBD_META = 02000;
+public const Keystroke KBD_CTRL = 01000;
+public const Keystroke KBD_META = 02000;
 
 /* Common non-alphanumeric keys. */
-public const int KBD_CANCEL = (KBD_CTRL | 'g');
-public const int KBD_TAB = 00402;
-public const int KBD_RET = 00403;
-public const int KBD_PGUP = 00404;
-public const int KBD_PGDN = 00405;
-public const int KBD_HOME = 00406;
-public const int KBD_END = 00407;
-public const int KBD_DEL = 00410;
-public const int KBD_BS = 00411;
-public const int KBD_INS = 00412;
-public const int KBD_LEFT = 00413;
-public const int KBD_RIGHT = 00414;
-public const int KBD_UP = 00415;
-public const int KBD_DOWN = 00416;
-public const int KBD_F1 = 00420;
-public const int KBD_F2 = 00421;
-public const int KBD_F3 = 00422;
-public const int KBD_F4 = 00423;
-public const int KBD_F5 = 00424;
-public const int KBD_F6 = 00425;
-public const int KBD_F7 = 00426;
-public const int KBD_F8 = 00427;
-public const int KBD_F9 = 00430;
-public const int KBD_F10 = 00431;
-public const int KBD_F11 = 00432;
-public const int KBD_F12 = 00433;
+public const Keystroke KBD_CANCEL = (KBD_CTRL | 'g');
+public const Keystroke KBD_TAB = 00402;
+public const Keystroke KBD_RET = 00403;
+public const Keystroke KBD_PGUP = 00404;
+public const Keystroke KBD_PGDN = 00405;
+public const Keystroke KBD_HOME = 00406;
+public const Keystroke KBD_END = 00407;
+public const Keystroke KBD_DEL = 00410;
+public const Keystroke KBD_BS = 00411;
+public const Keystroke KBD_INS = 00412;
+public const Keystroke KBD_LEFT = 00413;
+public const Keystroke KBD_RIGHT = 00414;
+public const Keystroke KBD_UP = 00415;
+public const Keystroke KBD_DOWN = 00416;
+public const Keystroke KBD_F1 = 00420;
+public const Keystroke KBD_F2 = 00421;
+public const Keystroke KBD_F3 = 00422;
+public const Keystroke KBD_F4 = 00423;
+public const Keystroke KBD_F5 = 00424;
+public const Keystroke KBD_F6 = 00425;
+public const Keystroke KBD_F7 = 00426;
+public const Keystroke KBD_F8 = 00427;
+public const Keystroke KBD_F9 = 00430;
+public const Keystroke KBD_F10 = 00431;
+public const Keystroke KBD_F11 = 00432;
+public const Keystroke KBD_F12 = 00433;
 
 struct KeyInfo {
-	int code;
+	Keystroke code;
 	string name;
 	string desc;
 }
@@ -102,7 +102,7 @@ const KeyInfo[] keyinfo = {
 /*
  * Convert a key code to its string.
  */
-string? keytostr (size_t key) {
+string? keytostr (Keystroke key) {
 	for (uint i = 0; i < keyinfo.length; i++)
 		if (keyinfo[i].code == key)
 			return keyinfo[i].name;
@@ -114,7 +114,7 @@ string? keytostr (size_t key) {
 /*
  * Convert a key code to its description.
  */
-string keytodesc (size_t key) {
+string keytodesc (Keystroke key) {
 	for (uint i = 0; i < keyinfo.length; i++)
 		if (keyinfo[i].code == key)
 			return keyinfo[i].desc;
@@ -126,8 +126,8 @@ string keytodesc (size_t key) {
 /*
  * Convert a key chord into its ASCII representation
  */
-delegate string? KeyStringifier (size_t key);
-string? chordtostr (size_t key, KeyStringifier func) {
+delegate string? KeyStringifier (Keystroke key);
+string? chordtostr (Keystroke key, KeyStringifier func) {
 	string chord_string = "";
 
 	if ((key & KBD_CTRL) != 0)
@@ -145,16 +145,16 @@ string? chordtostr (size_t key, KeyStringifier func) {
 /*
  * Convert a key chord into its text description
  */
-string chordtodesc (size_t key) {
+string chordtodesc (Keystroke key) {
 	return chordtostr (key, keytodesc);
 }
 
 /*
  * Convert a key string to its key code.
  */
-uint strtokey (string buf, out uint len) {
+Keystroke strtokey (string buf, out Keystroke len) {
 	if (buf[0] == '\\') {
-		for (uint i = 0; i < keyinfo.length; i++)
+		for (Keystroke i = 0; i < keyinfo.length; i++)
 			if (buf.has_prefix (keyinfo[i].name)) {
 				len = keyinfo[i].name.length;
 				return keyinfo[i].code;
@@ -163,19 +163,19 @@ uint strtokey (string buf, out uint len) {
 		return KBD_NOKEY;
     } else {
 		len = 1;
-		return (uint) buf[0];
+		return (Keystroke) buf[0];
     }
 }
 
 /*
  * Convert a key chord string to its key code.
  */
-uint strtochord (string buf, out uint len) {
-	uint key = 0, k = 0;
+Keystroke strtochord (string buf, out Keystroke len) {
+	Keystroke key = 0, k = 0;
 
 	len = 0;
 	do {
-		uint l;
+		Keystroke l;
 
 		k = strtokey (buf.substring (len), out l);
 		if (k == KBD_NOKEY) {
@@ -193,11 +193,11 @@ uint strtochord (string buf, out uint len) {
  * Convert a key sequence string into a key code sequence, or null if
  * it can't be converted.
  */
-Gee.List<uint>? keystrtovec (string key)
+Gee.List<Keystroke>? keystrtovec (string key)
 {
-	var keys = new ArrayList<uint> ();
-	for (uint i = 0, len = 0; i < key.length; i += len) {
-		uint code = strtochord (key.substring (i), out len);
+	var keys = new ArrayList<Keystroke> ();
+	for (Keystroke i = 0, len = 0; i < key.length; i += len) {
+		Keystroke code = strtochord (key.substring (i), out len);
 		if (code == KBD_NOKEY)
 			return null;
 		keys.add (code);
@@ -209,19 +209,19 @@ Gee.List<uint>? keystrtovec (string key)
 /*
  * Convert a key code sequence into a string.
  */
-string keyvectostr (Gee.List<uint> keys) {
+string keyvectostr (Gee.List<Keystroke> keys) {
 	string key_string = "";
-	foreach (uint keycode in keys)
-		key_string += chordtostr ((size_t) keycode, keytostr);
+	foreach (Keystroke keycode in keys)
+		key_string += chordtostr (keycode, keytostr);
 	return key_string;
 }
 
 /*
  * Convert a key code sequence into a descriptive string.
  */
-string keyvectodesc (Gee.List<uint> keys) {
+string keyvectodesc (Gee.List<Keystroke> keys) {
 	var key_strings = new string[0];
-	foreach (uint keycode in keys)
-		key_strings += chordtodesc ((size_t) keycode);
+	foreach (Keystroke keycode in keys)
+		key_strings += chordtodesc (keycode);
 	return string.joinv (" ", key_strings);
 }

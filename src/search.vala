@@ -1,6 +1,6 @@
 /* Search and replace functions
 
-   Copyright (c) 1997-2020 Free Software Foundation, Inc.
+   Copyright (c) 1997-2021 Free Software Foundation, Inc.
 
    This file is part of GNU Zile.
 
@@ -142,7 +142,7 @@ bool isearch (bool forward, bool regexp) {
 
 		Minibuf.write ("%s", msg);
 
-		uint c = (uint) getkey (GETKEY_DEFAULT);
+		Keystroke c = getkey (GETKEY_DEFAULT);
 
 		if (c == KBD_CANCEL) {
 			cur_bp.goto_offset (start);
@@ -350,14 +350,14 @@ as a regexp.  See the command `isearch-forward-regexp` for more information."""
 			bool noask = false;
 			size_t count = 0;
 			while (search (find, true, false)) {
-				uint c = ' ';
+				Keystroke c = ' ';
 
 				if (!noask) {
 					if (Flags.NEED_RESYNC in thisflag)
 						cur_wp.resync ();
 
 					Minibuf.write ("Query replacing `%s' with `%s' (y, n, !, ., q)? ", find, repl);
-					c = (uint) getkey (GETKEY_DEFAULT);
+					c = getkey (GETKEY_DEFAULT);
 					Minibuf.clear ();
 
 					if (c == 'q')			/* Quit immediately. */
