@@ -24,7 +24,6 @@ using Gee;
  *--------------------------------------------------------------------------*/
 
 public struct Keystroke : uint {}
-// FIXME: public class KeySequence : ArrayList<Keystroke> {}
 
 public class Binding {
 	public LispFunc? func;			/* (Leaf node): the function. */
