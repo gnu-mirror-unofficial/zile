@@ -122,4 +122,4 @@
 +* Run:
  
 -    https://www.gnu.org/software/@PACKAGE@/manual/
-+    make dorelease
++    make dorelease RELEASE='X.Y TYPE'
