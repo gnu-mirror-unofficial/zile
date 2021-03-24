@@ -2,6 +2,11 @@ GNU Zile NEWS                                         -*- outline -*-
 
 * Noteworthy changes in release ?.? (????-??-??) [?]
 
+** Miscellaneous
+
+  Since version 2.4.x, the program has been completely rewritten in Vala.
+  The process of rewriting uncovered several bugs, which have been fixed;
+  functionally, Zile should work just as it did before.
 
 * Noteworthy changes in release 2.6.0.93 (2021-01-01) [beta]
 
