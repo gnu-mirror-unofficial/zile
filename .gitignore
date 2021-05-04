@@ -11,6 +11,7 @@ tags
 /lib
 /maint.mk
 /test-suite.log
+/tight-scope.mk
 Makefile
 Makefile.in
 aclocal.m4
