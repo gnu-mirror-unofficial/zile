@@ -2,6 +2,10 @@ GNU Zile NEWS                                         -*- outline -*-
 
 * Noteworthy changes in release ?.? (????-??-??) [?]
 
+** Bug fixes
+
+  Fix bug #60519, introduced in 2.6.0, where visiting a file that contained
+  no line endings would cause a null pointer dereference.
 
 * Noteworthy changes in release 2.6.1 (2021-03-24) [stable]
 
