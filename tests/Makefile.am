@@ -243,8 +243,9 @@ EMACS_TESTS_ENVIRONMENT =				\
 EXTRA_DIST +=						\
 	$(LISP_ALL_TESTS)				\
 	$(LISP_TESTS_OUTPUTS)				\
-	tests/test.input				\
-	tests/run-lisp-test.pl
+	%D%/test.input					\
+	%D%/regression/60519_read_file_crash.orig-input \
+	%D%/run-lisp-test.pl
 
 # The tests pass with Emacs 24.x, and fail with 25.1 or later.
 check-emacs:
