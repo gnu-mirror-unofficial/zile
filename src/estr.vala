@@ -159,6 +159,7 @@ public class Estr : ImmutableEstr {
 		const int MAX_EOL_CHECK_COUNT = 3;
 		bool first_eol = true;
 		size_t total_eols = 0;
+		eol = eol_lf; /* Set default value */
 		for (size_t i = 0; i < length && total_eols < MAX_EOL_CHECK_COUNT; i++) {
 			char c = text[i];
 			if (c == '\n' || c == '\r') {

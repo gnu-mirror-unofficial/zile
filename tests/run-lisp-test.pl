@@ -1,6 +1,6 @@
 # run-lisp-test
 #
-# Copyright (c) 2009-2020 Free Software Foundation, Inc.
+# Copyright (c) 2009-2021 Free Software Foundation, Inc.
 #
 # This file is part of GNU Zile.
 #
@@ -49,7 +49,9 @@ $lisp_file =~ s/^\Q$srcdir/$abs_srcdir/e;
 # Perform the test
 mkpath(dirname($edit_file));
 my $cmd = "$editor_cmd --no-init-file \"$edit_file\" --load \"$lisp_file\"";
-copy("$srcdir/tests/test.input", $edit_file);
+my $input_file = "$test.orig-input";
+$input_file = "$srcdir/tests/test.input" if !-e $input_file;
+copy($input_file, $edit_file);
 chmod 0644, $edit_file;
 my $stderr_output = `$cmd 3>&1 1>&2 2>&3 3>&-`; # Swap stderr & stdout https://www.perlmonks.org/?node_id=730
 die "$editor_name failed to run test `$name' with error code $?\n" unless $? == 0;

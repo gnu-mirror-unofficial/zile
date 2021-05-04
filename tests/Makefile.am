@@ -1,6 +1,6 @@
 # Tests Makefile.am
 #
-# Copyright (c) 1997-2020 Free Software Foundation, Inc.
+# Copyright (c) 1997-2021 Free Software Foundation, Inc.
 #
 # This file is part of GNU Zile.
 #
@@ -183,6 +183,7 @@ LISP_TESTS_ZILE_ONLY =							\
 	%D%/regression/35560_find-file_completion.el			\
 	%D%/regression/35562_search-backward.el				\
 	%D%/regression/35567_minibuffer_ding_non_printable.el		\
+	%D%/regression/60519_read_file_crash.el				\
 	%D%/regression/goto-char_large.el				\
 	%D%/zile-only/backward-delete-char_twice_in_empty_file.el	\
 	%D%/zile-only/backward-word.el					\
