@@ -23,8 +23,8 @@ gnulib_dir = $(GNULIB_SRCDIR)
 # Set format of NEWS
 old_NEWS_hash := 7a0fead582e45d6f25f6f75a1d580d4f
 
-# Don't check test outputs or diff patches
-VC_LIST_ALWAYS_EXCLUDE_REGEX = \.(output|diff)$$
+# Don't check test inputs and outputs, or diff patches
+VC_LIST_ALWAYS_EXCLUDE_REGEX = \.(output|diff|orig-input)$$
 
 # Don't send release announcements to Translation Project
 translation_project_ =
