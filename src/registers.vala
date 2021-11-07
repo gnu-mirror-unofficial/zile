@@ -18,7 +18,7 @@
    along with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 int NUM_REGISTERS = 256;
-/* FIXME: https://gitlab.gnome.org/GNOME/vala/-/issues/440 */
+/* FIXME: (fixed in Vala 0.56) https://gitlab.gnome.org/GNOME/vala/-/issues/440 */
 ImmutableEstr regs[256 /* NUM_REGISTERS */];
 
 long regnum;
